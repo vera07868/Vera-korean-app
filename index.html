@@ -18,7 +18,9 @@
       --warn: #f59e0b;
       --shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
     }
+
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
@@ -27,9 +29,17 @@
       min-height: 100vh;
       padding: 24px;
     }
+
     .container { max-width: 1100px; margin: 0 auto; }
-    h1 { text-align: center; margin: 0 0 18px; font-size: clamp(28px, 4vw, 44px); }
+
+    h1 {
+      text-align: center;
+      margin: 0 0 18px;
+      font-size: clamp(28px, 4vw, 44px);
+    }
+
     h2, h3 { margin-top: 0; }
+
     .card, details.card {
       background: rgba(255, 255, 255, 0.94);
       border: 1px solid var(--border);
@@ -38,56 +48,295 @@
       padding: 22px;
       margin-bottom: 22px;
     }
-    .section-title { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 14px; }
-    .form-grid { display: grid; grid-template-columns: 1.2fr 1.2fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-    .two-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-    .actions, .filters, .modes, .pills { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1.2fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .two-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .actions, .filters, .modes, .pills {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
     button, input, select, textarea { font: inherit; }
-    button { border: 0; border-radius: 999px; padding: 10px 16px; cursor: pointer; background: #e5e7eb; color: #111827; transition: 0.18s ease; font-weight: 650; }
-    button:hover { transform: translateY(-1px); filter: brightness(0.98); }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 16px;
+      cursor: pointer;
+      background: #e5e7eb;
+      color: #111827;
+      transition: 0.18s ease;
+      font-weight: 650;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(0.98);
+    }
+
     button:active { transform: translateY(0); }
+
     .primary { background: var(--primary); color: white; }
     .primary:hover { background: var(--primary-dark); }
     .danger { background: var(--danger); color: white; }
     .ghost { background: #eef2ff; color: var(--primary); }
-    input, select, textarea { width: 100%; border: 1px solid var(--border); border-radius: 14px; padding: 11px 12px; background: #fff; color: var(--text); outline: none; min-width: 0; }
-    select { height: 48px; line-height: 1.2; appearance: auto; -webkit-appearance: menulist; overflow: hidden; }
-    select option { color: #111827; background: #ffffff; font-size: 16px; }
-    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12); }
-    textarea { min-height: 92px; resize: vertical; }
-    label .field-title { display: block; font-weight: 800; margin-bottom: 6px; color: #374151; }
-    .muted { color: var(--muted); font-size: 14px; }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 11px 12px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      min-width: 0;
+    }
+
+    select {
+      height: 48px;
+      line-height: 1.2;
+      appearance: auto;
+      -webkit-appearance: menulist;
+      overflow: hidden;
+    }
+
+    select option {
+      color: #111827;
+      background: #ffffff;
+      font-size: 16px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    label .field-title {
+      display: block;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
     .hidden { display: none !important; }
+
     .modes { margin: 12px 0; }
-    .modes label { width: auto; background: #f8fafc; border: 1px solid var(--border); border-radius: 999px; padding: 9px 12px; cursor: pointer; user-select: none; }
-    .modes input { width: auto; margin-right: 6px; }
-    .progress { height: 12px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
-    .progress > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), #06b6d4); transition: width 0.25s ease; }
-    .quiz-panel { display: grid; gap: 14px; text-align: center; margin-top: 14px; }
-    .question-card { border-radius: 20px; border: 1px dashed #c7d2fe; background: #f8faff; padding: 26px 18px; text-align: center; }
-    .badge { display: inline-flex; background: #eef2ff; color: var(--primary-dark); border-radius: 999px; padding: 6px 12px; font-weight: 700; margin-bottom: 12px; }
-    .question-text { font-size: clamp(30px, 6vw, 58px); line-height: 1.2; font-weight: 800; word-break: keep-all; }
-    .answer-input { width: min(100%, 520px); text-align: center; font-size: 22px; margin: 0 auto; }
-    .result { min-height: 30px; font-size: 18px; font-weight: 800; text-align: center; }
+
+    .modes label {
+      width: auto;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 9px 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .modes input {
+      width: auto;
+      margin-right: 6px;
+    }
+
+    .progress {
+      height: 12px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress > div {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), #06b6d4);
+      transition: width 0.25s ease;
+    }
+
+    .quiz-panel {
+      display: grid;
+      gap: 14px;
+      text-align: center;
+      margin-top: 14px;
+    }
+
+    .question-card {
+      border-radius: 20px;
+      border: 1px dashed #c7d2fe;
+      background: #f8faff;
+      padding: 26px 18px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      background: #eef2ff;
+      color: var(--primary-dark);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .question-text {
+      font-size: clamp(30px, 6vw, 58px);
+      line-height: 1.2;
+      font-weight: 800;
+      word-break: keep-all;
+    }
+
+    .answer-input {
+      width: min(100%, 520px);
+      text-align: center;
+      font-size: 22px;
+      margin: 0 auto;
+    }
+
+    .result {
+      min-height: 30px;
+      font-size: 18px;
+      font-weight: 800;
+      text-align: center;
+    }
+
     .result.ok { color: var(--ok); }
     .result.bad { color: var(--danger); }
-    details.card { padding: 0; overflow: hidden; }
-    summary { list-style: none; cursor: pointer; padding: 20px 22px; font-size: 24px; font-weight: 800; display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+
+    details.card {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 20px 22px;
+      font-size: 24px;
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
     summary::-webkit-details-marker { display: none; }
-    details[open] summary { border-bottom: 1px solid var(--border); }
+
+    details[open] summary {
+      border-bottom: 1px solid var(--border);
+    }
+
     .content { padding: 22px; }
-    .words { display: grid; gap: 10px; margin-top: 14px; }
-    .word { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; border: 1px solid var(--border); border-radius: 18px; background: #fff; padding: 14px; }
-    .ko { font-size: 24px; font-weight: 800; }
+
+    .words {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .word {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .ko {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
     .zh, .tag { color: var(--muted); }
+
     .tag { font-size: 13px; }
-    .example { background: #f8fafc; border-radius: 12px; padding: 8px 10px; margin-top: 6px; }
-    .pill { border-radius: 999px; padding: 4px 9px; background: #f1f5f9; color: #475569; font-size: 12px; font-weight: 700; }
+
+    .example {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 8px 10px;
+      margin-top: 6px;
+    }
+
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      margin-left: 6px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      background: #eef2ff;
+      color: var(--primary);
+      font-size: 15px;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
     .pill.warn { background: #fffbeb; color: #b45309; }
     .pill.ok { background: #ecfdf5; color: #047857; }
-    .mini { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-    .mini button { padding: 8px 12px; font-size: 14px; }
-    .backup-box { width: 100%; min-height: 150px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; margin-top: 12px; }
+
+    .mini {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .mini button {
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+
+    .backup-box {
+      width: 100%;
+      min-height: 150px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
     @media (max-width: 760px) {
       body { padding: 14px; }
       .form-grid, .two-grid, .word { grid-template-columns: 1fr; }
@@ -96,6 +345,7 @@
     }
   </style>
 </head>
+
 <body>
 <main class="container">
   <h1>韓文背單字</h1>
@@ -120,10 +370,7 @@
         <span class="field-title">例句</span>
         <textarea id="exampleInput" placeholder="例句，例如：저는 사과를 좋아해요. 若空白，系統會自動產生例句。"></textarea>
       </label>
-      <label>
-        <span class="field-title">例句中文</span>
-        <textarea id="exampleZhInput" placeholder="例句中文，例如：我喜歡蘋果。若空白，系統會自動產生中文對照。"></textarea>
-      </label>
+
       <label>
         <span class="field-title">備註</span>
         <textarea id="noteInput" placeholder="備註可留空，例如：發音提示、用法、容易混淆的地方。"></textarea>
@@ -173,7 +420,8 @@
 
     <div class="actions" style="margin-top: 12px;">
       <label style="width:auto;">
-        題數：<input id="questionCount" type="number" min="1" value="10" style="width: 110px;" />
+        題數：
+        <input id="questionCount" type="number" min="1" value="10" style="width: 110px;" />
         <span class="muted" id="questionLimit">/ 0</span>
       </label>
       <button class="ghost" id="resetSrsBtn" type="button">重置全部 SRS</button>
@@ -190,16 +438,20 @@
       <button class="danger" id="endQuizBtn" type="button">結束測驗</button>
     </div>
 
-    <div class="progress"><div id="progressBar"></div></div>
+    <div class="progress">
+      <div id="progressBar"></div>
+    </div>
 
     <div class="quiz-panel">
       <div class="question-card">
         <div class="badge" id="quizPos"></div>
         <div class="question-text" id="questionText"></div>
       </div>
+
       <button class="ghost" id="speakBtn" type="button">播放發音</button>
       <input class="answer-input" id="answerInput" placeholder="輸入答案後按 Enter" />
       <div class="result" id="resultBox"></div>
+
       <div class="actions" style="justify-content:center;">
         <button id="prevBtn" type="button">⬅ 上一題</button>
         <button class="primary" id="submitBtn" type="button">提交答案</button>
@@ -298,6 +550,7 @@
 
   function loadWords() {
     const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY);
+
     if (raw) {
       try {
         return JSON.parse(raw);
@@ -405,7 +658,13 @@
       const dueDate = w.stats?.dueAt ? new Date(w.stats.dueAt).toLocaleDateString("zh-TW") : "今天";
 
       const exampleBlock = w.example
-        ? `<div class="example"><div>例句：${escapeHtml(w.example)}</div>${w.exampleZh ? `<div class="zh">中文：${escapeHtml(w.exampleZh)}</div>` : ""}</div>`
+        ? `<div class="example">
+            <div>
+              例句：${escapeHtml(w.example)}
+              <button class="icon-btn" type="button" title="播放例句" aria-label="播放例句" onclick="speak('${escapeJs(w.example)}')">🔊</button>
+            </div>
+            ${w.exampleZh ? `<div class="zh">中文：${escapeHtml(w.exampleZh)}</div>` : ""}
+          </div>`
         : "";
 
       return `
@@ -423,9 +682,9 @@
               <span class="pill">間隔 ${w.stats?.intervalDays || 0} 天</span>
             </div>
           </div>
+
           <div class="mini">
             <button class="ghost" type="button" onclick="speak('${escapeJs(w.korean)}')">播放單字</button>
-            ${w.example ? `<button class="ghost" type="button" onclick="speak('${escapeJs(w.example)}')">播放例句</button>` : ""}
             <button type="button" onclick="editWord('${w.id}')">編輯</button>
             <button type="button" onclick="resetOneSrs('${w.id}')">重置 SRS</button>
             <button class="danger" type="button" onclick="deleteWord('${w.id}')">刪除</button>
@@ -445,12 +704,18 @@
     $("questionCount").addEventListener("input", updateQuestionLimit);
     $("wrongRateThreshold").addEventListener("input", updateQuestionLimit);
     $("wrongRateOperator").addEventListener("change", updateQuestionLimit);
-    document.querySelectorAll("input[name='scope']").forEach(r => r.addEventListener("change", updateQuestionLimit));
+
+    document.querySelectorAll("input[name='scope']").forEach(r => {
+      r.addEventListener("change", updateQuestionLimit);
+    });
+
     $("startQuizBtn").addEventListener("click", startQuiz);
     $("submitBtn").addEventListener("click", submitAnswer);
+
     $("answerInput").addEventListener("keydown", e => {
       if (e.key === "Enter") submitAnswer();
     });
+
     $("prevBtn").addEventListener("click", () => moveQuiz(-1));
     $("nextBtn").addEventListener("click", () => moveQuiz(1));
     $("endQuizBtn").addEventListener("click", endQuiz);
@@ -472,7 +737,6 @@
     }
 
     $("exampleInput").value = makeExample(korean, chinese, pos);
-    $("exampleZhInput").value = makeExampleZh(korean, chinese, pos);
   }
 
   function saveWordFromForm() {
@@ -481,7 +745,7 @@
     const pos = $("posInput").value;
     const category = $("categoryInput").value.trim() || "未分類";
     const example = $("exampleInput").value.trim() || makeExample(korean, chinese, pos);
-    const exampleZh = $("exampleZhInput").value.trim() || makeExampleZh(korean, chinese, pos);
+    const exampleZh = makeExampleZh(korean, chinese, pos);
     const note = $("noteInput").value.trim();
 
     if (!korean || !chinese) {
@@ -490,7 +754,17 @@
     }
 
     if (editingId) {
-      words = words.map(w => w.id === editingId ? { ...w, korean, chinese, pos, category, example, exampleZh, note } : w);
+      words = words.map(w => w.id === editingId ? {
+        ...w,
+        korean,
+        chinese,
+        pos,
+        category,
+        example,
+        exampleZh,
+        note
+      } : w);
+
       showSaveHint("已更新單字。", true);
     } else {
       words.unshift(makeWord(korean, chinese, pos, category, example, note, exampleZh));
@@ -508,7 +782,6 @@
     $("posInput").value = POS_LIST[0];
     $("categoryInput").value = "";
     $("exampleInput").value = "";
-    $("exampleZhInput").value = "";
     $("noteInput").value = "";
     $("saveBtn").textContent = "儲存單字";
     $("cancelBtn").classList.add("hidden");
@@ -520,6 +793,7 @@
     const el = $("saveHint");
     el.textContent = text;
     el.style.color = ok ? "var(--ok)" : "var(--muted)";
+
     setTimeout(() => {
       el.textContent = "資料會儲存在此瀏覽器。";
       el.style.color = "var(--muted)";
@@ -536,10 +810,10 @@
     $("posInput").value = w.pos;
     $("categoryInput").value = w.category || "未分類";
     $("exampleInput").value = w.example || makeExample(w.korean, w.chinese, w.pos);
-    $("exampleZhInput").value = w.exampleZh || makeExampleZh(w.korean, w.chinese, w.pos);
     $("noteInput").value = w.note || "";
     $("saveBtn").textContent = "更新單字";
     $("cancelBtn").classList.remove("hidden");
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -582,7 +856,10 @@
 
     const input = $("questionCount");
     input.max = Math.max(pool.length, 1);
-    if (+input.value > pool.length) input.value = pool.length || 1;
+
+    if (+input.value > pool.length) {
+      input.value = pool.length || 1;
+    }
   }
 
   function getMode() {
@@ -598,6 +875,7 @@
     }
 
     pool = shuffle(pool).slice(0, Math.min(+$("questionCount").value || 1, pool.length));
+
     quiz = {
       items: pool,
       index: 0,
@@ -616,6 +894,7 @@
     const item = quiz.items[quiz.index];
     const modes = ["zhToKo", "koToZh", "listen"];
     const mode = quiz.mode === "mixed" ? modes[Math.floor(Math.random() * modes.length)] : quiz.mode;
+
     item.currentMode = mode;
 
     $("quizProgressText").textContent = `進度：${quiz.index + 1} / ${quiz.items.length}`;
@@ -628,7 +907,9 @@
     $("resultBox").className = "result";
     $("answerInput").focus();
 
-    if (mode === "listen") setTimeout(() => speak(item.korean), 200);
+    if (mode === "listen") {
+      setTimeout(() => speak(item.korean), 200);
+    }
   }
 
   function submitAnswer() {
@@ -650,7 +931,9 @@
     speak(item.korean);
     saveWords();
 
-    if (isLastQuestion) endQuiz();
+    if (isLastQuestion) {
+      endQuiz();
+    }
   }
 
   function updateStats(id, isCorrect) {
@@ -663,9 +946,15 @@
 
       if (isCorrect) {
         s.reps += 1;
-        if (s.reps === 1) s.intervalDays = 1;
-        else if (s.reps === 2) s.intervalDays = 3;
-        else s.intervalDays = Math.max(5, Math.round(s.intervalDays * s.ease));
+
+        if (s.reps === 1) {
+          s.intervalDays = 1;
+        } else if (s.reps === 2) {
+          s.intervalDays = 3;
+        } else {
+          s.intervalDays = Math.max(5, Math.round(s.intervalDays * s.ease));
+        }
+
         s.ease = Math.min(3.2, s.ease + 0.08);
       } else {
         s.wrong += 1;
@@ -675,12 +964,14 @@
       }
 
       s.dueAt = now() + s.intervalDays * dayMs;
+
       return { ...w, stats: s };
     });
   }
 
   function moveQuiz(delta) {
     if (!quiz) return;
+
     quiz.index = Math.min(Math.max(quiz.index + delta, 0), quiz.items.length - 1);
     renderQuizQuestion();
   }
@@ -701,12 +992,15 @@
 
   function getWrongRate(w) {
     const s = { ...makeStats(), ...(w.stats || {}) };
+
     if (!s.attempts) return 100;
+
     return Math.round((s.wrong / s.attempts) * 100);
   }
 
   function backupCopy() {
     const data = JSON.stringify(words, null, 2);
+
     $("backupText").value = data;
     navigator.clipboard?.writeText(data).catch(() => {});
     showSaveHint("備份已顯示在備份區，也已嘗試複製到剪貼簿。", true);
@@ -715,7 +1009,10 @@
   function importBackup() {
     try {
       const data = JSON.parse($("backupText").value);
-      if (!Array.isArray(data)) throw new Error("格式錯誤");
+
+      if (!Array.isArray(data)) {
+        throw new Error("格式錯誤");
+      }
 
       words = migrateWords(data);
       saveWords();
@@ -727,6 +1024,7 @@
 
   function clearDatabase() {
     if (!confirm("確定要清空全部單字嗎？這個動作無法復原。")) return;
+
     words = [];
     saveWords();
   }
@@ -742,6 +1040,7 @@
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = "ko-KR";
     utter.rate = 0.85;
+
     window.speechSynthesis.speak(utter);
   };
 
