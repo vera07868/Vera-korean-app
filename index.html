@@ -305,6 +305,36 @@
       font-size: 15px;
     }
 
+    .accuracy-box {
+      margin-top: 9px;
+      max-width: 260px;
+    }
+
+    .accuracy-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .accuracy-bar {
+      height: 10px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .accuracy-bar > div {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), #06b6d4);
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+
     .pill {
       border-radius: 999px;
       padding: 4px 9px;
@@ -389,7 +419,7 @@
     <div class="section-title">
       <div>
         <h2>測驗設定</h2>
-        <p class="muted">測驗範圍可選全部、依錯題率，或遺忘曲線今日到期。</p>
+        <p class="muted">測驗範圍可選全部、依正確率、遺忘曲線今日到期，或新單字。</p>
       </div>
     </div>
 
@@ -403,18 +433,19 @@
 
     <h3>2. 測驗範圍</h3>
     <div class="modes">
-      <label><input type="radio" name="scope" value="all" checked />全部單字</label>
-      <label><input type="radio" name="scope" value="wrongRate" />依錯題率</label>
+      <label><input type="radio" name="scope" value="all" checked />全部</label>
+      <label><input type="radio" name="scope" value="accuracyRate" />依正確率</label>
       <label><input type="radio" name="scope" value="srs" />遺忘曲線 / 今日到期</label>
+      <label><input type="radio" name="scope" value="newWords" />新單字</label>
     </div>
 
     <div class="actions">
-      <span>錯題率</span>
-      <select id="wrongRateOperator" style="width: 100px;">
-        <option value=">=">以上</option>
+      <span>正確率</span>
+      <select id="accuracyRateOperator" style="width: 100px;">
         <option value="<=">以下</option>
+        <option value=">=">以上</option>
       </select>
-      <input id="wrongRateThreshold" type="number" min="0" max="100" value="50" style="width: 110px;" />
+      <input id="accuracyRateThreshold" type="number" min="0" max="100" value="100" style="width: 110px;" />
       <span>%</span>
     </div>
 
@@ -650,11 +681,13 @@
     });
 
     const dueCount = words.filter(w => (w.stats?.dueAt || 0) <= now()).length;
-    $("wordCountText").textContent = `目前 ${words.length} 個單字｜今日到期 ${dueCount}`;
+    const newCount = words.filter(w => isNewWord(w)).length;
+    $("wordCountText").textContent = `目前 ${words.length} 個單字｜今日到期 ${dueCount}｜新單字 ${newCount}`;
 
     $("wordList").innerHTML = filtered.map(w => {
-      const rate = getWrongRate(w);
+      const accuracy = getAccuracyRate(w);
       const isDue = (w.stats?.dueAt || 0) <= now();
+      const isNew = isNewWord(w);
       const dueDate = w.stats?.dueAt ? new Date(w.stats.dueAt).toLocaleDateString("zh-TW") : "今天";
 
       const exampleBlock = w.example
@@ -675,8 +708,20 @@
             <div class="tag">${escapeHtml(w.pos)}｜${escapeHtml(w.category || "未分類")}</div>
             ${exampleBlock}
             ${w.note ? `<div class="muted">備註：${escapeHtml(w.note).replace(/\n/g, "<br>")}</div>` : ""}
-            <div class="pills">
-              <span class="pill ${rate >= 50 ? "warn" : "ok"}">錯題率 ${rate}%</span>
+
+            <div class="accuracy-box">
+              <div class="accuracy-label">
+                <span>正確率</span>
+                <span>${accuracy}%</span>
+              </div>
+              <div class="accuracy-bar">
+                <div style="width:${accuracy}%;"></div>
+              </div>
+            </div>
+
+            <div class="pills" style="margin-top: 8px;">
+              <span class="pill ${accuracy >= 70 ? "ok" : "warn"}">正確率 ${accuracy}%</span>
+              ${isNew ? `<span class="pill ok">新單字</span>` : ""}
               <span class="pill">答題 ${w.stats?.attempts || 0} 次</span>
               <span class="pill ${isDue ? "warn" : ""}">${isDue ? "今日到期" : `下次 ${dueDate}`}</span>
               <span class="pill">間隔 ${w.stats?.intervalDays || 0} 天</span>
@@ -702,8 +747,8 @@
     $("posFilter").addEventListener("change", renderWordList);
     $("searchInput").addEventListener("input", renderWordList);
     $("questionCount").addEventListener("input", updateQuestionLimit);
-    $("wrongRateThreshold").addEventListener("input", updateQuestionLimit);
-    $("wrongRateOperator").addEventListener("change", updateQuestionLimit);
+    $("accuracyRateThreshold").addEventListener("input", updateQuestionLimit);
+    $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
 
     document.querySelectorAll("input[name='scope']").forEach(r => {
       r.addEventListener("change", updateQuestionLimit);
@@ -829,7 +874,7 @@
   };
 
   function resetAllSrs() {
-    if (!confirm("確定要重置全部單字的 SRS 與錯題統計嗎？")) return;
+    if (!confirm("確定要重置全部單字的 SRS 與正確率統計嗎？")) return;
     words = words.map(w => ({ ...w, stats: makeStats() }));
     saveWords();
   }
@@ -843,14 +888,17 @@
 
     if (scope === "all") return [...words];
     if (scope === "srs") return words.filter(w => (w.stats?.dueAt || 0) <= now());
+    if (scope === "newWords") return words.filter(w => isNewWord(w));
 
-    const threshold = Number($("wrongRateThreshold").value || 0);
-    const op = $("wrongRateOperator").value;
+    const threshold = getAccuracyThreshold();
+    const op = $("accuracyRateOperator").value;
 
-    return words.filter(w => op === ">=" ? getWrongRate(w) >= threshold : getWrongRate(w) <= threshold);
+    return words.filter(w => op === ">=" ? getAccuracyRate(w) >= threshold : getAccuracyRate(w) <= threshold);
   }
 
   function updateQuestionLimit() {
+    clampAccuracyInput();
+
     const pool = getPool();
     $("questionLimit").textContent = `/ ${pool.length}`;
 
@@ -990,12 +1038,34 @@
     renderAll();
   }
 
-  function getWrongRate(w) {
+  function isNewWord(w) {
+    const s = { ...makeStats(), ...(w.stats || {}) };
+    return !s.attempts;
+  }
+
+  function getAccuracyRate(w) {
     const s = { ...makeStats(), ...(w.stats || {}) };
 
     if (!s.attempts) return 100;
 
-    return Math.round((s.wrong / s.attempts) * 100);
+    const wrongCount = Math.max(0, Number(s.wrong || 1) - 1);
+    const correctCount = Math.max(0, s.attempts - wrongCount);
+    const rate = Math.round((correctCount / s.attempts) * 100);
+
+    return Math.min(100, Math.max(0, rate));
+  }
+
+  function getAccuracyThreshold() {
+    const value = Number($("accuracyRateThreshold").value || 0);
+    return Math.min(100, Math.max(0, value));
+  }
+
+  function clampAccuracyInput() {
+    const input = $("accuracyRateThreshold");
+    const value = Number(input.value || 0);
+
+    if (value > 100) input.value = 100;
+    if (value < 0) input.value = 0;
   }
 
   function backupCopy() {
