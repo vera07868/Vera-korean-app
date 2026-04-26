@@ -296,7 +296,18 @@
       <div class="form-grid">
         <input id="koreanInput" placeholder="韓文，例如：사과" />
         <input id="chineseInput" placeholder="中文，例如：蘋果" />
-        <select id="posInput"></select>
+        <select id="posInput"$1>
+          <option value="名詞 (명사)">名詞 (명사)</option>
+          <option value="代名詞 (대명사)">代名詞 (대명사)</option>
+          <option value="數詞 (수사)">數詞 (수사)</option>
+          <option value="動詞 (동사)">動詞 (동사)</option>
+          <option value="形容詞 (형용사)">形容詞 (형용사)</option>
+          <option value="冠形詞 (관형사)">冠形詞 (관형사)</option>
+          <option value="副詞 (부사)">副詞 (부사)</option>
+          <option value="感嘆詞 (감탄사)">感嘆詞 (감탄사)</option>
+          <option value="助詞 (조사)">助詞 (조사)</option>
+          <option value="片語/習慣用語">片語/習慣用語</option>
+        </select>
         <input id="categoryInput" placeholder="分類，例如：食物 / 旅遊" />
       </div>
       <div class="two-grid">
@@ -480,7 +491,23 @@
 
       $("categoryChecks").innerHTML = cats.map(cat => {
         const checked = selectedCatMemory.includes(cat) ? "checked" : "";
-        return `<label><input type="checkbox" name="catCheck" value="${es    function renderWordList() {
+        return `<label><input type="checkbox" name="catCheck" value="${escapeHtml(cat)}" ${checked} />${escapeHtml(cat)}</label>`;
+      }).join("") || `<span class="muted">尚無分類</span>`;
+
+      document.querySelectorAll("input[name='catCheck']").forEach(input => {
+        input.addEventListener("change", () => {
+          selectedCatMemory = selectedCategories();
+          updateQuestionLimit();
+        });
+      });
+
+      const currentCategory = $("categoryFilter").value || "all";
+      $("categoryFilter").innerHTML = `<option value="all">全部分類</option>` + cats.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join("");
+      $("categoryFilter").value = cats.includes(currentCategory) ? currentCategory : "all";
+      updateQuestionLimit();
+    }
+
+    function renderWordList() {
       const category = $("categoryFilter").value || "all";
       const pos = $("posFilter").value || "all";
       const keyword = normalize($("searchInput").value);
@@ -522,23 +549,6 @@
           </article>
         `;
       }).join("") || `<p class="muted">目前沒有符合條件的單字。</p>`;
-    }
-
-    function renderAll()&& bySearch;
-      });
-
-      $("wordCountText").textContent = `目前 ${words.length} 個單字`;
-
-      $("wordList").innerHTML = filtered.map(w => `$1${w.example ? `<div class="muted">例句：${escapeHtml(w.example)}</div>` : ""}
-            ${w.note ? `<div class="muted">備註：${escapeHtml(w.note)}</div>` : ""}
-          </div>
-          <div class="mini-actions">
-            <button class="ghost" onclick="speak('${escapeAttr(w.korean)}')">播放</button>
-            <button onclick="editWord('${w.id}')">編輯</button>
-            <button class="danger" onclick="deleteWord('${w.id}')">刪除</button>
-          </div>
-        </article>
-      `).join("") || `<p class="muted">此詞性目前沒有符合條件的單字。</p>`;
     }
 
     function renderAll() {
@@ -879,7 +889,9 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;")
-        .replace(/[\\\n\r]/g, " ");
+        .replace(/[\
+
+]/g, " ");
     }
 
     init();
