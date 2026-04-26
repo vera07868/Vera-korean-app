@@ -3,731 +3,129 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>韓文背單字</title>
+  <title>韓文背單字 SRS</title>
   <style>
-    :root {
-      --bg: #f5f7fb;
-      --card: #ffffff;
-      --primary: #4f46e5;
-      --primary-dark: #3730a3;
-      --danger: #ef4444;
-      --danger-dark: #b91c1c;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --border: #dbe1ea;
-      --ok: #16a34a;
-      --warn: #f59e0b;
-      --shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
-      background: linear-gradient(135deg, #eef2ff, #f8fafc 45%, #ecfeff);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 24px;
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    h1 {
-      margin: 0 0 18px;
-      font-size: clamp(28px, 4vw, 44px);
-      letter-spacing: 0.03em;
-      text-align: center;
-      color: #111827;
-    }
-
-    h2, h3 { margin-top: 0; }
-
-    .card {
-      background: rgba(255, 255, 255, 0.92);
-      border: 1px solid rgba(219, 225, 234, 0.9);
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-      padding: 22px;
-      margin-bottom: 22px;
-      backdrop-filter: blur(10px);
-    }
-
-    .tabs, .row, .actions, .filter-row, .checkbox-grid {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .tabs { justify-content: center; margin-bottom: 18px; }
-
-    button, select, input, textarea {
-      font: inherit;
-    }
-
-    button {
-      border: 0;
-      border-radius: 999px;
-      padding: 10px 16px;
-      cursor: pointer;
-      background: #e5e7eb;
-      color: #111827;
-      transition: 0.18s ease;
-      font-weight: 650;
-    }
-
-    button:hover { transform: translateY(-1px); filter: brightness(0.98); }
-    button:active { transform: translateY(0); }
-
-    .primary { background: var(--primary); color: white; }
-    .primary:hover { background: var(--primary-dark); }
-    .danger { background: var(--danger); color: white; }
-    .danger:hover { background: var(--danger-dark); }
-    .ghost { background: #eef2ff; color: var(--primary); }
-    .tab.active { background: var(--primary); color: white; }
-
-    input, select, textarea {
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 11px 12px;
-      background: #fff;
-      color: var(--text);
-      outline: none;
-      min-width: 0;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 90px;
-      resize: vertical;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1.2fr 1.2fr 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .form-grid input, .form-grid select { width: 100%; }
-
-    .section-title {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .muted { color: var(--muted); font-size: 14px; }
-
-    .mode-list, .checkbox-grid {
-      margin: 12px 0;
-    }
-
-    .mode-list label, .checkbox-grid label {
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 9px 12px;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .mode-list input, .checkbox-grid input { margin-right: 6px; }
-
-    .quiz-panel {
-      display: grid;
-      gap: 14px;
-      text-align: center;
-    }
-
-    .progress {
-      height: 12px;
-      background: #e5e7eb;
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .progress > div {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--primary), #06b6d4);
-      transition: width 0.25s ease;
-    }
-
-    .question-card {
-      border-radius: 20px;
-      border: 1px dashed #c7d2fe;
-      background: #f8faff;
-      padding: 26px 18px;
-    }
-
-    .pos-badge {
-      display: inline-flex;
-      background: #eef2ff;
-      color: var(--primary-dark);
-      border-radius: 999px;
-      padding: 6px 12px;
-      font-weight: 700;
-      margin-bottom: 12px;
-    }
-
-    .question-text {
-      font-size: clamp(30px, 6vw, 58px);
-      line-height: 1.2;
-      font-weight: 800;
-      word-break: keep-all;
-    }
-
-    .answer-input {
-      width: min(100%, 520px);
-      text-align: center;
-      font-size: 22px;
-      margin: 0 auto;
-    }
-
-    .result {
-      min-height: 30px;
-      font-size: 18px;
-      font-weight: 800;
-    }
-
-    .result.ok { color: var(--ok); }
-    .result.bad { color: var(--danger); }
-
-    .word-list {
-      display: grid;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .word-item {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 12px;
-      align-items: center;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      background: #fff;
-      padding: 14px;
-    }
-
-    .word-main {
-      display: grid;
-      gap: 4px;
-    }
-
-    .word-ko { font-size: 24px; font-weight: 800; }
-    .word-zh { color: var(--muted); }
-    .tag-line { font-size: 13px; color: var(--muted); }
-
-    .mini-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-    .mini-actions button { padding: 8px 12px; font-size: 14px; }
-
-    .backup-box {
-      width: 100%;
-      min-height: 150px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 13px;
-    }
-
-    .hidden { display: none !important; }
-
-    @media (max-width: 760px) {
-      body { padding: 14px; }
-      .form-grid { grid-template-columns: 1fr; }
-      .word-item { grid-template-columns: 1fr; }
-      .section-title { align-items: flex-start; flex-direction: column; }
-      .tabs { justify-content: flex-start; }
-    }
+    :root{--p:#4f46e5;--pd:#3730a3;--d:#ef4444;--t:#1f2937;--m:#6b7280;--b:#dbe1ea;--ok:#16a34a;--w:#f59e0b;--sh:0 14px 35px rgba(15,23,42,.08)}
+    *{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft JhengHei",sans-serif;background:linear-gradient(135deg,#eef2ff,#f8fafc 45%,#ecfeff);color:var(--t);min-height:100vh;padding:24px}.container{max-width:1100px;margin:auto}h1{text-align:center;margin:0 0 18px;font-size:clamp(28px,4vw,44px)}h2,h3{margin-top:0}.card,details.card{background:rgba(255,255,255,.94);border:1px solid var(--b);border-radius:22px;box-shadow:var(--sh);padding:22px;margin-bottom:22px}.row,.actions,.filters,.modes{display:flex;gap:10px;flex-wrap:wrap;align-items:center}button,input,select,textarea{font:inherit}button{border:0;border-radius:999px;padding:10px 16px;cursor:pointer;background:#e5e7eb;font-weight:650}.primary{background:var(--p);color:#fff}.primary:hover{background:var(--pd)}.danger{background:var(--d);color:#fff}.ghost{background:#eef2ff;color:var(--p)}input,select,textarea{border:1px solid var(--b);border-radius:14px;padding:11px 12px;background:#fff;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--p);box-shadow:0 0 0 4px rgba(79,70,229,.12)}textarea{width:100%;min-height:86px;resize:vertical}.grid{display:grid;grid-template-columns:1.2fr 1.2fr 1fr 1fr;gap:12px;margin-bottom:12px}.grid>*{width:100%}.title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}.muted{color:var(--m);font-size:14px}.modes label{background:#f8fafc;border:1px solid var(--b);border-radius:999px;padding:9px 12px;cursor:pointer}.progress{height:12px;background:#e5e7eb;border-radius:99px;overflow:hidden}.progress div{height:100%;width:0;background:linear-gradient(90deg,var(--p),#06b6d4)}.question{border:1px dashed #c7d2fe;background:#f8faff;border-radius:20px;padding:26px 18px;text-align:center}.badge{display:inline-flex;background:#eef2ff;color:var(--pd);border-radius:99px;padding:6px 12px;font-weight:700;margin-bottom:12px}.qtext{font-size:clamp(30px,6vw,58px);font-weight:800}.answer{width:min(100%,520px);text-align:center;font-size:22px;margin:auto}.result{min-height:30px;font-size:18px;font-weight:800;text-align:center}.ok{color:var(--ok)}.bad{color:var(--d)}details.card{padding:0;overflow:hidden}summary{list-style:none;cursor:pointer;padding:20px 22px;font-size:24px;font-weight:800;display:flex;justify-content:space-between;gap:12px}summary::-webkit-details-marker{display:none}details[open] summary{border-bottom:1px solid var(--b)}.content{padding:22px}.words{display:grid;gap:10px;margin-top:14px}.word{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;border:1px solid var(--b);border-radius:18px;background:#fff;padding:14px}.ko{font-size:24px;font-weight:800}.zh,.tag{color:var(--m)}.tag{font-size:13px}.example{background:#f8fafc;border-radius:12px;padding:8px 10px}.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}.pill{border-radius:999px;padding:4px 9px;background:#f1f5f9;color:#475569;font-size:12px;font-weight:700}.pill.warn{background:#fffbeb;color:#b45309}.pill.ok{background:#ecfdf5;color:#047857}.mini{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.mini button{padding:8px 12px;font-size:14px}.backup{min-height:150px;font-family:ui-monospace,Consolas,monospace;font-size:13px}.hidden{display:none!important}@media(max-width:760px){body{padding:14px}.grid,.word{grid-template-columns:1fr}.title{flex-direction:column;align-items:flex-start}}
   </style>
 </head>
 <body>
-  <main class="container">
-    <h1>韓文背單字</h1>
+<main class="container">
+  <h1>韓文背單字</h1>
 
-    <section class="card">
-      <div class="tabs" id="posTabs"></div>
+  <section class="card">
+    <div class="title"><div><h2>新增單字</h2><p class="muted">只保留詞性選單。儲存時會自動產生韓中對照例句，並先放入錯題 / SRS 題庫。</p></div></div>
+    <div class="grid">
+      <input id="ko" placeholder="韓文，例如：사과">
+      <input id="zh" placeholder="中文，例如：蘋果">
+      <select id="pos"></select>
+      <input id="cat" placeholder="分類，例如：食物 / 旅遊">
+    </div>
+    <textarea id="note" placeholder="備註，可填例句、發音提示或用法。若留空，系統會自動產生例句。"></textarea>
+    <div class="actions" style="margin-top:12px">
+      <button class="primary" id="save">儲存單字</button>
+      <button class="ghost" id="genEx">自動產生例句</button>
+      <button class="ghost hidden" id="cancel">取消編輯</button>
+      <span class="muted" id="hint">資料會儲存在此瀏覽器。</span>
+    </div>
+  </section>
 
-      <div class="form-grid">
-        <input id="koreanInput" placeholder="韓文，例如：사과" />
-        <input id="chineseInput" placeholder="中文，例如：蘋果" />
-        <select id="posInput"></select>
-        <input id="categoryInput" placeholder="分類，例如：食物 / 旅遊" />
-      </div>
-      <textarea id="noteInput" placeholder="備註，可填例句、發音提示或用法"></textarea>
-      <div class="actions" style="margin-top: 12px;">
-        <button class="primary" id="saveBtn">儲存單字</button>
-        <button id="cancelBtn" class="ghost hidden">取消編輯</button>
-        <span class="muted" id="saveHint">資料會儲存在此瀏覽器。</span>
-      </div>
-    </section>
+  <section class="card">
+    <div class="title"><div><h2>測驗設定</h2><p class="muted">測驗範圍改為：全部、錯題率門檻、遺忘曲線今日到期。</p></div></div>
+    <h3>1. 測驗模式</h3>
+    <div class="modes">
+      <label><input type="radio" name="mode" value="zhToKo" checked>中翻韓</label>
+      <label><input type="radio" name="mode" value="koToZh">韓翻中</label>
+      <label><input type="radio" name="mode" value="listen">聽音拼字</label>
+      <label><input type="radio" name="mode" value="mixed">隨機混合</label>
+    </div>
+    <h3>2. 測驗範圍</h3>
+    <div class="modes">
+      <label><input type="radio" name="scope" value="all" checked>全部單字</label>
+      <label><input type="radio" name="scope" value="wrongRate">依錯題率</label>
+      <label><input type="radio" name="scope" value="srs">遺忘曲線 / 今日到期</label>
+    </div>
+    <div class="actions" style="margin-top:12px">
+      <span>錯題率</span>
+      <select id="op"><option value=">=">以上</option><option value="<=">以下</option></select>
+      <input id="threshold" type="number" min="0" max="100" value="50" style="width:110px"><span>%</span>
+    </div>
+    <div class="actions" style="margin-top:12px">
+      <label>題數：<input id="count" type="number" min="1" value="10" style="width:110px"> <span class="muted" id="limit">/ 0</span></label>
+      <button class="ghost" id="resetAll">重置全部 SRS</button>
+      <button class="primary" id="start">開始測驗挑戰</button>
+    </div>
+  </section>
 
-    <section class="card">
-      <div class="section-title">
-        <div>
-          <h2>測驗設定</h2>
-          <p class="muted">可選擇測驗模式、題庫範圍與題數。</p>
-        </div>
-      </div>
+  <section class="card hidden" id="quiz">
+    <div class="title"><div><h2>測驗中</h2><p id="progText" class="muted"></p></div><button class="danger" id="end">結束測驗</button></div>
+    <div class="progress"><div id="bar"></div></div>
+    <div style="display:grid;gap:14px;text-align:center;margin-top:14px">
+      <div class="question"><div class="badge" id="qpos"></div><div class="qtext" id="qtext"></div></div>
+      <button class="ghost" id="speakBtn">播放發音</button>
+      <input class="answer" id="ans" placeholder="輸入答案後按 Enter">
+      <div class="result" id="res"></div>
+      <div class="actions" style="justify-content:center"><button id="prev">⬅ 上一題</button><button class="primary" id="submit">提交答案</button><button id="next">下一題</button></div>
+    </div>
+  </section>
 
-      <h3>1. 測驗模式：</h3>
-      <div class="mode-list">
-        <label><input type="radio" name="mode" value="zhToKo" checked />中翻韓（輸入韓文）</label>
-        <label><input type="radio" name="mode" value="koToZh" />韓翻中（輸入中文）</label>
-        <label><input type="radio" name="mode" value="listen" />聽音拼字（聽音拼韓文）</label>
-        <label><input type="radio" name="mode" value="mixed" />隨機混合</label>
-      </div>
+  <details class="card" id="lib">
+    <summary><span>單字庫管理</span><span class="muted" id="wordCount">目前 0 個單字</span></summary>
+    <div class="content">
+      <div class="filters"><select id="catFilter"></select><select id="posFilter"></select><input id="search" placeholder="搜尋韓文 / 中文 / 備註 / 例句"></div>
+      <div class="actions" style="margin-top:14px"><button class="ghost" id="backup">備份複製</button><button class="danger" id="clear">清空資料庫</button></div>
+      <textarea class="backup" id="backupText" placeholder="備份資料會出現在這裡；也可以貼上 JSON 後按確認匯入。"></textarea>
+      <div class="actions" style="margin-top:10px"><button class="primary" id="import">確認匯入</button></div>
+      <div class="words" id="words"></div>
+    </div>
+  </details>
+</main>
 
-      <h3>2. 題庫範圍與題數設定：</h3>
-      <p class="muted">選擇測驗範圍：</p>
-      <div class="actions">
-        <button class="ghost" id="selectAllCats">全選</button>
-        <button class="ghost" id="clearCats">清空</button>
-      </div>
-      <div class="checkbox-grid" id="categoryChecks"></div>
-      <hr style="border:0;border-top:1px solid var(--border);margin:18px 0;" />
-      <label>設定題數：
-        <input id="questionCount" type="number" min="1" value="10" style="width: 110px;" />
-        <span class="muted" id="questionLimit">/ 0</span>
-      </label>
-      <div class="actions" style="margin-top: 14px;">
-        <button class="primary" id="startQuizBtn">開始測驗挑戰</button>
-      </div>
-    </section>
-
-    <section class="card hidden" id="quizSection">
-      <div class="section-title">
-        <div>
-          <h2>測驗中</h2>
-          <p id="quizProgressText" class="muted">進度：1 / 10</p>
-        </div>
-        <button class="danger" id="endQuizBtn">結束測驗</button>
-      </div>
-      <div class="progress"><div id="progressBar"></div></div>
-      <div class="quiz-panel">
-        <div class="question-card">
-          <div class="pos-badge" id="quizPos">詞性</div>
-          <div class="question-text" id="questionText">題目內容</div>
-        </div>
-        <button class="ghost" id="speakBtn">播放發音</button>
-        <input class="answer-input" id="answerInput" placeholder="輸入答案後按 Enter" />
-        <div class="result" id="resultBox"></div>
-        <div class="actions" style="justify-content:center;">
-          <button id="prevBtn">⬅ 上一題</button>
-          <button class="primary" id="submitBtn">提交答案</button>
-          <button id="nextBtn">下一題</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="section-title">
-        <div>
-          <h2>單字庫管理</h2>
-          <p class="muted" id="wordCountText">目前 0 個單字</p>
-        </div>
-      </div>
-
-      <div class="filter-row">
-        <select id="categoryFilter"></select>
-        <select id="posFilter"></select>
-        <input id="searchInput" placeholder="搜尋韓文 / 中文 / 備註" />
-        <button class="danger" id="deleteCategoryBtn">刪除分類</button>
-      </div>
-
-      <div class="actions" style="margin-top: 14px;">
-        <button class="ghost" id="backupBtn">備份複製</button>
-        <button class="danger" id="clearDbBtn">清空資料庫</button>
-      </div>
-      <textarea class="backup-box" id="backupText" placeholder="備份資料會出現在這裡；也可以貼上 JSON 後按「確認匯入」。"></textarea>
-      <div class="actions" style="margin-top: 10px;">
-        <button class="primary" id="importBtn">確認匯入</button>
-      </div>
-
-      <div class="word-list" id="wordList"></div>
-    </section>
-  </main>
-
-  <script>
-    const POS_LIST = [
-      "名詞 (명사)",
-      "代名詞 (대명사)",
-      "數詞 (수사)",
-      "動詞 (동사)",
-      "形容詞 (형용사)",
-      "冠形詞 (관형사)",
-      "副詞 (부사)",
-      "感嘆詞 (감탄사)",
-      "助詞 (조사)",
-      "片語/習慣用語"
-    ];
-
-    const STORAGE_KEY = "kwords-vocab-v1";
-
-    let words = loadWords();
-    let activePos = POS_LIST[0];
-    let editingId = null;
-    let quiz = null;
-
-    const $ = (id) => document.getElementById(id);
-
-    function loadWords() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        try { return JSON.parse(raw); } catch (_) {}
-      }
-      return [
-        { id: crypto.randomUUID(), korean: "사과", chinese: "蘋果", pos: "名詞 (명사)", category: "食物", note: "저는 사과를 좋아해요." },
-        { id: crypto.randomUUID(), korean: "가다", chinese: "去", pos: "動詞 (동사)", category: "日常", note: "학교에 가요." },
-        { id: crypto.randomUUID(), korean: "예쁘다", chinese: "漂亮", pos: "形容詞 (형용사)", category: "形容", note: "꽃이 예뻐요." }
-      ];
-    }
-
-    function saveWords() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
-      renderAll();
-    }
-
-    function uniqueCategories() {
-      return [...new Set(words.map(w => w.category || "未分類"))].sort((a, b) => a.localeCompare(b, "zh-Hant"));
-    }
-
-    function normalize(text) {
-      return String(text || "").trim().toLowerCase().replace(/\s+/g, "");
-    }
-
-    function init() {
-      renderPosTabs();
-      renderPosSelects();
-      bindEvents();
-      renderAll();
-    }
-
-    function renderPosTabs() {
-      $("posTabs").innerHTML = POS_LIST.map(pos => `<button class="tab ${pos === activePos ? "active" : ""}" data-pos="${pos}">${pos}</button>`).join("");
-      document.querySelectorAll(".tab").forEach(btn => {
-        btn.addEventListener("click", () => {
-          activePos = btn.dataset.pos;
-          $("posInput").value = activePos;
-          renderPosTabs();
-          renderWordList();
-        });
-      });
-    }
-
-    function renderPosSelects() {
-      const options = POS_LIST.map(pos => `<option value="${pos}">${pos}</option>`).join("");
-      $("posInput").innerHTML = options;
-      $("posFilter").innerHTML = `<option value="all">全部詞性</option>${options}`;
-      $("posInput").value = activePos;
-    }
-
-    function renderCategoryControls() {
-      const cats = uniqueCategories();
-      $("categoryChecks").innerHTML = cats.map(cat => `
-        <label><input type="checkbox" name="catCheck" value="${cat}" checked />${cat}</label>
-      `).join("") || `<span class="muted">尚無分類</span>`;
-
-      $("categoryFilter").innerHTML = `<option value="all">全部分類</option>` + cats.map(cat => `<option value="${cat}">${cat}</option>`).join("");
-      updateQuestionLimit();
-    }
-
-    function renderWordList() {
-      const category = $("categoryFilter").value || "all";
-      const pos = $("posFilter").value || "all";
-      const keyword = normalize($("searchInput").value);
-
-      const filtered = words.filter(w => {
-        const byCat = category === "all" || (w.category || "未分類") === category;
-        const byPos = pos === "all" || w.pos === pos;
-        const byTab = w.pos === activePos;
-        const text = normalize(`${w.korean}${w.chinese}${w.note}${w.category}`);
-        const bySearch = !keyword || text.includes(keyword);
-        return byCat && byPos && byTab && bySearch;
-      });
-
-      $("wordCountText").textContent = `目前 ${words.length} 個單字`;
-
-      $("wordList").innerHTML = filtered.map(w => `
-        <article class="word-item">
-          <div class="word-main">
-            <div class="word-ko">${escapeHtml(w.korean)}</div>
-            <div class="word-zh">${escapeHtml(w.chinese)}</div>
-            <div class="tag-line">${escapeHtml(w.pos)}｜${escapeHtml(w.category || "未分類")}</div>
-            ${w.note ? `<div class="muted">${escapeHtml(w.note)}</div>` : ""}
-          </div>
-          <div class="mini-actions">
-            <button class="ghost" onclick="speak('${escapeAttr(w.korean)}')">播放</button>
-            <button onclick="editWord('${w.id}')">編輯</button>
-            <button class="danger" onclick="deleteWord('${w.id}')">刪除</button>
-          </div>
-        </article>
-      `).join("") || `<p class="muted">此詞性目前沒有符合條件的單字。</p>`;
-    }
-
-    function renderAll() {
-      renderCategoryControls();
-      renderWordList();
-    }
-
-    function bindEvents() {
-      $("saveBtn").addEventListener("click", saveWordFromForm);
-      $("cancelBtn").addEventListener("click", resetForm);
-      $("categoryFilter").addEventListener("change", renderWordList);
-      $("posFilter").addEventListener("change", renderWordList);
-      $("searchInput").addEventListener("input", renderWordList);
-      $("selectAllCats").addEventListener("click", () => setAllCategoryChecks(true));
-      $("clearCats").addEventListener("click", () => setAllCategoryChecks(false));
-      $("questionCount").addEventListener("input", updateQuestionLimit);
-      $("startQuizBtn").addEventListener("click", startQuiz);
-      $("submitBtn").addEventListener("click", submitAnswer);
-      $("nextBtn").addEventListener("click", () => moveQuiz(1));
-      $("prevBtn").addEventListener("click", () => moveQuiz(-1));
-      $("endQuizBtn").addEventListener("click", endQuiz);
-      $("speakBtn").addEventListener("click", () => quiz && speak(quiz.items[quiz.index].korean));
-      $("answerInput").addEventListener("keydown", e => { if (e.key === "Enter") submitAnswer(); });
-      $("backupBtn").addEventListener("click", backupCopy);
-      $("importBtn").addEventListener("click", importBackup);
-      $("clearDbBtn").addEventListener("click", clearDatabase);
-      $("deleteCategoryBtn").addEventListener("click", deleteCurrentCategory);
-    }
-
-    function saveWordFromForm() {
-      const korean = $("koreanInput").value.trim();
-      const chinese = $("chineseInput").value.trim();
-      const pos = $("posInput").value;
-      const category = $("categoryInput").value.trim() || "未分類";
-      const note = $("noteInput").value.trim();
-
-      if (!korean || !chinese) {
-        alert("請至少輸入韓文與中文。");
-        return;
-      }
-
-      if (editingId) {
-        words = words.map(w => w.id === editingId ? { ...w, korean, chinese, pos, category, note } : w);
-      } else {
-        words.unshift({ id: crypto.randomUUID(), korean, chinese, pos, category, note });
-      }
-
-      activePos = pos;
-      resetForm(false);
-      saveWords();
-      renderPosTabs();
-    }
-
-    function resetForm(shouldRender = true) {
-      editingId = null;
-      $("koreanInput").value = "";
-      $("chineseInput").value = "";
-      $("posInput").value = activePos;
-      $("categoryInput").value = "";
-      $("noteInput").value = "";
-      $("saveBtn").textContent = "儲存單字";
-      $("cancelBtn").classList.add("hidden");
-      if (shouldRender) renderAll();
-    }
-
-    window.editWord = function(id) {
-      const w = words.find(item => item.id === id);
-      if (!w) return;
-      editingId = id;
-      $("koreanInput").value = w.korean;
-      $("chineseInput").value = w.chinese;
-      $("posInput").value = w.pos;
-      $("categoryInput").value = w.category || "未分類";
-      $("noteInput").value = w.note || "";
-      $("saveBtn").textContent = "更新單字";
-      $("cancelBtn").classList.remove("hidden");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-
-    window.deleteWord = function(id) {
-      if (!confirm("確定要刪除這個單字嗎？")) return;
-      words = words.filter(w => w.id !== id);
-      saveWords();
-    };
-
-    function setAllCategoryChecks(checked) {
-      document.querySelectorAll("input[name='catCheck']").forEach(input => input.checked = checked);
-      updateQuestionLimit();
-    }
-
-    function selectedCategories() {
-      return [...document.querySelectorAll("input[name='catCheck']:checked")].map(i => i.value);
-    }
-
-    function updateQuestionLimit() {
-      const cats = selectedCategories();
-      const pool = cats.length ? words.filter(w => cats.includes(w.category || "未分類")) : [];
-      $("questionLimit").textContent = `/ ${pool.length}`;
-      const input = $("questionCount");
-      input.max = Math.max(pool.length, 1);
-      if (+input.value > pool.length) input.value = pool.length || 1;
-    }
-
-    function getMode() {
-      return document.querySelector("input[name='mode']:checked").value;
-    }
-
-    function startQuiz() {
-      const cats = selectedCategories();
-      let pool = cats.length ? words.filter(w => cats.includes(w.category || "未分類")) : [];
-      if (!pool.length) {
-        alert("請先新增單字，並選擇至少一個有單字的分類。");
-        return;
-      }
-
-      pool = shuffle(pool).slice(0, Math.min(+$("questionCount").value || 1, pool.length));
-      quiz = {
-        items: pool,
-        index: 0,
-        mode: getMode(),
-        answers: Array(pool.length).fill(null),
-        checked: Array(pool.length).fill(false)
-      };
-
-      $("quizSection").classList.remove("hidden");
-      renderQuizQuestion();
-      $("quizSection").scrollIntoView({ behavior: "smooth" });
-    }
-
-    function renderQuizQuestion() {
-      if (!quiz) return;
-      const item = quiz.items[quiz.index];
-      const mode = quiz.mode === "mixed" ? ["zhToKo", "koToZh", "listen"][quiz.index % 3] : quiz.mode;
-      item.currentMode = mode;
-
-      $("quizProgressText").textContent = `進度：${quiz.index + 1} / ${quiz.items.length}`;
-      $("progressBar").style.width = `${((quiz.index + 1) / quiz.items.length) * 100}%`;
-      $("quizPos").textContent = item.pos;
-      $("questionText").textContent = mode === "zhToKo" ? item.chinese : mode === "koToZh" ? item.korean : "請聽發音後拼出韓文";
-      $("speakBtn").classList.toggle("hidden", mode !== "listen");
-      $("answerInput").value = quiz.answers[quiz.index] || "";
-      $("resultBox").textContent = "";
-      $("resultBox").className = "result";
-      $("answerInput").focus();
-      if (mode === "listen") setTimeout(() => speak(item.korean), 200);
-    }
-
-    function submitAnswer() {
-      if (!quiz) return;
-      const item = quiz.items[quiz.index];
-      const userAnswer = $("answerInput").value.trim();
-      const correct = item.currentMode === "koToZh" ? item.chinese : item.korean;
-      const isCorrect = normalize(userAnswer) === normalize(correct);
-
-      quiz.answers[quiz.index] = userAnswer;
-      quiz.checked[quiz.index] = isCorrect;
-
-      const box = $("resultBox");
-      box.className = `result ${isCorrect ? "ok" : "bad"}`;
-      box.textContent = isCorrect ? "答對了！" : `答錯了，正確答案：${correct}`;
-    }
-
-    function moveQuiz(delta) {
-      if (!quiz) return;
-      quiz.index = Math.min(Math.max(quiz.index + delta, 0), quiz.items.length - 1);
-      renderQuizQuestion();
-    }
-
-    function endQuiz() {
-      if (!quiz) return;
-      const total = quiz.items.length;
-      const score = quiz.checked.filter(Boolean).length;
-      alert(`測驗結束！答對 ${score} / ${total} 題。`);
-      quiz = null;
-      $("quizSection").classList.add("hidden");
-    }
-
-    function backupCopy() {
-      const data = JSON.stringify(words, null, 2);
-      $("backupText").value = data;
-      navigator.clipboard?.writeText(data).then(() => {
-        $("saveHint").textContent = "備份已複製到剪貼簿。";
-        setTimeout(() => $("saveHint").textContent = "資料會儲存在此瀏覽器。", 1800);
-      });
-    }
-
-    function importBackup() {
-      try {
-        const data = JSON.parse($("backupText").value);
-        if (!Array.isArray(data)) throw new Error("格式錯誤");
-        words = data.map(w => ({
-          id: w.id || crypto.randomUUID(),
-          korean: String(w.korean || ""),
-          chinese: String(w.chinese || ""),
-          pos: POS_LIST.includes(w.pos) ? w.pos : POS_LIST[0],
-          category: String(w.category || "未分類"),
-          note: String(w.note || "")
-        })).filter(w => w.korean && w.chinese);
-        saveWords();
-        alert("匯入完成。");
-      } catch (err) {
-        alert("匯入失敗，請確認內容是正確的 JSON 備份資料。");
-      }
-    }
-
-    function clearDatabase() {
-      if (!confirm("確定要清空全部單字嗎？這個動作無法復原。")) return;
-      words = [];
-      saveWords();
-    }
-
-    function deleteCurrentCategory() {
-      const cat = $("categoryFilter").value;
-      if (cat === "all") {
-        alert("請先在分類篩選中選擇要刪除的分類。");
-        return;
-      }
-      if (!confirm(`確定要刪除「${cat}」分類底下所有單字嗎？`)) return;
-      words = words.filter(w => (w.category || "未分類") !== cat);
-      saveWords();
-    }
-
-    window.speak = function(text) {
-      if (!("speechSynthesis" in window)) {
-        alert("此瀏覽器不支援語音播放。請使用 Chrome / Edge / Safari。一般 GitHub Pages 可使用，但部分環境可能限制語音。 ");
-        return;
-      }
-      window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = "ko-KR";
-      utter.rate = 0.85;
-      window.speechSynthesis.speak(utter);
-    };
-
-    function shuffle(arr) {
-      const copy = [...arr];
-      for (let i = copy.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [copy[i], copy[j]] = [copy[j], copy[i]];
-      }
-      return copy;
-    }
-
-    function escapeHtml(value) {
-      return String(value).replace(/[&<>"]/g, ch => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"
-      }[ch]));
-    }
-
-    function escapeAttr(value) {
-      return String(value).replace(/[\\'\n\r]/g, " ");
-    }
-
-    init();
-  </script>
+<script>
+const POS=["名詞 (명사)","代名詞 (대명사)","數詞 (수사)","動詞 (동사)","形容詞 (형용사)","冠形詞 (관형사)","副詞 (부사)","感嘆詞 (감탄사)","助詞 (조사)","片語/習慣用語"];
+const KEY="kwords-vocab-v2";
+const $=id=>document.getElementById(id);
+let editing=null, quiz=null, words=migrate(load());
+const now=()=>Date.now();
+const day=24*60*60*1000;
+function stat(){return{attempts:0,wrong:1,reps:0,intervalDays:0,ease:2.5,dueAt:now(),lastReviewedAt:null}}
+function load(){const raw=localStorage.getItem(KEY)||localStorage.getItem("kwords-vocab-v1");if(raw){try{return JSON.parse(raw)}catch(e){}}return[make("사과","蘋果","名詞 (명사)","食物",""),make("가다","去","動詞 (동사)","日常",""),make("예쁘다","漂亮","形容詞 (형용사)","形容","")]}
+function migrate(list){return(Array.isArray(list)?list:[]).map(w=>{const x={id:w.id||crypto.randomUUID(),korean:String(w.korean||""),chinese:String(w.chinese||""),pos:POS.includes(w.pos)?w.pos:POS[0],category:String(w.category||"未分類"),note:String(w.note||""),exampleKo:String(w.exampleKo||""),exampleZh:String(w.exampleZh||""),stats:{...stat(),...(w.stats||{})}};if(!x.exampleKo||!x.exampleZh){const e=example(x.korean,x.chinese,x.pos);x.exampleKo=x.exampleKo||e.ko;x.exampleZh=x.exampleZh||e.zh;if(!x.note)x.note=e.ko+"\n"+e.zh}return x}).filter(w=>w.korean&&w.chinese)}
+function make(korean,chinese,pos,category,note){const e=example(korean,chinese,pos);return{id:crypto.randomUUID(),korean,chinese,pos,category:category||"未分類",note:note||e.ko+"\n"+e.zh,exampleKo:e.ko,exampleZh:e.zh,stats:stat()}}
+function example(k,z,p){if(p.includes("動詞"))return{ko:`저는 오늘 ${k}.`,zh:`我今天${z}。`};if(p.includes("形容詞"))return{ko:`정말 ${k}.`,zh:`真的很${z}。`};if(p.includes("副詞"))return{ko:`저는 ${k} 말해요.`,zh:`我${z}地說話。`};if(p.includes("感嘆詞"))return{ko:`${k}! 정말 놀랐어요.`,zh:`${z}！真的嚇了一跳。`};if(p.includes("片語"))return{ko:`이 표현은 '${k}'입니다.`,zh:`這個表達是「${z}」。`};return{ko:`저는 ${k}을/를 좋아해요.`,zh:`我喜歡${z}。`}}
+function save(){localStorage.setItem(KEY,JSON.stringify(words));render()}
+function init(){const opt=POS.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join("");$("pos").innerHTML=opt;$("posFilter").innerHTML='<option value="all">全部詞性</option>'+opt;bind();render()}
+function cats(){return[...new Set(words.map(w=>w.category||"未分類"))].sort((a,b)=>a.localeCompare(b,"zh-Hant"))}
+function render(){const c=cats();$("catFilter").innerHTML='<option value="all">全部分類</option>'+c.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");renderWords();updateLimit()}
+function renderWords(){const cf=$("catFilter").value||"all",pf=$("posFilter").value||"all",kw=norm($("search").value);const fs=words.filter(w=>(cf==="all"||w.category===cf)&&(pf==="all"||w.pos===pf)&&(!kw||norm(w.korean+w.chinese+w.note+w.category+w.exampleKo+w.exampleZh).includes(kw)));const due=words.filter(w=>(w.stats?.dueAt||0)<=now()).length;$("wordCount").textContent=`目前 ${words.length} 個單字｜今日到期 ${due}`;$("words").innerHTML=fs.map(w=>{const wr=wrongRate(w),due=(w.stats?.dueAt||0)<=now(),date=w.stats?.dueAt?new Date(w.stats.dueAt).toLocaleDateString("zh-TW"):"今天";return`<article class="word"><div><div class="ko">${esc(w.korean)}</div><div class="zh">${esc(w.chinese)}</div><div class="tag">${esc(w.pos)}｜${esc(w.category)}</div><div class="example">${esc(w.exampleKo)}<br>${esc(w.exampleZh)}</div>${w.note?`<div class="muted">${esc(w.note).replace(/\n/g,"<br>")}</div>`:""}<div class="pills"><span class="pill ${wr>=50?"warn":"ok"}">錯題率 ${wr}%</span><span class="pill">答題 ${w.stats?.attempts||0} 次</span><span class="pill ${due?"warn":""}">${due?"今日到期":"下次 "+date}</span><span class="pill">間隔 ${w.stats?.intervalDays||0} 天</span></div></div><div class="mini"><button class="ghost" onclick="speak('${js(w.korean)}')">播放</button><button onclick="editWord('${w.id}')">編輯</button><button onclick="resetOne('${w.id}')">重置 SRS</button><button class="danger" onclick="delWord('${w.id}')">刪除</button></div></article>`}).join("")||'<p class="muted">目前沒有符合條件的單字。</p>'}
+function bind(){["catFilter","posFilter"].forEach(id=>$(id).addEventListener("change",renderWords));$("search").addEventListener("input",renderWords);$("save").onclick=saveForm;$("genEx").onclick=fillExample;$("cancel").onclick=resetForm;$("threshold").oninput=updateLimit;$("op").onchange=updateLimit;$("count").oninput=updateLimit;document.querySelectorAll('input[name="scope"]').forEach(r=>r.onchange=updateLimit);$("start").onclick=startQuiz;$("submit").onclick=submitAns;$("ans").onkeydown=e=>{if(e.key==="Enter")submitAns()};$("prev").onclick=()=>move(-1);$("next").onclick=()=>move(1);$("end").onclick=endQuiz;$("speakBtn").onclick=()=>quiz&&speak(quiz.items[quiz.i].korean);$("backup").onclick=backup;$("import").onclick=imp;$("clear").onclick=clearAll;$("resetAll").onclick=resetAll}
+function fillExample(){const k=$("ko").value.trim(),z=$("zh").value.trim(),p=$("pos").value;if(!k||!z)return alert("請先輸入韓文與中文。");const e=example(k,z,p);$("note").value=e.ko+"\n"+e.zh}
+function saveForm(){const k=$("ko").value.trim(),z=$("zh").value.trim(),p=$("pos").value,c=$("cat").value.trim()||"未分類";let n=$("note").value.trim();if(!k||!z)return alert("請至少輸入韓文與中文。");const e=example(k,z,p);if(!n)n=e.ko+"\n"+e.zh;if(editing){words=words.map(w=>w.id===editing?{...w,korean:k,chinese:z,pos:p,category:c,note:n,exampleKo:e.ko,exampleZh:e.zh}:w)}else words.unshift(make(k,z,p,c,n));resetForm(false);save()}
+function resetForm(r=true){editing=null;["ko","zh","cat","note"].forEach(id=>$(id).value="");$("pos").value=POS[0];$("save").textContent="儲存單字";$("cancel").classList.add("hidden");if(r)render()}
+window.editWord=id=>{const w=words.find(x=>x.id===id);if(!w)return;editing=id;$("ko").value=w.korean;$("zh").value=w.chinese;$("pos").value=w.pos;$("cat").value=w.category;$("note").value=w.note;$("save").textContent="更新單字";$("cancel").classList.remove("hidden");scrollTo({top:0,behavior:"smooth"})}
+window.delWord=id=>{if(confirm("確定要刪除這個單字嗎？")){words=words.filter(w=>w.id!==id);save()}}
+window.resetOne=id=>{words=words.map(w=>w.id===id?{...w,stats:stat()}:w);save()}
+function resetAll(){if(confirm("確定要重置全部 SRS 與錯題統計嗎？")){words=words.map(w=>({...w,stats:stat()}));save()}}
+function scope(){return document.querySelector('input[name="scope"]:checked').value}
+function pool(){const s=scope();if(s==="all")return[...words];if(s==="srs")return words.filter(w=>(w.stats?.dueAt||0)<=now());const th=Number($("threshold").value||0),op=$("op").value;return words.filter(w=>op===">="?wrongRate(w)>=th:wrongRate(w)<=th)}
+function updateLimit(){const p=pool();$("limit").textContent="/ "+p.length;$("count").max=Math.max(p.length,1);if(+$("count").value>p.length)$("count").value=p.length||1}
+function mode(){return document.querySelector('input[name="mode"]:checked').value}
+function startQuiz(){let p=pool();if(!p.length)return alert("目前這個範圍沒有可測驗的單字。");p=shuffle(p).slice(0,Math.min(+$("count").value||1,p.length));quiz={items:p,i:0,mode:mode(),checked:Array(p.length).fill(null)};$("quiz").classList.remove("hidden");showQ();$("quiz").scrollIntoView({behavior:"smooth"})}
+function showQ(){const item=quiz.items[quiz.i],ms=["zhToKo","koToZh","listen"],m=quiz.mode==="mixed"?ms[Math.floor(Math.random()*ms.length)]:quiz.mode;item.currentMode=m;$("progText").textContent=`進度：${quiz.i+1} / ${quiz.items.length}`;$("bar").style.width=`${(quiz.i+1)/quiz.items.length*100}%`;$("qpos").textContent=item.pos;$("qtext").textContent=m==="zhToKo"?item.chinese:m==="koToZh"?item.korean:"請聽發音後拼出韓文";$("speakBtn").classList.toggle("hidden",m!=="listen");$("ans").value="";$("res").textContent="";$("res").className="result";$("ans").focus();if(m==="listen")setTimeout(()=>speak(item.korean),200)}
+function submitAns(){if(!quiz)return;const item=quiz.items[quiz.i],u=$("ans").value.trim(),corr=item.currentMode==="koToZh"?item.chinese:item.korean,ok=norm(u)===norm(corr);quiz.checked[quiz.i]=ok;updateStats(item.id,ok);$("res").className="result "+(ok?"ok":"bad");$("res").textContent=ok?"答對了！":"答錯了，正確答案："+corr;speak(item.korean);save()}
+function updateStats(id,ok){words=words.map(w=>{if(w.id!==id)return w;const s={...stat(),...(w.stats||{})};s.attempts++;s.lastReviewedAt=now();if(ok){s.reps++;s.intervalDays=s.reps===1?1:s.reps===2?3:Math.max(5,Math.round(s.intervalDays*s.ease));s.ease=Math.min(3.2,s.ease+.08)}else{s.wrong++;s.reps=0;s.intervalDays=0;s.ease=Math.max(1.3,s.ease-.25)}s.dueAt=now()+s.intervalDays*day;return{...w,stats:s}})}
+function move(d){quiz.i=Math.min(Math.max(quiz.i+d,0),quiz.items.length-1);showQ()}
+function endQuiz(){const total=quiz.items.length,ans=quiz.checked.filter(v=>v!==null).length,score=quiz.checked.filter(Boolean).length;alert(`測驗結束！已作答 ${ans} / ${total} 題，答對 ${score} 題。`);quiz=null;$("quiz").classList.add("hidden");render()}
+function wrongRate(w){const s={...stat(),...(w.stats||{})};if(!s.attempts)return 100;return Math.round(s.wrong/s.attempts*100)}
+function backup(){const data=JSON.stringify(words,null,2);$("backupText").value=data;navigator.clipboard?.writeText(data);$("hint").textContent="備份已複製到剪貼簿。";setTimeout(()=>$("hint").textContent="資料會儲存在此瀏覽器。",1800)}
+function imp(){try{const data=JSON.parse($("backupText").value);words=migrate(data);save();alert("匯入完成。")}catch(e){alert("匯入失敗，請確認 JSON 格式。")}}
+function clearAll(){if(confirm("確定要清空全部單字嗎？")){words=[];save()}}
+window.speak=text=>{if(!("speechSynthesis" in window))return alert("此瀏覽器不支援語音播放。");speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="ko-KR";u.rate=.85;speechSynthesis.speak(u)}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function norm(t){return String(t||"").trim().toLowerCase().replace(/[\s。！？!?,，.]/g,"")}
+function esc(v){return String(v).replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]))}
+function js(v){return String(v).replace(/[\\'\n\r]/g," ")}
+init();
+</script>
 </body>
 </html>
