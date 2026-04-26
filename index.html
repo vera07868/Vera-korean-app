@@ -559,7 +559,7 @@
         <button class="danger" id="clearDbBtn" type="button">清空資料庫</button>
       </div>
 
-      <textarea class="backup-box" id="backupText" placeholder="備份資料會出現在這裡；也可以貼上 JSON 後按「確認匯入」。"></textarea>
+      <textarea class="backup-box" id="backupText" placeholder="可貼上 JSON 備份資料；也可貼上一行一筆：韓文｜中文｜詞性，或 韓文[TAB]中文[TAB]詞性。"></textarea>
 
       <div class="actions" style="margin-top: 10px;">
         <button class="primary" id="importBtn" type="button">確認匯入</button>
@@ -663,9 +663,9 @@
 
   function migrateWords(list) {
     return (Array.isArray(list) ? list : []).map((w) => {
-      const korean = String(w.korean || "").trim();
-      const chinese = String(w.chinese || "").trim();
-      const pos = POS_LIST.includes(w.pos) ? w.pos : POS_LIST[0];
+      const korean = String(w.korean || w.kor || w.kr || "").trim();
+      const chinese = String(w.chinese || w.zh || w.tw || w.meaning || "").trim();
+      const pos = normalizePos(w.pos || w.partOfSpeech || "");
       const exampleFromOld = [w.example, w.exampleKo].find(Boolean) || "";
       const exampleZhFromOld = [w.exampleZh, w.exampleChinese, w.exampleTw, w.exampleCn].find(Boolean) || "";
 
@@ -1151,18 +1151,91 @@
 
   function importBackup() {
     try {
-      const data = JSON.parse($("backupText").value);
+      const importedWords = parseImportText($("backupText").value);
+      words = migrateWords(importedWords);
+      saveWords();
+      showSaveHint(`匯入完成，共匯入 ${words.length} 筆單字。`, true);
+    } catch (err) {
+      alert("匯入失敗，請確認內容是 JSON，或是一行一筆：韓文｜中文｜詞性。");
+    }
+  }
 
-      if (!Array.isArray(data)) {
-        throw new Error("格式錯誤");
+  function parseImportText(text) {
+    const raw = String(text || "").trim();
+
+    if (!raw) {
+      throw new Error("empty");
+    }
+
+    if (raw.startsWith("[") || raw.startsWith("{")) {
+      const data = JSON.parse(raw);
+      return Array.isArray(data) ? data : [data];
+    }
+
+    return parsePlainTextImport(raw);
+  }
+
+  function parsePlainTextImport(raw) {
+    const rows = raw
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith("#"));
+
+    const imported = rows.map(line => {
+      let parts = [];
+
+      if (line.includes("\t")) {
+        parts = line.split("\t").map(v => v.trim());
+      } else if (line.includes("｜") || line.includes("|")) {
+        parts = line.split(/[｜|]/).map(v => v.trim());
+      } else {
+        throw new Error("bad line");
       }
 
-      words = migrateWords(data);
-      saveWords();
-      showSaveHint("匯入完成。", true);
-    } catch (err) {
-      alert("匯入失敗，請確認內容是正確的 JSON 備份資料。");
+      const korean = parts[0] || "";
+      const chinese = parts[1] || "";
+      const pos = normalizePos(parts[2] || "");
+      const category = parts[3] || "未分類";
+      const note = parts.slice(4).join("｜");
+
+      if (!korean || !chinese) {
+        throw new Error("missing fields");
+      }
+
+      return {
+        korean,
+        chinese,
+        pos,
+        category,
+        note
+      };
+    });
+
+    if (!imported.length) {
+      throw new Error("no words");
     }
+
+    return imported;
+  }
+
+  function normalizePos(pos) {
+    const text = String(pos || "").trim();
+
+    if (!text) return POS_LIST[0];
+    if (POS_LIST.includes(text)) return text;
+
+    if (text.includes("代名") || text.includes("대명")) return "代名詞 (대명사)";
+    if (text.includes("數") || text.includes("수사")) return "數詞 (수사)";
+    if (text.includes("動") || text.includes("동사")) return "動詞 (동사)";
+    if (text.includes("形容") || text.includes("형용")) return "形容詞 (형용사)";
+    if (text.includes("冠形") || text.includes("관형")) return "冠形詞 (관형사)";
+    if (text.includes("副") || text.includes("부사")) return "副詞 (부사)";
+    if (text.includes("感嘆") || text.includes("감탄")) return "感嘆詞 (감탄사)";
+    if (text.includes("助") || text.includes("조사")) return "助詞 (조사)";
+    if (text.includes("片語") || text.includes("慣用") || text.includes("표현")) return "片語/習慣用語";
+    if (text.includes("名") || text.includes("명사")) return "名詞 (명사)";
+
+    return POS_LIST[0];
   }
 
   function clearDatabase() {
