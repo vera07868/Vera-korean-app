@@ -237,7 +237,7 @@
       overflow: hidden;
     }
 
-    summary {
+    details.card > summary {
       list-style: none;
       cursor: pointer;
       padding: 20px 22px;
@@ -249,9 +249,9 @@
       align-items: center;
     }
 
-    summary::-webkit-details-marker { display: none; }
+    details.card > summary::-webkit-details-marker { display: none; }
 
-    details[open] summary {
+    details.card[open] > summary {
       border-bottom: 1px solid var(--border);
     }
 
@@ -352,11 +352,56 @@
       gap: 8px;
       flex-wrap: wrap;
       justify-content: flex-end;
+      align-items: flex-start;
     }
 
     .mini button {
       padding: 8px 12px;
       font-size: 14px;
+    }
+
+    .word-menu {
+      position: relative;
+    }
+
+    .word-menu > summary {
+      list-style: none;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: #e5e7eb;
+      color: #111827;
+      font-size: 14px;
+      font-weight: 700;
+      user-select: none;
+    }
+
+    .word-menu > summary::-webkit-details-marker { display: none; }
+
+    .word-menu[open] > summary {
+      background: #dbeafe;
+      color: var(--primary-dark);
+    }
+
+    .word-menu-panel {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      z-index: 20;
+      min-width: 150px;
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
+    }
+
+    .word-menu-panel button {
+      width: 100%;
+      justify-content: center;
+      white-space: nowrap;
     }
 
     .backup-box {
@@ -371,7 +416,12 @@
       body { padding: 14px; }
       .form-grid, .two-grid, .word { grid-template-columns: 1fr; }
       .section-title { flex-direction: column; align-items: flex-start; }
-      summary { flex-direction: column; align-items: flex-start; }
+      details.card > summary { flex-direction: column; align-items: flex-start; }
+      .mini { justify-content: flex-start; }
+      .word-menu-panel {
+        right: auto;
+        left: 0;
+      }
     }
   </style>
 </head>
@@ -395,6 +445,13 @@
       <input id="categoryInput" placeholder="分類，例如：食物 / 旅遊" />
     </div>
 
+    <div class="actions" style="margin-bottom: 12px;">
+      <button class="primary" id="saveBtn" type="button">儲存單字</button>
+      <button class="ghost" id="generateExampleBtn" type="button">自動產生例句</button>
+      <button class="ghost hidden" id="cancelBtn" type="button">取消編輯</button>
+      <span class="muted" id="saveHint">資料會儲存在此瀏覽器。</span>
+    </div>
+
     <div class="two-grid">
       <label>
         <span class="field-title">例句</span>
@@ -405,13 +462,6 @@
         <span class="field-title">備註</span>
         <textarea id="noteInput" placeholder="備註可留空，例如：發音提示、用法、容易混淆的地方。"></textarea>
       </label>
-    </div>
-
-    <div class="actions">
-      <button class="primary" id="saveBtn" type="button">儲存單字</button>
-      <button class="ghost" id="generateExampleBtn" type="button">自動產生例句</button>
-      <button class="ghost hidden" id="cancelBtn" type="button">取消編輯</button>
-      <span class="muted" id="saveHint">資料會儲存在此瀏覽器。</span>
     </div>
   </section>
 
@@ -559,6 +609,22 @@
     };
   }
 
+  function hasFinalConsonant(text) {
+    const hangulOnly = String(text || "").trim().replace(/[^\uAC00-\uD7A3]/g, "");
+    if (!hangulOnly) return false;
+
+    const lastChar = hangulOnly[hangulOnly.length - 1];
+    const code = lastChar.charCodeAt(0) - 0xAC00;
+
+    if (code < 0 || code > 11171) return false;
+
+    return code % 28 !== 0;
+  }
+
+  function objectParticle(text) {
+    return hasFinalConsonant(text) ? "을" : "를";
+  }
+
   function makeExample(korean, chinese, pos) {
     if (!korean || !chinese) return "";
     if (pos.includes("動詞")) return `저는 오늘 ${korean}.`;
@@ -566,7 +632,7 @@
     if (pos.includes("副詞")) return `저는 ${korean} 말해요.`;
     if (pos.includes("感嘆詞")) return `${korean}! 정말 놀랐어요.`;
     if (pos.includes("片語")) return `이 표현은 '${korean}'입니다.`;
-    return `저는 ${korean}을/를 좋아해요.`;
+    return `저는 ${korean}${objectParticle(korean)} 좋아해요.`;
   }
 
   function makeExampleZh(korean, chinese, pos) {
@@ -730,9 +796,15 @@
 
           <div class="mini">
             <button class="ghost" type="button" onclick="speak('${escapeJs(w.korean)}')">播放單字</button>
-            <button type="button" onclick="editWord('${w.id}')">編輯</button>
-            <button type="button" onclick="resetOneSrs('${w.id}')">重置 SRS</button>
-            <button class="danger" type="button" onclick="deleteWord('${w.id}')">刪除</button>
+
+            <details class="word-menu">
+              <summary>管理</summary>
+              <div class="word-menu-panel">
+                <button type="button" onclick="editWord('${w.id}')">編輯</button>
+                <button type="button" onclick="resetOneSrs('${w.id}')">重置 SRS</button>
+                <button class="danger" type="button" onclick="deleteWord('${w.id}')">刪除</button>
+              </div>
+            </details>
           </div>
         </article>
       `;
@@ -1030,8 +1102,9 @@
     const total = quiz.items.length;
     const answered = quiz.checked.filter(v => v !== null).length;
     const score = quiz.checked.filter(Boolean).length;
+    const accuracy = answered ? Math.round((score / answered) * 100) : 0;
 
-    alert(`測驗結束！已作答 ${answered} / ${total} 題，答對 ${score} 題。`);
+    alert(`測驗結束！已作答 ${answered} / ${total} 題，答對 ${score} 題，正確率 ${accuracy}%。`);
 
     quiz = null;
     $("quizSection").classList.add("hidden");
