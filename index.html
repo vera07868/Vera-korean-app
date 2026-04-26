@@ -99,6 +99,7 @@
 <body>
 <main class="container">
   <h1>韓文背單字</h1>
+
   <section class="card">
     <div class="section-title">
       <div>
@@ -106,16 +107,29 @@
         <p class="muted">詞性請從下拉選單選擇。例句與備註分開；若例句空白，系統會自動產生例句。</p>
       </div>
     </div>
+
     <div class="form-grid">
       <input id="koreanInput" placeholder="韓文，例如：사과" />
       <input id="chineseInput" placeholder="中文，例如：蘋果" />
       <select id="posInput" aria-label="詞性分類"></select>
       <input id="categoryInput" placeholder="分類，例如：食物 / 旅遊" />
     </div>
+
     <div class="two-grid">
-      <label><span class="field-title">例句</span><textarea id="exampleInput" placeholder="例句，例如：저는 사과를 좋아해요. 若空白，系統會自動產生例句。"></textarea></label>
-      <label><span class="field-title">備註</span><textarea id="noteInput" placeholder="備註可留空，例如：發音提示、用法、容易混淆的地方。"></textarea></label>
+      <label>
+        <span class="field-title">例句</span>
+        <textarea id="exampleInput" placeholder="例句，例如：저는 사과를 좋아해요. 若空白，系統會自動產生例句。"></textarea>
+      </label>
+      <label>
+        <span class="field-title">例句中文</span>
+        <textarea id="exampleZhInput" placeholder="例句中文，例如：我喜歡蘋果。若空白，系統會自動產生中文對照。"></textarea>
+      </label>
+      <label>
+        <span class="field-title">備註</span>
+        <textarea id="noteInput" placeholder="備註可留空，例如：發音提示、用法、容易混淆的地方。"></textarea>
+      </label>
     </div>
+
     <div class="actions">
       <button class="primary" id="saveBtn" type="button">儲存單字</button>
       <button class="ghost" id="generateExampleBtn" type="button">自動產生例句</button>
@@ -123,8 +137,15 @@
       <span class="muted" id="saveHint">資料會儲存在此瀏覽器。</span>
     </div>
   </section>
+
   <section class="card">
-    <div class="section-title"><div><h2>測驗設定</h2><p class="muted">測驗範圍可選全部、依錯題率，或遺忘曲線今日到期。</p></div></div>
+    <div class="section-title">
+      <div>
+        <h2>測驗設定</h2>
+        <p class="muted">測驗範圍可選全部、依錯題率，或遺忘曲線今日到期。</p>
+      </div>
+    </div>
+
     <h3>1. 測驗模式</h3>
     <div class="modes">
       <label><input type="radio" name="mode" value="zhToKo" checked />中翻韓</label>
@@ -132,57 +153,129 @@
       <label><input type="radio" name="mode" value="listen" />聽音拼字</label>
       <label><input type="radio" name="mode" value="mixed" />隨機混合</label>
     </div>
+
     <h3>2. 測驗範圍</h3>
     <div class="modes">
       <label><input type="radio" name="scope" value="all" checked />全部單字</label>
       <label><input type="radio" name="scope" value="wrongRate" />依錯題率</label>
       <label><input type="radio" name="scope" value="srs" />遺忘曲線 / 今日到期</label>
     </div>
+
     <div class="actions">
       <span>錯題率</span>
-      <select id="wrongRateOperator" style="width: 100px;"><option value=">=">以上</option><option value="<=">以下</option></select>
+      <select id="wrongRateOperator" style="width: 100px;">
+        <option value=">=">以上</option>
+        <option value="<=">以下</option>
+      </select>
       <input id="wrongRateThreshold" type="number" min="0" max="100" value="50" style="width: 110px;" />
       <span>%</span>
     </div>
+
     <div class="actions" style="margin-top: 12px;">
-      <label style="width:auto;">題數：<input id="questionCount" type="number" min="1" value="10" style="width: 110px;" /> <span class="muted" id="questionLimit">/ 0</span></label>
+      <label style="width:auto;">
+        題數：<input id="questionCount" type="number" min="1" value="10" style="width: 110px;" />
+        <span class="muted" id="questionLimit">/ 0</span>
+      </label>
       <button class="ghost" id="resetSrsBtn" type="button">重置全部 SRS</button>
       <button class="primary" id="startQuizBtn" type="button">開始測驗挑戰</button>
     </div>
   </section>
+
   <section class="card hidden" id="quizSection">
-    <div class="section-title"><div><h2>測驗中</h2><p id="quizProgressText" class="muted"></p></div><button class="danger" id="endQuizBtn" type="button">結束測驗</button></div>
+    <div class="section-title">
+      <div>
+        <h2>測驗中</h2>
+        <p id="quizProgressText" class="muted"></p>
+      </div>
+      <button class="danger" id="endQuizBtn" type="button">結束測驗</button>
+    </div>
+
     <div class="progress"><div id="progressBar"></div></div>
+
     <div class="quiz-panel">
-      <div class="question-card"><div class="badge" id="quizPos"></div><div class="question-text" id="questionText"></div></div>
+      <div class="question-card">
+        <div class="badge" id="quizPos"></div>
+        <div class="question-text" id="questionText"></div>
+      </div>
       <button class="ghost" id="speakBtn" type="button">播放發音</button>
       <input class="answer-input" id="answerInput" placeholder="輸入答案後按 Enter" />
       <div class="result" id="resultBox"></div>
-      <div class="actions" style="justify-content:center;"><button id="prevBtn" type="button">⬅ 上一題</button><button class="primary" id="submitBtn" type="button">提交答案</button><button id="nextBtn" type="button">下一題</button></div>
+      <div class="actions" style="justify-content:center;">
+        <button id="prevBtn" type="button">⬅ 上一題</button>
+        <button class="primary" id="submitBtn" type="button">提交答案</button>
+        <button id="nextBtn" type="button">下一題</button>
+      </div>
     </div>
   </section>
+
   <details class="card" id="wordLibraryDetails">
-    <summary><span>單字庫管理</span><span class="muted" id="wordCountText">目前 0 個單字</span></summary>
+    <summary>
+      <span>單字庫管理</span>
+      <span class="muted" id="wordCountText">目前 0 個單字</span>
+    </summary>
+
     <div class="content">
-      <div class="filters"><select id="categoryFilter" style="max-width: 220px;"></select><select id="posFilter" style="max-width: 220px;"></select><input id="searchInput" placeholder="搜尋韓文 / 中文 / 備註 / 例句" /></div>
-      <div class="actions" style="margin-top: 14px;"><button class="ghost" id="backupBtn" type="button">備份複製</button><button class="danger" id="clearDbBtn" type="button">清空資料庫</button></div>
+      <div class="filters">
+        <select id="categoryFilter" style="max-width: 220px;"></select>
+        <select id="posFilter" style="max-width: 220px;"></select>
+        <input id="searchInput" placeholder="搜尋韓文 / 中文 / 備註 / 例句" />
+      </div>
+
+      <div class="actions" style="margin-top: 14px;">
+        <button class="ghost" id="backupBtn" type="button">備份複製</button>
+        <button class="danger" id="clearDbBtn" type="button">清空資料庫</button>
+      </div>
+
       <textarea class="backup-box" id="backupText" placeholder="備份資料會出現在這裡；也可以貼上 JSON 後按「確認匯入」。"></textarea>
-      <div class="actions" style="margin-top: 10px;"><button class="primary" id="importBtn" type="button">確認匯入</button></div>
+
+      <div class="actions" style="margin-top: 10px;">
+        <button class="primary" id="importBtn" type="button">確認匯入</button>
+      </div>
+
       <div class="words" id="wordList"></div>
     </div>
   </details>
 </main>
+
 <script>
-  const POS_LIST = ["名詞 (명사)", "代名詞 (대명사)", "數詞 (수사)", "動詞 (동사)", "形容詞 (형용사)", "冠形詞 (관형사)", "副詞 (부사)", "感嘆詞 (감탄사)", "助詞 (조사)", "片語/習慣用語"];
+  const POS_LIST = [
+    "名詞 (명사)",
+    "代名詞 (대명사)",
+    "數詞 (수사)",
+    "動詞 (동사)",
+    "形容詞 (형용사)",
+    "冠形詞 (관형사)",
+    "副詞 (부사)",
+    "感嘆詞 (감탄사)",
+    "助詞 (조사)",
+    "片語/習慣用語"
+  ];
+
   const STORAGE_KEY = "kwords-vocab-v2";
   const OLD_STORAGE_KEY = "kwords-vocab-v1";
   const $ = (id) => document.getElementById(id);
   const dayMs = 24 * 60 * 60 * 1000;
+
   let words = migrateWords(loadWords());
   let editingId = null;
   let quiz = null;
-  function now() { return Date.now(); }
-  function makeStats() { return { attempts: 0, wrong: 1, reps: 0, intervalDays: 0, ease: 2.5, dueAt: now(), lastReviewedAt: null }; }
+
+  function now() {
+    return Date.now();
+  }
+
+  function makeStats() {
+    return {
+      attempts: 0,
+      wrong: 1,
+      reps: 0,
+      intervalDays: 0,
+      ease: 2.5,
+      dueAt: now(),
+      lastReviewedAt: null
+    };
+  }
+
   function makeExample(korean, chinese, pos) {
     if (!korean || !chinese) return "";
     if (pos.includes("動詞")) return `저는 오늘 ${korean}.`;
@@ -192,57 +285,156 @@
     if (pos.includes("片語")) return `이 표현은 '${korean}'입니다.`;
     return `저는 ${korean}을/를 좋아해요.`;
   }
+
+  function makeExampleZh(korean, chinese, pos) {
+    if (!korean || !chinese) return "";
+    if (pos.includes("動詞")) return `我今天${chinese}。`;
+    if (pos.includes("形容詞")) return `真的很${chinese}。`;
+    if (pos.includes("副詞")) return `我${chinese}地說。`;
+    if (pos.includes("感嘆詞")) return `${chinese}！我真的嚇了一跳。`;
+    if (pos.includes("片語")) return `這個表達是「${chinese}」。`;
+    return `我喜歡${chinese}。`;
+  }
+
   function loadWords() {
     const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY);
-    if (raw) { try { return JSON.parse(raw); } catch (_) {} }
-    return [makeWord("사과", "蘋果", "名詞 (명사)", "食物", "", ""), makeWord("가다", "去", "動詞 (동사)", "日常", "", ""), makeWord("예쁘다", "漂亮", "形容詞 (형용사)", "形容", "", "")];
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch (_) {}
+    }
+
+    return [
+      makeWord("사과", "蘋果", "名詞 (명사)", "食物", "", ""),
+      makeWord("가다", "去", "動詞 (동사)", "日常", "", ""),
+      makeWord("예쁘다", "漂亮", "形容詞 (형용사)", "形容", "", "")
+    ];
   }
+
   function migrateWords(list) {
     return (Array.isArray(list) ? list : []).map((w) => {
       const korean = String(w.korean || "").trim();
       const chinese = String(w.chinese || "").trim();
       const pos = POS_LIST.includes(w.pos) ? w.pos : POS_LIST[0];
       const exampleFromOld = [w.example, w.exampleKo].find(Boolean) || "";
-      return { id: w.id || crypto.randomUUID(), korean, chinese, pos, category: String(w.category || "未分類"), example: String(exampleFromOld || makeExample(korean, chinese, pos)), note: String(w.note || ""), stats: { ...makeStats(), ...(w.stats || {}) } };
+      const exampleZhFromOld = [w.exampleZh, w.exampleChinese, w.exampleTw, w.exampleCn].find(Boolean) || "";
+
+      return {
+        id: w.id || crypto.randomUUID(),
+        korean,
+        chinese,
+        pos,
+        category: String(w.category || "未分類"),
+        example: String(exampleFromOld || makeExample(korean, chinese, pos)),
+        exampleZh: String(exampleZhFromOld || makeExampleZh(korean, chinese, pos)),
+        note: String(w.note || ""),
+        stats: { ...makeStats(), ...(w.stats || {}) }
+      };
     }).filter(w => w.korean && w.chinese);
   }
-  function makeWord(korean, chinese, pos, category, example, note) { return { id: crypto.randomUUID(), korean, chinese, pos, category: category || "未分類", example: example || makeExample(korean, chinese, pos), note: note || "", stats: makeStats() }; }
-  function saveWords() { localStorage.setItem(STORAGE_KEY, JSON.stringify(words)); renderAll(); }
-  function init() { renderSelectOptions(); bindEvents(); renderAll(); }
+
+  function makeWord(korean, chinese, pos, category, example, note, exampleZh) {
+    return {
+      id: crypto.randomUUID(),
+      korean,
+      chinese,
+      pos,
+      category: category || "未分類",
+      example: example || makeExample(korean, chinese, pos),
+      exampleZh: exampleZh || makeExampleZh(korean, chinese, pos),
+      note: note || "",
+      stats: makeStats()
+    };
+  }
+
+  function saveWords() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+    renderAll();
+  }
+
+  function init() {
+    renderSelectOptions();
+    bindEvents();
+    renderAll();
+  }
+
   function renderSelectOptions() {
     const posOptions = POS_LIST.map(pos => `<option value="${escapeAttr(pos)}">${escapeHtml(pos)}</option>`).join("");
     $("posInput").innerHTML = posOptions;
     $("posFilter").innerHTML = `<option value="all">全部詞性</option>${posOptions}`;
     $("posInput").value = POS_LIST[0];
   }
-  function uniqueCategories() { return [...new Set(words.map(w => w.category || "未分類"))].sort((a, b) => a.localeCompare(b, "zh-Hant")); }
+
+  function uniqueCategories() {
+    return [...new Set(words.map(w => w.category || "未分類"))].sort((a, b) => a.localeCompare(b, "zh-Hant"));
+  }
+
   function renderCategoryFilter() {
     const current = $("categoryFilter").value || "all";
     const cats = uniqueCategories();
     const options = cats.map(cat => `<option value="${escapeAttr(cat)}">${escapeHtml(cat)}</option>`).join("");
+
     $("categoryFilter").innerHTML = `<option value="all">全部分類</option>${options}`;
     $("categoryFilter").value = cats.includes(current) ? current : "all";
   }
-  function renderAll() { renderCategoryFilter(); renderWordList(); updateQuestionLimit(); }
+
+  function renderAll() {
+    renderCategoryFilter();
+    renderWordList();
+    updateQuestionLimit();
+  }
+
   function renderWordList() {
     const category = $("categoryFilter").value || "all";
     const pos = $("posFilter").value || "all";
     const keyword = normalize($("searchInput").value);
+
     const filtered = words.filter(w => {
       const byCat = category === "all" || (w.category || "未分類") === category;
       const byPos = pos === "all" || w.pos === pos;
-      const text = normalize(`${w.korean}${w.chinese}${w.note}${w.category}${w.example}`);
+      const text = normalize(`${w.korean}${w.chinese}${w.note}${w.category}${w.example}${w.exampleZh}`);
       return byCat && byPos && (!keyword || text.includes(keyword));
     });
+
     const dueCount = words.filter(w => (w.stats?.dueAt || 0) <= now()).length;
     $("wordCountText").textContent = `目前 ${words.length} 個單字｜今日到期 ${dueCount}`;
+
     $("wordList").innerHTML = filtered.map(w => {
       const rate = getWrongRate(w);
       const isDue = (w.stats?.dueAt || 0) <= now();
       const dueDate = w.stats?.dueAt ? new Date(w.stats.dueAt).toLocaleDateString("zh-TW") : "今天";
-      return `<article class="word"><div><div class="ko">${escapeHtml(w.korean)}</div><div class="zh">${escapeHtml(w.chinese)}</div><div class="tag">${escapeHtml(w.pos)}｜${escapeHtml(w.category || "未分類")}</div>${w.example ? `<div class="example">例句：${escapeHtml(w.example)}</div>` : ""}${w.note ? `<div class="muted">備註：${escapeHtml(w.note).replace(/\n/g, "<br>")}</div>` : ""}<div class="pills"><span class="pill ${rate >= 50 ? "warn" : "ok"}">錯題率 ${rate}%</span><span class="pill">答題 ${w.stats?.attempts || 0} 次</span><span class="pill ${isDue ? "warn" : ""}">${isDue ? "今日到期" : `下次 ${dueDate}`}</span><span class="pill">間隔 ${w.stats?.intervalDays || 0} 天</span></div></div><div class="mini"><button class="ghost" type="button" onclick="speak('${escapeJs(w.korean)}')">播放</button><button type="button" onclick="editWord('${w.id}')">編輯</button><button type="button" onclick="resetOneSrs('${w.id}')">重置 SRS</button><button class="danger" type="button" onclick="deleteWord('${w.id}')">刪除</button></div></article>`;
+
+      const exampleBlock = w.example
+        ? `<div class="example"><div>例句：${escapeHtml(w.example)}</div>${w.exampleZh ? `<div class="zh">中文：${escapeHtml(w.exampleZh)}</div>` : ""}</div>`
+        : "";
+
+      return `
+        <article class="word">
+          <div>
+            <div class="ko">${escapeHtml(w.korean)}</div>
+            <div class="zh">${escapeHtml(w.chinese)}</div>
+            <div class="tag">${escapeHtml(w.pos)}｜${escapeHtml(w.category || "未分類")}</div>
+            ${exampleBlock}
+            ${w.note ? `<div class="muted">備註：${escapeHtml(w.note).replace(/\n/g, "<br>")}</div>` : ""}
+            <div class="pills">
+              <span class="pill ${rate >= 50 ? "warn" : "ok"}">錯題率 ${rate}%</span>
+              <span class="pill">答題 ${w.stats?.attempts || 0} 次</span>
+              <span class="pill ${isDue ? "warn" : ""}">${isDue ? "今日到期" : `下次 ${dueDate}`}</span>
+              <span class="pill">間隔 ${w.stats?.intervalDays || 0} 天</span>
+            </div>
+          </div>
+          <div class="mini">
+            <button class="ghost" type="button" onclick="speak('${escapeJs(w.korean)}')">播放單字</button>
+            ${w.example ? `<button class="ghost" type="button" onclick="speak('${escapeJs(w.example)}')">播放例句</button>` : ""}
+            <button type="button" onclick="editWord('${w.id}')">編輯</button>
+            <button type="button" onclick="resetOneSrs('${w.id}')">重置 SRS</button>
+            <button class="danger" type="button" onclick="deleteWord('${w.id}')">刪除</button>
+          </div>
+        </article>
+      `;
     }).join("") || `<p class="muted">目前沒有符合條件的單字。</p>`;
   }
+
   function bindEvents() {
     $("saveBtn").addEventListener("click", saveWordFromForm);
     $("generateExampleBtn").addEventListener("click", generateExampleToForm);
@@ -256,7 +448,9 @@
     document.querySelectorAll("input[name='scope']").forEach(r => r.addEventListener("change", updateQuestionLimit));
     $("startQuizBtn").addEventListener("click", startQuiz);
     $("submitBtn").addEventListener("click", submitAnswer);
-    $("answerInput").addEventListener("keydown", e => { if (e.key === "Enter") submitAnswer(); });
+    $("answerInput").addEventListener("keydown", e => {
+      if (e.key === "Enter") submitAnswer();
+    });
     $("prevBtn").addEventListener("click", () => moveQuiz(-1));
     $("nextBtn").addEventListener("click", () => moveQuiz(1));
     $("endQuizBtn").addEventListener("click", endQuiz);
@@ -266,26 +460,47 @@
     $("clearDbBtn").addEventListener("click", clearDatabase);
     $("resetSrsBtn").addEventListener("click", resetAllSrs);
   }
+
   function generateExampleToForm() {
     const korean = $("koreanInput").value.trim();
     const chinese = $("chineseInput").value.trim();
     const pos = $("posInput").value;
-    if (!korean || !chinese) { alert("請先輸入韓文與中文，才能產生例句。"); return; }
+
+    if (!korean || !chinese) {
+      alert("請先輸入韓文與中文，才能產生例句。");
+      return;
+    }
+
     $("exampleInput").value = makeExample(korean, chinese, pos);
+    $("exampleZhInput").value = makeExampleZh(korean, chinese, pos);
   }
+
   function saveWordFromForm() {
     const korean = $("koreanInput").value.trim();
     const chinese = $("chineseInput").value.trim();
     const pos = $("posInput").value;
     const category = $("categoryInput").value.trim() || "未分類";
     const example = $("exampleInput").value.trim() || makeExample(korean, chinese, pos);
+    const exampleZh = $("exampleZhInput").value.trim() || makeExampleZh(korean, chinese, pos);
     const note = $("noteInput").value.trim();
-    if (!korean || !chinese) { alert("請至少輸入韓文與中文。"); return; }
-    if (editingId) { words = words.map(w => w.id === editingId ? { ...w, korean, chinese, pos, category, example, note } : w); showSaveHint("已更新單字。", true); }
-    else { words.unshift(makeWord(korean, chinese, pos, category, example, note)); showSaveHint("已儲存單字，已加入單字庫。", true); }
+
+    if (!korean || !chinese) {
+      alert("請至少輸入韓文與中文。");
+      return;
+    }
+
+    if (editingId) {
+      words = words.map(w => w.id === editingId ? { ...w, korean, chinese, pos, category, example, exampleZh, note } : w);
+      showSaveHint("已更新單字。", true);
+    } else {
+      words.unshift(makeWord(korean, chinese, pos, category, example, note, exampleZh));
+      showSaveHint("已儲存單字，已加入單字庫。", true);
+    }
+
     resetForm(false);
     saveWords();
   }
+
   function resetForm(shouldRender = true) {
     editingId = null;
     $("koreanInput").value = "";
@@ -293,66 +508,116 @@
     $("posInput").value = POS_LIST[0];
     $("categoryInput").value = "";
     $("exampleInput").value = "";
+    $("exampleZhInput").value = "";
     $("noteInput").value = "";
     $("saveBtn").textContent = "儲存單字";
     $("cancelBtn").classList.add("hidden");
+
     if (shouldRender) renderAll();
   }
+
   function showSaveHint(text, ok = false) {
     const el = $("saveHint");
     el.textContent = text;
     el.style.color = ok ? "var(--ok)" : "var(--muted)";
-    setTimeout(() => { el.textContent = "資料會儲存在此瀏覽器。"; el.style.color = "var(--muted)"; }, 2200);
+    setTimeout(() => {
+      el.textContent = "資料會儲存在此瀏覽器。";
+      el.style.color = "var(--muted)";
+    }, 2200);
   }
+
   window.editWord = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
+
     editingId = id;
     $("koreanInput").value = w.korean;
     $("chineseInput").value = w.chinese;
     $("posInput").value = w.pos;
     $("categoryInput").value = w.category || "未分類";
     $("exampleInput").value = w.example || makeExample(w.korean, w.chinese, w.pos);
+    $("exampleZhInput").value = w.exampleZh || makeExampleZh(w.korean, w.chinese, w.pos);
     $("noteInput").value = w.note || "";
     $("saveBtn").textContent = "更新單字";
     $("cancelBtn").classList.remove("hidden");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-  window.deleteWord = function(id) { if (!confirm("確定要刪除這個單字嗎？")) return; words = words.filter(w => w.id !== id); saveWords(); };
-  window.resetOneSrs = function(id) { words = words.map(w => w.id === id ? { ...w, stats: makeStats() } : w); saveWords(); };
-  function resetAllSrs() { if (!confirm("確定要重置全部單字的 SRS 與錯題統計嗎？")) return; words = words.map(w => ({ ...w, stats: makeStats() })); saveWords(); }
-  function getScope() { return document.querySelector("input[name='scope']:checked").value; }
+
+  window.deleteWord = function(id) {
+    if (!confirm("確定要刪除這個單字嗎？")) return;
+    words = words.filter(w => w.id !== id);
+    saveWords();
+  };
+
+  window.resetOneSrs = function(id) {
+    words = words.map(w => w.id === id ? { ...w, stats: makeStats() } : w);
+    saveWords();
+  };
+
+  function resetAllSrs() {
+    if (!confirm("確定要重置全部單字的 SRS 與錯題統計嗎？")) return;
+    words = words.map(w => ({ ...w, stats: makeStats() }));
+    saveWords();
+  }
+
+  function getScope() {
+    return document.querySelector("input[name='scope']:checked").value;
+  }
+
   function getPool() {
     const scope = getScope();
+
     if (scope === "all") return [...words];
     if (scope === "srs") return words.filter(w => (w.stats?.dueAt || 0) <= now());
+
     const threshold = Number($("wrongRateThreshold").value || 0);
     const op = $("wrongRateOperator").value;
+
     return words.filter(w => op === ">=" ? getWrongRate(w) >= threshold : getWrongRate(w) <= threshold);
   }
+
   function updateQuestionLimit() {
     const pool = getPool();
     $("questionLimit").textContent = `/ ${pool.length}`;
+
     const input = $("questionCount");
     input.max = Math.max(pool.length, 1);
     if (+input.value > pool.length) input.value = pool.length || 1;
   }
-  function getMode() { return document.querySelector("input[name='mode']:checked").value; }
+
+  function getMode() {
+    return document.querySelector("input[name='mode']:checked").value;
+  }
+
   function startQuiz() {
     let pool = getPool();
-    if (!pool.length) { alert("目前這個範圍沒有可測驗的單字。可以改成全部單字，或新增單字後再測驗。"); return; }
+
+    if (!pool.length) {
+      alert("目前這個範圍沒有可測驗的單字。可以改成全部單字，或新增單字後再測驗。");
+      return;
+    }
+
     pool = shuffle(pool).slice(0, Math.min(+$("questionCount").value || 1, pool.length));
-    quiz = { items: pool, index: 0, mode: getMode(), checked: Array(pool.length).fill(null) };
+    quiz = {
+      items: pool,
+      index: 0,
+      mode: getMode(),
+      checked: Array(pool.length).fill(null)
+    };
+
     $("quizSection").classList.remove("hidden");
     renderQuizQuestion();
     $("quizSection").scrollIntoView({ behavior: "smooth" });
   }
+
   function renderQuizQuestion() {
     if (!quiz) return;
+
     const item = quiz.items[quiz.index];
     const modes = ["zhToKo", "koToZh", "listen"];
     const mode = quiz.mode === "mixed" ? modes[Math.floor(Math.random() * modes.length)] : quiz.mode;
     item.currentMode = mode;
+
     $("quizProgressText").textContent = `進度：${quiz.index + 1} / ${quiz.items.length}`;
     $("progressBar").style.width = `${((quiz.index + 1) / quiz.items.length) * 100}%`;
     $("quizPos").textContent = item.pos;
@@ -362,75 +627,156 @@
     $("resultBox").textContent = "";
     $("resultBox").className = "result";
     $("answerInput").focus();
+
     if (mode === "listen") setTimeout(() => speak(item.korean), 200);
   }
+
   function submitAnswer() {
     if (!quiz) return;
+
     const item = quiz.items[quiz.index];
     const userAnswer = $("answerInput").value.trim();
     const correct = item.currentMode === "koToZh" ? item.chinese : item.korean;
+    const isLastQuestion = quiz.index >= quiz.items.length - 1;
     const isCorrect = normalize(userAnswer) === normalize(correct);
+
     quiz.checked[quiz.index] = isCorrect;
     updateStats(item.id, isCorrect);
+
     const box = $("resultBox");
     box.className = `result ${isCorrect ? "ok" : "bad"}`;
     box.textContent = isCorrect ? "答對了！" : `答錯了，正確答案：${correct}`;
+
     speak(item.korean);
     saveWords();
+
+    if (isLastQuestion) endQuiz();
   }
+
   function updateStats(id, isCorrect) {
     words = words.map(w => {
       if (w.id !== id) return w;
+
       const s = { ...makeStats(), ...(w.stats || {}) };
       s.attempts += 1;
       s.lastReviewedAt = now();
-      if (isCorrect) { s.reps += 1; if (s.reps === 1) s.intervalDays = 1; else if (s.reps === 2) s.intervalDays = 3; else s.intervalDays = Math.max(5, Math.round(s.intervalDays * s.ease)); s.ease = Math.min(3.2, s.ease + 0.08); }
-      else { s.wrong += 1; s.reps = 0; s.intervalDays = 0; s.ease = Math.max(1.3, s.ease - 0.25); }
+
+      if (isCorrect) {
+        s.reps += 1;
+        if (s.reps === 1) s.intervalDays = 1;
+        else if (s.reps === 2) s.intervalDays = 3;
+        else s.intervalDays = Math.max(5, Math.round(s.intervalDays * s.ease));
+        s.ease = Math.min(3.2, s.ease + 0.08);
+      } else {
+        s.wrong += 1;
+        s.reps = 0;
+        s.intervalDays = 0;
+        s.ease = Math.max(1.3, s.ease - 0.25);
+      }
+
       s.dueAt = now() + s.intervalDays * dayMs;
       return { ...w, stats: s };
     });
   }
-  function moveQuiz(delta) { if (!quiz) return; quiz.index = Math.min(Math.max(quiz.index + delta, 0), quiz.items.length - 1); renderQuizQuestion(); }
+
+  function moveQuiz(delta) {
+    if (!quiz) return;
+    quiz.index = Math.min(Math.max(quiz.index + delta, 0), quiz.items.length - 1);
+    renderQuizQuestion();
+  }
+
   function endQuiz() {
     if (!quiz) return;
+
     const total = quiz.items.length;
     const answered = quiz.checked.filter(v => v !== null).length;
     const score = quiz.checked.filter(Boolean).length;
+
     alert(`測驗結束！已作答 ${answered} / ${total} 題，答對 ${score} 題。`);
+
     quiz = null;
     $("quizSection").classList.add("hidden");
     renderAll();
   }
-  function getWrongRate(w) { const s = { ...makeStats(), ...(w.stats || {}) }; if (!s.attempts) return 100; return Math.round((s.wrong / s.attempts) * 100); }
+
+  function getWrongRate(w) {
+    const s = { ...makeStats(), ...(w.stats || {}) };
+    if (!s.attempts) return 100;
+    return Math.round((s.wrong / s.attempts) * 100);
+  }
+
   function backupCopy() {
     const data = JSON.stringify(words, null, 2);
     $("backupText").value = data;
     navigator.clipboard?.writeText(data).catch(() => {});
     showSaveHint("備份已顯示在備份區，也已嘗試複製到剪貼簿。", true);
   }
+
   function importBackup() {
     try {
       const data = JSON.parse($("backupText").value);
       if (!Array.isArray(data)) throw new Error("格式錯誤");
+
       words = migrateWords(data);
       saveWords();
       showSaveHint("匯入完成。", true);
-    } catch (err) { alert("匯入失敗，請確認內容是正確的 JSON 備份資料。"); }
+    } catch (err) {
+      alert("匯入失敗，請確認內容是正確的 JSON 備份資料。");
+    }
   }
-  function clearDatabase() { if (!confirm("確定要清空全部單字嗎？這個動作無法復原。")) return; words = []; saveWords(); }
+
+  function clearDatabase() {
+    if (!confirm("確定要清空全部單字嗎？這個動作無法復原。")) return;
+    words = [];
+    saveWords();
+  }
+
   window.speak = function(text) {
-    if (!("speechSynthesis" in window)) { alert("此瀏覽器不支援語音播放。請使用 Chrome / Edge / Safari。"); return; }
+    if (!("speechSynthesis" in window)) {
+      alert("此瀏覽器不支援語音播放。請使用 Chrome / Edge / Safari。");
+      return;
+    }
+
     window.speechSynthesis.cancel();
+
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = "ko-KR";
     utter.rate = 0.85;
     window.speechSynthesis.speak(utter);
   };
-  function shuffle(arr) { const copy = [...arr]; for (let i = copy.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [copy[i], copy[j]] = [copy[j], copy[i]]; } return copy; }
-  function normalize(text) { return String(text || "").trim().toLowerCase().replace(/[\s。！？!?,，.]/g, ""); }
-  function escapeHtml(value) { return String(value).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch])); }
-  function escapeAttr(value) { return escapeHtml(value); }
-  function escapeJs(value) { return String(value).replace(/[\\'\n\r]/g, " "); }
+
+  function shuffle(arr) {
+    const copy = [...arr];
+
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+
+    return copy;
+  }
+
+  function normalize(text) {
+    return String(text || "").trim().toLowerCase().replace(/[\s。！？!?,，.]/g, "");
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"]/g, ch => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;"
+    }[ch]));
+  }
+
+  function escapeAttr(value) {
+    return escapeHtml(value);
+  }
+
+  function escapeJs(value) {
+    return String(value).replace(/[\\'\n\r]/g, " ");
+  }
+
   init();
 </script>
 </body>
