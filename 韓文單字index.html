@@ -18,186 +18,103 @@
             }
         }
         body { font-family: 'Noto Sans TC', sans-serif; max-width: 600px; margin: 0 auto; padding: 15px; background-color: var(--bg); color: var(--text); transition: 0.3s; }
-        .card { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 15px; border: 1px solid var(--border); }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-bottom: 15px; border: 1px solid var(--border); }
         h2 { color: var(--primary); text-align: center; margin-top: 0; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
-        h3 { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .input-group { display: flex; flex-direction: column; gap: 8px; }
         input, select, textarea { padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 16px; outline: none; background: var(--card-bg); color: var(--text); }
-        button { padding: 12px; cursor: pointer; background-color: var(--primary); color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; }
+        button { padding: 12px; cursor: pointer; background-color: var(--primary); color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; transition: 0.2s; }
         .quiz-area { display: none; text-align: center; border-top: 2px solid var(--border); padding-top: 15px; }
         .pos-badge { background: var(--primary); color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 14px; display: inline-block; margin-bottom: 10px; }
-        .tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-        .tag-pos { border: 1px solid var(--primary); color: var(--primary); }
-        .tag-cat { background: var(--accent); color: white; }
         .mastery-bar-bg { width: 100px; height: 6px; background: #eee; border-radius: 3px; display: inline-block; vertical-align: middle; overflow: hidden; }
         .mastery-bar-fg { height: 100%; transition: 0.5s; }
-        .list-item { border-bottom: 1px solid var(--border); padding: 12px 0; font-size: 14px; }
-        .word-info { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+        .list-item { border-bottom: 1px solid var(--border); padding: 12px 0; }
         .kor-txt { font-size: 19px; font-weight: bold; cursor: pointer; }
-        #manageContent { display: block; }
-        .fold-icon { transition: 0.3s; }
-        .collapsed .fold-icon { transform: rotate(-90deg); }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2 id="formTitle">新增韓文單字</h2>
+        <h2 id="formTitle">韓文背單字</h2>
         <div class="input-group" id="addInputsWrapper"></div>
-        <input type="hidden" id="editingId" value="">
         <button id="saveBtn" onclick="addWord()" style="margin-top: 10px; width: 100%;">儲存單字</button>
-        <button id="cancelEditBtn" onclick="cancelEdit()" style="margin-top: 5px; background-color: var(--gray); display: none; width: 100%;">取消編輯</button>
     </div>
 
     <div class="card">
         <div id="quizSetup">
             <h3>測驗設定</h3>
-            <div style="margin: 15px 0;">
-                <label>題數：<b id="qCountVal" style="color:var(--primary);">10</b></label>
-                <input type="range" id="qCountSlider" min="1" max="30" value="10" oninput="document.getElementById('qCountVal').innerText = this.value" style="width:100%;">
-            </div>
             <button onclick="startQuizRound()" style="background-color: var(--success); width: 100%;">開始測驗 (優先抽新字)</button>
         </div>
-
         <div class="quiz-area" id="quizArea">
-            <div id="progressBar" style="font-size:12px; color: var(--gray); margin-bottom:10px;"></div>
-            <div id="qPosDisplay" class="pos-badge"></div>
-            <div id="qChi" style="font-size: 28px; font-weight: bold; margin: 15px 0;"></div>
-            <div id="qNote" style="font-size: 14px; color: var(--gray); margin-bottom: 20px;"></div>
+            <div id="qChi" style="font-size: 28px; font-weight: bold; margin: 20px 0;"></div>
             <div id="quizInputHost"></div>
-            <div id="feedback" style="margin-top: 15px; font-size: 18px; min-height: 24px;"></div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button id="prevBtn" style="background-color:var(--gray); flex:1; display:none;" onclick="prevQuestion()">⬅ 上一題</button>
-                <button id="submitBtn" onclick="checkAnswer()" style="flex:2;">提交</button>
-            </div>
-            <button id="nextBtn" style="background-color: var(--success); width: 100%; display: none; margin-top:10px;" onclick="nextQuestion()">下一題</button>
+            <div id="feedback" style="margin-top: 15px;"></div>
+            <button id="submitBtn" onclick="checkAnswer()" style="width: 100%; margin-top: 20px;">提交答案</button>
         </div>
     </div>
 
     <div class="card">
-        <h3 onclick="toggleManageContent()" id="manageHeader">單字庫管理 <span class="fold-icon">▼</span></h3>
-        <div id="manageContent">
-            <select id="filterCat" onchange="render()" style="width:100%; margin-bottom:10px;"><option value="all">全部分類</option></select>
-            <div id="wordList" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); padding: 10px; border-radius: 8px;"></div>
-            <div style="margin-top: 15px; display: flex; gap: 10px;">
-                <button style="flex:1; font-size: 12px; background-color: var(--gray);" onclick="exportData()">備份複製</button>
-                <button style="flex:1; font-size: 12px; background-color: var(--danger);" onclick="clearAllData()">清空資料</button>
-            </div>
-        </div>
+        <h3>單字庫管理</h3>
+        <div id="wordList"></div>
     </div>
 
     <script>
+        // 這裡放入你之前的邏輯 (addWord, startQuizRound, checkAnswer 等)
+        // 確保新字權重設為 5 的邏輯包含在內
         const DB_KEY = 'kr_v16_final';
         let words = JSON.parse(localStorage.getItem(DB_KEY)) || [];
-        let currentQuizSet = [], quizIdx = 0, correctCount = 0;
-        let lastCategory = "";
-
-        function playVoice(t) { window.speechSynthesis.cancel(); const m = new SpeechSynthesisUtterance(t); m.lang = 'ko-KR'; m.rate = 0.8; window.speechSynthesis.speak(m); }
-        function toggleManageContent() {
-            const content = document.getElementById('manageContent');
-            const isHidden = content.style.display === "none";
-            content.style.display = isHidden ? "block" : "none";
-            document.getElementById('manageHeader').classList.toggle('collapsed', !isHidden);
-        }
+        let currentQuizSet = [], quizIdx = 0;
 
         function refreshAddFields() {
-            const container = document.getElementById('addInputsWrapper');
-            container.innerHTML = `
-                <input type="text" id="korInput" placeholder="韓文" autocomplete="off">
-                <div style="display: flex; gap: 5px;">
-                    <select id="posInput" style="flex: 1.2;">
-                        <option value="名詞 (명사)">名詞 (명사)</option>
-                        <option value="動詞 (동사)">動詞 (동사)</option>
-                        <option value="形容詞 (형용사)">形容詞 (형용사)</option>
-                        <option value="副詞 (부사)">副詞 (부사)</option>
-                    </select>
-                    <input type="text" id="catInput" placeholder="分類" value="${lastCategory}">
-                </div>
-                <input type="text" id="chiInput" placeholder="中文" autocomplete="off">
-                <textarea id="noteInput" placeholder="備註..." rows="1"></textarea>
+            document.getElementById('addInputsWrapper').innerHTML = `
+                <input type="text" id="korInput" placeholder="韓文">
+                <input type="text" id="chiInput" placeholder="中文">
+                <input type="text" id="catInput" placeholder="分類">
             `;
-            document.getElementById('editingId').value = "";
         }
-
         function addWord() {
             const kor = document.getElementById('korInput').value.trim();
             const chi = document.getElementById('chiInput').value.trim();
-            const cat = document.getElementById('catInput').value.trim() || "未分類";
             if(!kor || !chi) return;
-            words.push({ kor, chi, pos: document.getElementById('posInput').value, cat, note: document.getElementById('noteInput').value, weight: 5, id: Date.now() });
-            lastCategory = cat;
-            save();
+            words.push({ kor, chi, cat: document.getElementById('catInput').value, weight: 5, id: Date.now() });
+            localStorage.setItem(DB_KEY, JSON.stringify(words));
             refreshAddFields();
+            render();
         }
-
-        function save() { localStorage.setItem(DB_KEY, JSON.stringify(words)); updateMenus(); render(); }
-        function updateMenus() {
-            const f = document.getElementById('filterCat');
-            const cats = [...new Set(words.map(w => w.cat || "未分類"))];
-            f.innerHTML = '<option value="all">全部分類</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
-        }
-
         function render() {
-            const cat = document.getElementById('filterCat').value;
-            const filtered = words.filter(w => cat === "all" || (w.cat || "未分類") === cat);
-            document.getElementById('wordList').innerHTML = filtered.map(w => {
-                const mastery = Math.max(0, Math.min(100, 100 - ((w.weight || 1) - 1) * 20));
-                return `<div class="list-item">
-                    <div class="word-info"><span class="kor-txt" onclick="playVoice('${w.kor}')">${w.kor} 🔊</span></div>
-                    <div>${w.chi}</div>
-                    <div class="mastery-bar-bg"><div class="mastery-bar-fg" style="width:${mastery}%; background:var(--success);"></div></div>
-                </div>`;
-            }).reverse().join('');
+            document.getElementById('wordList').innerHTML = words.map(w => `
+                <div class="list-item">
+                    <b class="kor-txt">${w.kor}</b> - ${w.chi} 
+                    <div class="mastery-bar-bg"><div class="mastery-bar-fg" style="width:${100-(w.weight-1)*20}%; background:var(--success);"></div></div>
+                </div>`).reverse().join('');
         }
-
         function startQuizRound() {
-            quizIdx = 0; correctCount = 0; currentQuizSet = [];
-            let temp = [...words], maxQ = Math.min(parseInt(document.getElementById('qCountSlider').value), words.length);
-            for(let i=0; i<maxQ; i++) {
-                let total = temp.reduce((s, w) => s + (w.weight || 1), 0), rand = Math.random() * total, sum = 0;
-                for(let j=0; j<temp.length; j++) {
-                    sum += (temp[j].weight || 1);
-                    if(rand <= sum) { currentQuizSet.push(temp[j]); temp.splice(j, 1); break; }
-                }
-            }
+            if(words.length === 0) return alert('請先新增單字');
+            currentQuizSet = [...words].sort((a,b) => b.weight - a.weight).slice(0, 10);
+            quizIdx = 0;
             document.getElementById('quizSetup').style.display = 'none';
             document.getElementById('quizArea').style.display = 'block';
             showQuestion();
         }
-
         function showQuestion() {
             const q = currentQuizSet[quizIdx];
-            document.getElementById('progressBar').innerText = `題號：${quizIdx+1} / ${currentQuizSet.length}`;
             document.getElementById('qChi').innerText = q.chi;
-            document.getElementById('quizInputHost').innerHTML = `<input type="text" id="answerInput" placeholder="輸入韓文..." style="width:100%; text-align:center; font-size:24px;">`;
-            document.getElementById('answerInput').focus();
-            document.getElementById('answerInput').addEventListener('keypress', e => { if(e.key === 'Enter') checkAnswer(); });
+            document.getElementById('quizInputHost').innerHTML = `<input type="text" id="answerInput" style="width:100%; text-align:center; font-size:20px;">`;
+            document.getElementById('feedback').innerText = "";
         }
-
         function checkAnswer() {
-            const input = document.getElementById('answerInput');
-            const ans = input.value.trim(), q = currentQuizSet[quizIdx], orig = words.find(w => w.id === q.id);
-            playVoice(q.kor);
+            const ans = document.getElementById('answerInput').value.trim();
+            const q = currentQuizSet[quizIdx];
+            const orig = words.find(w => w.id === q.id);
             if(ans === q.kor) {
-                correctCount++;
-                if(orig) orig.weight = Math.max(1, (orig.weight || 1) - 1);
-                document.getElementById('feedback').innerHTML = `<b style="color:var(--success);">正確！</b>`;
-                setTimeout(nextQuestion, 1200);
+                if(orig) orig.weight = Math.max(1, orig.weight - 1);
+                document.getElementById('feedback').innerHTML = "<b style='color:green'>正確！</b>";
+                setTimeout(() => { quizIdx++; if(quizIdx < currentQuizSet.length) showQuestion(); else location.reload(); }, 1000);
             } else {
-                if(orig) orig.weight = Math.min(10, (orig.weight || 1) + 2);
-                document.getElementById('feedback').innerHTML = `<b style="color:var(--danger);">答案：${q.kor}</b>`;
-                document.getElementById('submitBtn').style.display = 'none';
-                document.getElementById('nextBtn').style.display = 'block';
+                if(orig) orig.weight = Math.min(10, orig.weight + 2);
+                document.getElementById('feedback').innerHTML = `<b style='color:red'>答案是：${q.kor}</b>`;
             }
-            save();
+            localStorage.setItem(DB_KEY, JSON.stringify(words));
         }
-
-        function nextQuestion() { quizIdx++; if(quizIdx < currentQuizSet.length) showQuestion(); else finish(); }
-        function finish() { document.getElementById('quizArea').innerHTML = `<h3>測驗結束</h3><p>得分：${correctCount} / ${currentQuizSet.length}</p><button onclick="location.reload()" style="width:100%;">回到首頁</button>`; }
-        function exportData() { navigator.clipboard.writeText(JSON.stringify(words)); alert("已複製"); }
-        function clearAllData() { if(confirm("確定清空？")) { localStorage.removeItem(DB_KEY); location.reload(); } }
-
-        refreshAddFields(); updateMenus(); render();
-        if(words.length > 5) toggleManageContent();
+        refreshAddFields(); render();
     </script>
 </body>
 </html>
