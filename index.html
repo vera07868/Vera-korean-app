@@ -6,17 +6,18 @@
   <title>韓文背單字 SRS</title>
   <style>
     :root {
-      --bg: #f5f7fb;
-      --card: #ffffff;
-      --primary: #4f46e5;
-      --primary-dark: #3730a3;
+      --bg: #050505;
+      --card: #0f172a;
+      --card-soft: #111827;
+      --primary: #6366f1;
+      --primary-dark: #818cf8;
       --danger: #ef4444;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --border: #dbe1ea;
-      --ok: #16a34a;
+      --text: #f9fafb;
+      --muted: #cbd5e1;
+      --border: #334155;
+      --ok: #22c55e;
       --warn: #f59e0b;
-      --shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+      --shadow: 0 14px 35px rgba(0, 0, 0, 0.35);
     }
 
     * { box-sizing: border-box; }
@@ -24,7 +25,7 @@
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
-      background: linear-gradient(135deg, #eef2ff, #f8fafc 45%, #ecfeff);
+      background: #050505;
       color: var(--text);
       min-height: 100vh;
       padding: 24px;
@@ -41,7 +42,7 @@
     h2, h3 { margin-top: 0; }
 
     .card, details.card {
-      background: rgba(255, 255, 255, 0.94);
+      background: rgba(15, 23, 42, 0.96);
       border: 1px solid var(--border);
       border-radius: 22px;
       box-shadow: var(--shadow);
@@ -85,30 +86,30 @@
       border-radius: 999px;
       padding: 10px 16px;
       cursor: pointer;
-      background: #e5e7eb;
-      color: #111827;
+      background: #334155;
+      color: #f8fafc;
       transition: 0.18s ease;
       font-weight: 650;
     }
 
     button:hover {
       transform: translateY(-1px);
-      filter: brightness(0.98);
+      filter: brightness(1.08);
     }
 
     button:active { transform: translateY(0); }
 
     .primary { background: var(--primary); color: white; }
-    .primary:hover { background: var(--primary-dark); }
+    .primary:hover { background: #4f46e5; }
     .danger { background: var(--danger); color: white; }
-    .ghost { background: #eef2ff; color: var(--primary); }
+    .ghost { background: #1e293b; color: #c7d2fe; }
 
     input, select, textarea {
       width: 100%;
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 11px 12px;
-      background: #fff;
+      background: #020617;
       color: var(--text);
       outline: none;
       min-width: 0;
@@ -123,14 +124,18 @@
     }
 
     select option {
-      color: #111827;
-      background: #ffffff;
+      color: #f8fafc;
+      background: #020617;
       font-size: 16px;
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: #94a3b8;
     }
 
     input:focus, select:focus, textarea:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
     }
 
     textarea {
@@ -142,7 +147,7 @@
       display: block;
       font-weight: 800;
       margin-bottom: 6px;
-      color: #374151;
+      color: #e2e8f0;
     }
 
     .muted {
@@ -156,7 +161,7 @@
 
     .modes label {
       width: auto;
-      background: #f8fafc;
+      background: #020617;
       border: 1px solid var(--border);
       border-radius: 999px;
       padding: 9px 12px;
@@ -169,9 +174,30 @@
       margin-right: 6px;
     }
 
+    .toggle-inline {
+      width: auto;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      background: #020617;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 10px 14px;
+      cursor: pointer;
+      user-select: none;
+      color: #e2e8f0;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .toggle-inline input {
+      width: auto;
+      margin: 0;
+    }
+
     .progress {
       height: 12px;
-      background: #e5e7eb;
+      background: #1e293b;
       border-radius: 999px;
       overflow: hidden;
     }
@@ -192,16 +218,16 @@
 
     .question-card {
       border-radius: 20px;
-      border: 1px dashed #c7d2fe;
-      background: #f8faff;
+      border: 1px dashed #6366f1;
+      background: #020617;
       padding: 26px 18px;
       text-align: center;
     }
 
     .badge {
       display: inline-flex;
-      background: #eef2ff;
-      color: var(--primary-dark);
+      background: #1e293b;
+      color: #c7d2fe;
       border-radius: 999px;
       padding: 6px 12px;
       font-weight: 700;
@@ -270,8 +296,22 @@
       align-items: center;
       border: 1px solid var(--border);
       border-radius: 18px;
-      background: #fff;
+      background: #020617;
       padding: 14px;
+    }
+
+    .word-line, .example-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .word-line {
+      margin-bottom: 2px;
+    }
+
+    .example-line {
+      align-items: flex-start;
     }
 
     .ko {
@@ -284,24 +324,25 @@
     .tag { font-size: 13px; }
 
     .example {
-      background: #f8fafc;
+      background: #0f172a;
+      border: 1px solid #1e293b;
       border-radius: 12px;
       padding: 8px 10px;
       margin-top: 6px;
     }
 
     .icon-btn {
+      flex: 0 0 auto;
       width: 30px;
       height: 30px;
       padding: 0;
-      margin-left: 6px;
       border-radius: 999px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       vertical-align: middle;
-      background: #eef2ff;
-      color: var(--primary);
+      background: #1e293b;
+      color: #c7d2fe;
       font-size: 15px;
     }
 
@@ -322,7 +363,7 @@
 
     .accuracy-bar {
       height: 10px;
-      background: #e5e7eb;
+      background: #1e293b;
       border-radius: 999px;
       overflow: hidden;
     }
@@ -338,14 +379,14 @@
     .pill {
       border-radius: 999px;
       padding: 4px 9px;
-      background: #f1f5f9;
-      color: #475569;
+      background: #1e293b;
+      color: #cbd5e1;
       font-size: 12px;
       font-weight: 700;
     }
 
-    .pill.warn { background: #fffbeb; color: #b45309; }
-    .pill.ok { background: #ecfdf5; color: #047857; }
+    .pill.warn { background: #451a03; color: #fbbf24; }
+    .pill.ok { background: #052e16; color: #86efac; }
 
     .mini {
       display: flex;
@@ -369,8 +410,8 @@
       cursor: pointer;
       border-radius: 999px;
       padding: 8px 12px;
-      background: #e5e7eb;
-      color: #111827;
+      background: #334155;
+      color: #f8fafc;
       font-size: 14px;
       font-weight: 700;
       user-select: none;
@@ -379,8 +420,8 @@
     .word-menu > summary::-webkit-details-marker { display: none; }
 
     .word-menu[open] > summary {
-      background: #dbeafe;
-      color: var(--primary-dark);
+      background: #312e81;
+      color: #e0e7ff;
     }
 
     .word-menu-panel {
@@ -394,8 +435,8 @@
       padding: 10px;
       border: 1px solid var(--border);
       border-radius: 16px;
-      background: #ffffff;
-      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
+      background: #020617;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
     }
 
     .word-menu-panel button {
@@ -727,39 +768,16 @@
     $("posInput").value = POS_LIST[0];
   }
 
-  function uniqueCategories() {
-    return [...new Set(words.map(w => w.category || "未分類"))].sort((a, b) => a.localeCompare(b, "zh-Hant"));
-  }
-
   function renderCategoryFilter() {
     const select = $("categoryFilter");
     const current = select.value || "all";
-    const cats = uniqueCategories();
 
-    const smartOptions = LIBRARY_VIEW_OPTIONS
+    select.innerHTML = LIBRARY_VIEW_OPTIONS
       .map(opt => `<option value="${escapeAttr(opt.value)}">${escapeHtml(opt.label)}</option>`)
       .join("");
 
-    const categoryOptions = cats
-      .map(cat => `<option value="category:${escapeAttr(cat)}">${escapeHtml(cat)}</option>`)
-      .join("");
-
-    select.innerHTML = `
-      ${smartOptions}
-      ${categoryOptions ? `<option disabled>──────── 自訂分類 ────────</option>${categoryOptions}` : ""}
-    `;
-
     const smartValues = LIBRARY_VIEW_OPTIONS.map(opt => opt.value);
-
-    if (smartValues.includes(current)) {
-      select.value = current;
-    } else if (current.startsWith("category:") && cats.includes(current.replace(/^category:/, ""))) {
-      select.value = current;
-    } else if (cats.includes(current)) {
-      select.value = `category:${current}`;
-    } else {
-      select.value = "all";
-    }
+    select.value = smartValues.includes(current) ? current : "all";
   }
 
   function renderAll() {
@@ -772,13 +790,9 @@
     const libraryView = $("categoryFilter").value || "all";
     const pos = $("posFilter").value || "all";
     const keyword = normalize($("searchInput").value);
-
     let filtered = [...words];
 
-    if (libraryView.startsWith("category:")) {
-      const selectedCategory = libraryView.replace(/^category:/, "");
-      filtered = filtered.filter(w => (w.category || "未分類") === selectedCategory);
-    } else if (libraryView === "recentWrong") {
+    if (libraryView === "recentWrong") {
       filtered = filtered.filter(w => hasWrongRecord(w));
     } else if (libraryView === "dueToday") {
       filtered = filtered.filter(w => (getWordStats(w).dueAt || 0) <= now());
@@ -802,27 +816,29 @@
 
     $("wordList").innerHTML = filtered.map(w => {
       const accuracy = getAccuracyRate(w);
-      const wrongRate = getWrongRate(w);
       const isDue = (w.stats?.dueAt || 0) <= now();
       const isNew = isNewWord(w);
       const dueDate = w.stats?.dueAt ? new Date(w.stats.dueAt).toLocaleDateString("zh-TW") : "今天";
 
       const exampleBlock = w.example
         ? `<div class="example">
-            <div>
-              例句：${escapeHtml(w.example)}
+            <div class="example-line">
               <button class="icon-btn" type="button" title="播放例句" aria-label="播放例句" onclick="speak('${escapeJs(w.example)}')">🔊</button>
+              <span>例句：${escapeHtml(w.example)}</span>
             </div>
-            ${w.exampleZh ? `<div class="zh">中文：${escapeHtml(w.exampleZh)}</div>` : ""}
+            ${w.exampleZh ? `<div class="zh" style="margin-left:38px;">中文：${escapeHtml(w.exampleZh)}</div>` : ""}
           </div>`
         : "";
 
       return `
         <article class="word">
           <div>
-            <div class="ko">${escapeHtml(w.korean)}</div>
-            <div class="zh">${escapeHtml(w.chinese)}</div>
-            <div class="tag">${escapeHtml(w.pos)}｜${escapeHtml(w.category || "未分類")}</div>
+            <div class="word-line">
+              <button class="icon-btn" type="button" title="播放單字" aria-label="播放單字" onclick="speak('${escapeJs(w.korean)}')">🔊</button>
+              <div class="ko">${escapeHtml(w.korean)}</div>
+            </div>
+            <div class="zh" style="margin-left:38px;">${escapeHtml(w.chinese)}</div>
+            <div class="tag" style="margin-left:38px;">${escapeHtml(w.pos)}｜${escapeHtml(w.category || "未分類")}</div>
             ${exampleBlock}
             ${w.note ? `<div class="muted">備註：${escapeHtml(w.note).replace(/\n/g, "<br>")}</div>` : ""}
 
@@ -838,7 +854,6 @@
 
             <div class="pills" style="margin-top: 8px;">
               <span class="pill ${accuracy >= 70 ? "ok" : "warn"}">正確率 ${accuracy}%</span>
-              <span class="pill ${wrongRate > 0 ? "warn" : "ok"}">錯誤率 ${wrongRate}%</span>
               ${isNew ? `<span class="pill ok">新單字</span>` : ""}
               <span class="pill">答題 ${w.stats?.attempts || 0} 次</span>
               <span class="pill ${isDue ? "warn" : ""}">${isDue ? "今日到期" : `下次 ${dueDate}`}</span>
@@ -847,8 +862,6 @@
           </div>
 
           <div class="mini">
-            <button class="ghost" type="button" onclick="speak('${escapeJs(w.korean)}')">播放單字</button>
-
             <details class="word-menu">
               <summary>管理</summary>
               <div class="word-menu-panel">
