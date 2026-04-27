@@ -157,6 +157,38 @@
 
     .hidden { display: none !important; }
 
+    .duplicate-alert {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      border: 1px solid #f59e0b;
+      border-radius: 16px;
+      background: #451a03;
+      color: #fffbeb;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+
+    .duplicate-alert strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #fde68a;
+      font-size: 16px;
+    }
+
+    .duplicate-alert p {
+      margin: 0;
+      color: #fef3c7;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .duplicate-alert .duplicate-actions {
+      flex: 0 0 auto;
+      justify-content: flex-end;
+    }
+
     .modes { margin: 12px 0; }
 
     .modes label {
@@ -500,6 +532,14 @@
         right: auto;
         left: 0;
       }
+
+      .duplicate-alert {
+        flex-direction: column;
+      }
+
+      .duplicate-alert .duplicate-actions {
+        justify-content: flex-start;
+      }
     }
   </style>
 </head>
@@ -513,6 +553,17 @@
       <div>
         <h2>新增單字</h2>
         <p class="muted">詞性請從下拉選單選擇。例句與備註分開；若例句空白，系統會自動產生例句。</p>
+      </div>
+    </div>
+
+    <div class="duplicate-alert hidden" id="duplicateAlert" role="alert">
+      <div>
+        <strong id="duplicateTitle">偵測到可能重複的單字</strong>
+        <p id="duplicateMessage"></p>
+      </div>
+      <div class="actions duplicate-actions">
+        <button class="ghost" id="duplicateEditBtn" type="button">查看原單字</button>
+        <button class="primary" id="duplicateContinueBtn" type="button">仍要重複儲存</button>
       </div>
     </div>
 
@@ -690,6 +741,7 @@
   let words = migrateWords(loadWords());
   let lastImportIgnoredCount = 0;
   let editingId = null;
+  let duplicateConfirmKey = "";
   let quiz = null;
 
   function now() {
@@ -726,7 +778,60 @@
     return hasFinalConsonant(text) ? "을" : "를";
   }
 
-  function makeExample(korean, chinese, pos) {
+  function subjectParticle(text) {
+    return hasFinalConsonant(text) ? "이" : "가";
+  }
+
+  function topicParticle(text) {
+    return hasFinalConsonant(text) ? "은" : "는";
+  }
+
+  function copulaEnding(text) {
+    return hasFinalConsonant(text) ? "이에요" : "예요";
+  }
+
+  function hashText(text) {
+    let hash = 0;
+    const value = String(text || "");
+
+    for (let i = 0; i < value.length; i += 1) {
+      hash = ((hash << 5) - hash) + value.charCodeAt(i);
+      hash |= 0;
+    }
+
+    return Math.abs(hash);
+  }
+
+  function pickByWord(korean, chinese, pos, list) {
+    if (!list.length) return "";
+    const index = hashText(`${korean}|${chinese}|${pos}`) % list.length;
+    return list[index];
+  }
+
+  function addFinalConsonantToLastSyllable(text, finalIndex) {
+    const value = String(text || "");
+    if (!value) return value;
+
+    const last = value[value.length - 1];
+    const code = last.charCodeAt(0) - 0xAC00;
+
+    if (code < 0 || code > 11171) return value;
+    if (code % 28 !== 0) return value;
+
+    return value.slice(0, -1) + String.fromCharCode(last.charCodeAt(0) + finalIndex);
+  }
+
+  function toFormalPresent(korean) {
+    const word = String(korean || "").trim();
+    if (!word.endsWith("다") || word.length < 2) return word;
+
+    const stem = word.slice(0, -1);
+    if (hasFinalConsonant(stem)) return `${stem}습니다`;
+
+    return `${addFinalConsonantToLastSyllable(stem, 17)}니다`;
+  }
+
+  function makeOldExample(korean, chinese, pos) {
     if (!korean || !chinese) return "";
     if (pos.includes("動詞")) return `저는 오늘 ${korean}.`;
     if (pos.includes("形容詞")) return `정말 ${korean}.`;
@@ -736,7 +841,7 @@
     return `저는 ${korean}${objectParticle(korean)} 좋아해요.`;
   }
 
-  function makeExampleZh(korean, chinese, pos) {
+  function makeOldExampleZh(korean, chinese, pos) {
     if (!korean || !chinese) return "";
     if (pos.includes("動詞")) return `我今天${chinese}。`;
     if (pos.includes("形容詞")) return `真的很${chinese}。`;
@@ -744,6 +849,181 @@
     if (pos.includes("感嘆詞")) return `${chinese}！我真的嚇了一跳。`;
     if (pos.includes("片語")) return `這個表達是「${chinese}」。`;
     return `我喜歡${chinese}。`;
+  }
+
+  function makeExample(korean, chinese, pos) {
+    if (!korean || !chinese) return "";
+
+    const formal = toFormalPresent(korean);
+    const nounSubject = `${korean}${subjectParticle(korean)}`;
+    const nounTopic = `${korean}${topicParticle(korean)}`;
+    const nounObject = `${korean}${objectParticle(korean)}`;
+
+    if (pos.includes("動詞")) {
+      return pickByWord(korean, chinese, pos, [
+        `저는 오늘 ${formal}.`,
+        `주말에 가족과 함께 ${formal}.`,
+        `친구와 같이 ${formal}.`,
+        `학교에서 ${formal}.`,
+        `시간이 있을 때 ${formal}.`,
+        `내일 다시 ${formal}.`
+      ]);
+    }
+
+    if (pos.includes("形容詞")) {
+      return pickByWord(korean, chinese, pos, [
+        `정말 ${formal}.`,
+        `이곳은 ${formal}.`,
+        `오늘 날씨가 ${formal}.`,
+        `그 사람은 ${formal}.`,
+        `생각보다 ${formal}.`,
+        `이 물건은 ${formal}.`
+      ]);
+    }
+
+    if (pos.includes("副詞")) {
+      return pickByWord(korean, chinese, pos, [
+        `저는 ${korean} 운동해요.`,
+        `친구가 ${korean} 말해요.`,
+        `오늘은 ${korean} 집에 있어요.`,
+        `${korean} 생각났어요.`,
+        `수업 시간에 ${korean} 질문해요.`,
+        `저는 그 말을 ${korean} 들었어요.`
+      ]);
+    }
+
+    if (pos.includes("感嘆詞")) {
+      return pickByWord(korean, chinese, pos, [
+        `${korean}! 정말 놀랐어요.`,
+        `${korean}! 다시 말해 주세요.`,
+        `${korean}! 기분이 좋아요.`
+      ]);
+    }
+
+    if (pos.includes("冠形詞")) {
+      return pickByWord(korean, chinese, pos, [
+        `${korean} 사람에게 기회가 있어요.`,
+        `${korean} 학생이 책을 읽어요.`,
+        `저는 ${korean} 문제를 확인했어요.`
+      ]);
+    }
+
+    if (pos.includes("片語")) {
+      return pickByWord(korean, chinese, pos, [
+        `이 표현은 '${korean}'입니다.`,
+        `대화에서 '${korean}'라고 말해요.`,
+        `오늘 '${korean}'라는 표현을 배웠어요.`
+      ]);
+    }
+
+    return pickByWord(korean, chinese, pos, [
+      `이것은 ${korean}${copulaEnding(korean)}.`,
+      `저는 ${nounObject} 좋아해요.`,
+      `${nounSubject} 여기 있어요.`,
+      `오늘 ${nounObject} 봤어요.`,
+      `${nounTopic} 정말 중요해요.`,
+      `저는 ${nounObject} 찾고 있어요.`,
+      `책상 위에 ${nounSubject} 있어요.`,
+      `친구에게 ${nounObject} 보여 줬어요.`
+    ]);
+  }
+
+  function makeExampleZh(korean, chinese, pos) {
+    if (!korean || !chinese) return "";
+
+    if (pos.includes("動詞")) {
+      return pickByWord(korean, chinese, pos, [
+        `我今天${chinese}。`,
+        `週末和家人一起${chinese}。`,
+        `和朋友一起${chinese}。`,
+        `在學校${chinese}。`,
+        `有時間的時候${chinese}。`,
+        `明天再${chinese}。`
+      ]);
+    }
+
+    if (pos.includes("形容詞")) {
+      return pickByWord(korean, chinese, pos, [
+        `真的很${chinese}。`,
+        `這裡很${chinese}。`,
+        `今天天氣很${chinese}。`,
+        `那個人很${chinese}。`,
+        `比想像中${chinese}。`,
+        `這個東西很${chinese}。`
+      ]);
+    }
+
+    if (pos.includes("副詞")) {
+      return pickByWord(korean, chinese, pos, [
+        `我${chinese}運動。`,
+        `朋友${chinese}地說。`,
+        `今天${chinese}待在家。`,
+        `${chinese}想起來了。`,
+        `上課時${chinese}提問。`,
+        `我${chinese}聽了那句話。`
+      ]);
+    }
+
+    if (pos.includes("感嘆詞")) {
+      return pickByWord(korean, chinese, pos, [
+        `${chinese}！我真的嚇了一跳。`,
+        `${chinese}！請再說一次。`,
+        `${chinese}！心情很好。`
+      ]);
+    }
+
+    if (pos.includes("冠形詞")) {
+      return pickByWord(korean, chinese, pos, [
+        `${chinese}人都有機會。`,
+        `${chinese}學生都在看書。`,
+        `我確認了${chinese}問題。`
+      ]);
+    }
+
+    if (pos.includes("片語")) {
+      return pickByWord(korean, chinese, pos, [
+        `這個表達是「${chinese}」。`,
+        `對話中會說「${chinese}」。`,
+        `今天學了「${chinese}」這個表達。`
+      ]);
+    }
+
+    return pickByWord(korean, chinese, pos, [
+      `這是${chinese}。`,
+      `我喜歡${chinese}。`,
+      `${chinese}在這裡。`,
+      `今天看到了${chinese}。`,
+      `${chinese}很重要。`,
+      `我正在找${chinese}。`,
+      `桌上有${chinese}。`,
+      `我把${chinese}給朋友看。`
+    ]);
+  }
+
+  function refreshOldAutoExamples() {
+    let changed = false;
+
+    words = words.map(w => {
+      const oldExample = makeOldExample(w.korean, w.chinese, w.pos);
+      const oldExampleZh = makeOldExampleZh(w.korean, w.chinese, w.pos);
+      const next = { ...w };
+
+      if (!String(w.example || "").trim() || String(w.example || "").trim() === oldExample) {
+        next.example = makeExample(w.korean, w.chinese, w.pos);
+        changed = true;
+      }
+
+      if (!String(w.exampleZh || "").trim() || String(w.exampleZh || "").trim() === oldExampleZh) {
+        next.exampleZh = makeExampleZh(w.korean, w.chinese, w.pos);
+        changed = true;
+      }
+
+      return next;
+    });
+
+    if (changed) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+    }
   }
 
   function loadWords() {
@@ -808,6 +1088,7 @@
   }
 
   function init() {
+    refreshOldAutoExamples();
     renderSelectOptions();
     bindEvents();
     renderAll();
@@ -836,6 +1117,7 @@
     renderCategoryFilter();
     renderWordList();
     updateQuestionLimit();
+    renderDuplicateAlert();
   }
 
   function renderWordList() {
@@ -1027,6 +1309,12 @@
     $("saveBtn").addEventListener("click", saveWordFromForm);
     $("generateExampleBtn").addEventListener("click", generateExampleToForm);
     $("cancelBtn").addEventListener("click", resetForm);
+    $("koreanInput").addEventListener("input", () => {
+      duplicateConfirmKey = "";
+      renderDuplicateAlert();
+    });
+    $("duplicateContinueBtn").addEventListener("click", confirmDuplicateAndSave);
+    $("duplicateEditBtn").addEventListener("click", openDuplicateWord);
     $("categoryFilter").addEventListener("change", renderWordList);
     $("posFilter").addEventListener("change", renderWordList);
     $("searchInput").addEventListener("input", renderWordList);
@@ -1070,6 +1358,94 @@
     $("resetSrsBtn").addEventListener("click", resetAllSrs);
   }
 
+  function getDuplicateKey(value) {
+    return normalizeImportKey(value);
+  }
+
+  function getDuplicateMatchesForInput() {
+    const korean = $("koreanInput")?.value.trim() || "";
+    const key = getDuplicateKey(korean);
+
+    if (!key) return [];
+
+    return words.filter(w => w.id !== editingId && getDuplicateKey(w.korean) === key);
+  }
+
+  function getDuplicateGroups() {
+    const map = new Map();
+
+    words.forEach(w => {
+      const key = getDuplicateKey(w.korean);
+      if (!key) return;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(w);
+    });
+
+    return [...map.values()].filter(group => group.length > 1);
+  }
+
+  function summarizeDuplicateWords(list, limit = 3) {
+    return list.slice(0, limit)
+      .map(w => `${w.korean}（${w.chinese}）`)
+      .join("、");
+  }
+
+  function renderDuplicateAlert() {
+    const box = $("duplicateAlert");
+    if (!box) return;
+
+    const inputMatches = getDuplicateMatchesForInput();
+    const groups = getDuplicateGroups();
+    const continueBtn = $("duplicateContinueBtn");
+    const editBtn = $("duplicateEditBtn");
+
+    if (inputMatches.length) {
+      const korean = $("koreanInput").value.trim();
+      const summary = summarizeDuplicateWords(inputMatches, 4);
+      $("duplicateTitle").textContent = "偵測到可能重複的單字";
+      $("duplicateMessage").textContent = `「${korean}」已經存在 ${inputMatches.length} 筆：${summary}。請確認是否重複輸入。`;
+      continueBtn.classList.remove("hidden");
+      continueBtn.textContent = editingId ? "仍要更新成重複單字" : "仍要重複儲存";
+      editBtn.classList.remove("hidden");
+      editBtn.textContent = "查看原單字";
+      box.classList.remove("hidden");
+      return;
+    }
+
+    if (groups.length) {
+      const firstGroup = groups[0];
+      const firstSummary = summarizeDuplicateWords(firstGroup, 4);
+      $("duplicateTitle").textContent = "單字庫內已有重複單字";
+      $("duplicateMessage").textContent = `目前找到 ${groups.length} 組重複。第一組：${firstSummary}。請確認是否是不小心重複輸入。`;
+      continueBtn.classList.add("hidden");
+      editBtn.classList.remove("hidden");
+      editBtn.textContent = "查看第一組重複";
+      box.classList.remove("hidden");
+      return;
+    }
+
+    box.classList.add("hidden");
+  }
+
+  function confirmDuplicateAndSave() {
+    const korean = $("koreanInput").value.trim();
+    duplicateConfirmKey = getDuplicateKey(korean);
+    saveWordFromForm();
+  }
+
+  function openDuplicateWord() {
+    const inputMatches = getDuplicateMatchesForInput();
+    const groups = getDuplicateGroups();
+    const target = inputMatches[0] || groups[0]?.[0];
+
+    if (!target) return;
+
+    $("wordLibraryDetails").open = true;
+    $("searchInput").value = target.korean;
+    renderWordList();
+    window.editWord(target.id);
+  }
+
   function generateExampleToForm() {
     const korean = $("koreanInput").value.trim();
     const chinese = $("chineseInput").value.trim();
@@ -1097,6 +1473,15 @@
       return;
     }
 
+    const duplicateKey = getDuplicateKey(korean);
+    const duplicateMatches = words.filter(w => w.id !== editingId && getDuplicateKey(w.korean) === duplicateKey);
+
+    if (duplicateMatches.length && duplicateConfirmKey !== duplicateKey) {
+      renderDuplicateAlert();
+      showSaveHint("偵測到重複單字，請先確認是否仍要重複儲存。", false);
+      return;
+    }
+
     if (editingId) {
       words = words.map(w => w.id === editingId ? {
         ...w,
@@ -1115,12 +1500,14 @@
       showSaveHint("已儲存單字，已加入單字庫。", true);
     }
 
+    duplicateConfirmKey = "";
     resetForm(false);
     saveWords();
   }
 
   function resetForm(shouldRender = true) {
     editingId = null;
+    duplicateConfirmKey = "";
     $("koreanInput").value = "";
     $("chineseInput").value = "";
     $("posInput").value = POS_LIST[0];
@@ -1149,6 +1536,7 @@
     if (!w) return;
 
     editingId = id;
+    duplicateConfirmKey = "";
     $("koreanInput").value = w.korean;
     $("chineseInput").value = w.chinese;
     $("posInput").value = w.pos;
@@ -1488,7 +1876,9 @@
 
     saveWords();
     const ignoredText = lastImportIgnoredCount ? `，忽略非單字資料 ${lastImportIgnoredCount} 行` : "";
-    showSaveHint(`追加完成，新增 ${added} 筆，略過重複 ${skipped} 筆${ignoredText}。`, true);
+    const duplicateCount = getDuplicateGroups().length;
+    const duplicateText = duplicateCount ? `，目前仍有 ${duplicateCount} 組重複單字` : "";
+    showSaveHint(`追加完成，新增 ${added} 筆，略過重複 ${skipped} 筆${ignoredText}${duplicateText}。`, true);
   }
 
   function importBackup() {
@@ -1499,7 +1889,9 @@
       words = migrateWords(importedWords);
       saveWords();
       const ignoredText = lastImportIgnoredCount ? `，忽略非單字資料 ${lastImportIgnoredCount} 行` : "";
-      showSaveHint(`覆蓋匯入完成，共匯入 ${words.length} 筆單字${ignoredText}。`, true);
+      const duplicateCount = getDuplicateGroups().length;
+      const duplicateText = duplicateCount ? `，偵測到 ${duplicateCount} 組重複單字` : "";
+      showSaveHint(`覆蓋匯入完成，共匯入 ${words.length} 筆單字${ignoredText}${duplicateText}。`, true);
     } catch (err) {
       alert("覆蓋匯入失敗，請確認內容是 JSON，或是一行一筆：韓文｜中文｜詞性｜分類。");
     }
