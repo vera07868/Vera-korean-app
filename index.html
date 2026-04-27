@@ -346,6 +346,36 @@
       font-size: 15px;
     }
 
+    .flag-btn {
+      flex: 0 0 auto;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+      font-size: 16px;
+      opacity: 0.85;
+    }
+
+    .flag-btn.active.favorite {
+      background: #713f12;
+      color: #fde68a;
+      border-color: #f59e0b;
+      opacity: 1;
+    }
+
+    .flag-btn.active.important {
+      background: #7f1d1d;
+      color: #fecaca;
+      border-color: #ef4444;
+      opacity: 1;
+    }
+
     .accuracy-box {
       margin-top: 9px;
       max-width: 260px;
@@ -634,6 +664,8 @@
     { value: "accuracyLow", label: "正確率（低到高）" },
     { value: "recentWrong", label: "最近錯的" },
     { value: "reviewPriority", label: "複習優先" },
+    { value: "favorite", label: "我的最愛" },
+    { value: "important", label: "驚嘆號" },
     { value: "dueToday", label: "今日到期" },
     { value: "newWords", label: "新單字" },
     { value: "mastered", label: "已熟悉" }
@@ -736,6 +768,8 @@
         example: String(exampleFromOld || makeExample(korean, chinese, pos)),
         exampleZh: String(exampleZhFromOld || makeExampleZh(korean, chinese, pos)),
         note: String(w.note || ""),
+        favorite: Boolean(w.favorite || w.isFavorite || w.flags?.favorite),
+        important: Boolean(w.important || w.isImportant || w.flags?.important),
         stats: { ...makeStats(), ...(w.stats || {}) }
       };
     }).filter(w => w.korean && w.chinese);
@@ -751,6 +785,8 @@
       example: example || makeExample(korean, chinese, pos),
       exampleZh: exampleZh || makeExampleZh(korean, chinese, pos),
       note: note || "",
+      favorite: false,
+      important: false,
       stats: makeStats()
     };
   }
@@ -805,6 +841,10 @@
       filtered = filtered.filter(w => isNewWord(w));
     } else if (libraryView === "mastered") {
       filtered = filtered.filter(w => (getWordStats(w).attempts || 0) >= 3 && getAccuracyRate(w) >= 80);
+    } else if (libraryView === "favorite") {
+      filtered = filtered.filter(w => w.favorite);
+    } else if (libraryView === "important") {
+      filtered = filtered.filter(w => w.important);
     }
 
     filtered = filtered.filter(w => {
@@ -841,6 +881,8 @@
             <div class="word-line">
               <button class="icon-btn" type="button" title="播放單字" aria-label="播放單字" onclick="speak('${escapeJs(w.korean)}')">🔊</button>
               <div class="ko">${escapeHtml(w.korean)}</div>
+              <button class="flag-btn favorite ${w.favorite ? "active" : ""}" type="button" title="我的最愛" aria-label="我的最愛" onclick="toggleWordFlag('${w.id}', 'favorite')">★</button>
+              <button class="flag-btn important ${w.important ? "active" : ""}" type="button" title="驚嘆號" aria-label="驚嘆號" onclick="toggleWordFlag('${w.id}', 'important')">!</button>
             </div>
             <div class="zh" style="margin-left:38px;">${escapeHtml(w.chinese)}</div>
             <div class="tag" style="margin-left:38px;">${escapeHtml(w.pos)}｜${escapeHtml(w.category || "未分類")}</div>
@@ -902,6 +944,13 @@
     if (libraryView === "reviewPriority") {
       return copy.sort((a, b) => {
         return getReviewPriorityScore(b) - getReviewPriorityScore(a);
+      });
+    }
+
+    if (libraryView === "favorite" || libraryView === "important") {
+      return copy.sort((a, b) => {
+        return getReviewPriorityScore(b) - getReviewPriorityScore(a)
+          || getAccuracyRate(a) - getAccuracyRate(b);
       });
     }
 
@@ -986,7 +1035,16 @@
     });
 
     $("prevBtn").addEventListener("click", () => moveQuiz(-1));
-    $("nextBtn").addEventListener("click", () => moveQuiz(1));
+    $("nextBtn").addEventListener("click", () => {
+      if (!quiz) return;
+
+      if (quiz.index >= quiz.items.length - 1) {
+        endQuiz();
+        return;
+      }
+
+      moveQuiz(1);
+    });
     $("endQuizBtn").addEventListener("click", endQuiz);
     $("speakBtn").addEventListener("click", () => quiz && speak(quiz.items[quiz.index].korean));
     $("backupBtn").addEventListener("click", backupCopy);
@@ -1101,6 +1159,13 @@
     saveWords();
   };
 
+  window.toggleWordFlag = function(id, type) {
+    if (!["favorite", "important"].includes(type)) return;
+
+    words = words.map(w => w.id === id ? { ...w, [type]: !w[type] } : w);
+    saveWords();
+  };
+
   function resetAllSrs() {
     if (!confirm("確定要重置全部單字的 SRS 與正確率統計嗎？")) return;
     words = words.map(w => ({ ...w, stats: makeStats() }));
@@ -1168,6 +1233,7 @@
     if (!quiz) return;
 
     const item = quiz.items[quiz.index];
+    const isLastQuestion = quiz.index >= quiz.items.length - 1;
     const modes = ["zhToKo", "koToZh", "listen"];
     const mode = quiz.mode === "mixed" ? modes[Math.floor(Math.random() * modes.length)] : quiz.mode;
 
@@ -1178,6 +1244,8 @@
     $("quizPos").textContent = item.pos;
     $("questionText").textContent = mode === "zhToKo" ? item.chinese : mode === "koToZh" ? item.korean : "請聽發音後拼出韓文";
     $("speakBtn").classList.toggle("hidden", mode !== "listen");
+    $("nextBtn").textContent = isLastQuestion ? "結束測驗" : "下一題";
+    $("nextBtn").classList.toggle("primary", isLastQuestion);
     $("answerInput").value = "";
     $("resultBox").textContent = "";
     $("resultBox").className = "result";
@@ -1197,6 +1265,8 @@
     const isLastQuestion = quiz.index >= quiz.items.length - 1;
     const isCorrect = normalize(userAnswer) === normalize(correct);
 
+    if (quiz.checked[quiz.index] !== null) return;
+
     quiz.checked[quiz.index] = isCorrect;
     updateStats(item.id, isCorrect);
 
@@ -1206,10 +1276,6 @@
 
     speak(item.korean);
     saveWords();
-
-    if (isLastQuestion) {
-      endQuiz();
-    }
   }
 
   function updateStats(id, isCorrect) {
@@ -1534,10 +1600,19 @@
 
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = "ko-KR";
-    utter.rate = 0.85;
+    utter.rate = getSpeechRate(text);
 
     window.speechSynthesis.speak(utter);
   };
+
+  function getSpeechRate(text) {
+    const hangulLength = String(text || "").replace(/[^가-힣]/g, "").length;
+
+    if (hangulLength >= 8) return 0.62;
+    if (hangulLength >= 6) return 0.68;
+    if (hangulLength >= 4) return 0.76;
+    return 0.85;
+  }
 
   function shuffle(arr) {
     const copy = [...arr];
