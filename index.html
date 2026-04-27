@@ -376,6 +376,13 @@
       opacity: 1;
     }
 
+    .quiz-flags {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
     .accuracy-box {
       margin-top: 9px;
       max-width: 260px;
@@ -598,6 +605,10 @@
       <div class="question-card">
         <div class="badge" id="quizPos"></div>
         <div class="question-text" id="questionText"></div>
+        <div class="quiz-flags" id="quizFlagButtons">
+          <button class="flag-btn favorite" id="quizFavoriteBtn" type="button" title="我的最愛" aria-label="我的最愛">★</button>
+          <button class="flag-btn important" id="quizImportantBtn" type="button" title="驚嘆號" aria-label="驚嘆號">!</button>
+        </div>
       </div>
 
       <button class="ghost" id="speakBtn" type="button">播放發音</button>
@@ -1047,6 +1058,8 @@
     });
     $("endQuizBtn").addEventListener("click", endQuiz);
     $("speakBtn").addEventListener("click", () => quiz && speak(quiz.items[quiz.index].korean));
+    $("quizFavoriteBtn").addEventListener("click", () => quiz && window.toggleWordFlag(quiz.items[quiz.index].id, "favorite"));
+    $("quizImportantBtn").addEventListener("click", () => quiz && window.toggleWordFlag(quiz.items[quiz.index].id, "important"));
     $("backupBtn").addEventListener("click", backupCopy);
     $("downloadBackupBtn").addEventListener("click", downloadBackupFile);
     $("chooseBackupFileBtn").addEventListener("click", () => $("backupFileInput").click());
@@ -1163,8 +1176,27 @@
     if (!["favorite", "important"].includes(type)) return;
 
     words = words.map(w => w.id === id ? { ...w, [type]: !w[type] } : w);
+
+    if (quiz) {
+      const updatedWord = words.find(w => w.id === id);
+      if (updatedWord) {
+        quiz.items = quiz.items.map(item => item.id === id ? updatedWord : item);
+      }
+    }
+
     saveWords();
+    updateQuizFlagButtons();
   };
+
+  function updateQuizFlagButtons() {
+    if (!quiz) return;
+
+    const item = quiz.items[quiz.index];
+    if (!item) return;
+
+    $("quizFavoriteBtn").classList.toggle("active", Boolean(item.favorite));
+    $("quizImportantBtn").classList.toggle("active", Boolean(item.important));
+  }
 
   function resetAllSrs() {
     if (!confirm("確定要重置全部單字的 SRS 與正確率統計嗎？")) return;
@@ -1232,6 +1264,9 @@
   function renderQuizQuestion() {
     if (!quiz) return;
 
+    const latestItem = words.find(w => w.id === quiz.items[quiz.index].id);
+    if (latestItem) quiz.items[quiz.index] = latestItem;
+
     const item = quiz.items[quiz.index];
     const isLastQuestion = quiz.index >= quiz.items.length - 1;
     const modes = ["zhToKo", "koToZh", "listen"];
@@ -1249,6 +1284,7 @@
     $("answerInput").value = "";
     $("resultBox").textContent = "";
     $("resultBox").className = "result";
+    updateQuizFlagButtons();
     $("answerInput").focus();
 
     if (mode === "listen") {
@@ -1265,7 +1301,10 @@
     const isLastQuestion = quiz.index >= quiz.items.length - 1;
     const isCorrect = normalize(userAnswer) === normalize(correct);
 
-    if (quiz.checked[quiz.index] !== null) return;
+    if (quiz.checked[quiz.index] !== null) {
+      speak(item.korean);
+      return;
+    }
 
     quiz.checked[quiz.index] = isCorrect;
     updateStats(item.id, isCorrect);
