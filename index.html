@@ -726,8 +726,8 @@
     { value: "accuracyLow", label: "正確率（低到高）" },
     { value: "recentWrong", label: "最近錯的" },
     { value: "reviewPriority", label: "複習優先" },
-    { value: "favorite", label: "我的最愛" },
-    { value: "important", label: "驚嘆號" },
+    { value: "favorite", label: "★ 我的最愛" },
+    { value: "important", label: "❗ 驚嘆號" },
     { value: "dueToday", label: "今日到期" },
     { value: "newWords", label: "新單字" },
     { value: "mastered", label: "已熟悉" }
@@ -1753,11 +1753,13 @@
     if (!quiz) return;
 
     const total = quiz.items.length;
-    const answered = quiz.checked.filter(v => v !== null).length;
-    const score = quiz.checked.filter(Boolean).length;
+    const answeredResults = quiz.checked.filter(v => v !== null);
+    const answered = answeredResults.length;
+    const score = answeredResults.filter(v => v === true).length;
     const accuracy = answered ? Math.round((score / answered) * 100) : 0;
+    const skippedText = answered < total ? "（未作答題目不列入計算）" : "";
 
-    alert(`測驗結束！已作答 ${answered} / ${total} 題，答對 ${score} 題，正確率 ${accuracy}%。`);
+    alert(`測驗結束！已作答 ${answered} / ${total} 題，答對 ${score} 題，正確率 ${accuracy}%。${skippedText}`);
 
     quiz = null;
     $("quizSection").classList.add("hidden");
