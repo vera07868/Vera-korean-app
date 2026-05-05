@@ -514,6 +514,91 @@
       white-space: nowrap;
     }
 
+    .custom-menu-box {
+      margin-top: 8px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #020617;
+      padding: 8px 10px;
+    }
+
+    .custom-menu-box strong {
+      font-size: 15px;
+    }
+
+    .custom-menu-box .muted {
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .quick-menu-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .quick-menu-btn {
+      min-width: 30px;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      font-size: 13px;
+      font-weight: 800;
+      opacity: 0.92;
+    }
+
+    .quick-menu-btn.active {
+      background: #312e81;
+      color: #e0e7ff;
+      border-color: #818cf8;
+      opacity: 1;
+      box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.16);
+    }
+
+    .quick-menu-empty {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .quick-menu-inline {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .quick-menu-inline input {
+      width: min(210px, 100%);
+      height: 36px;
+      padding: 8px 11px;
+      font-size: 14px;
+    }
+
+    .quick-menu-inline button {
+      height: 36px;
+      padding: 8px 13px;
+      font-size: 14px;
+    }
+
+    .quick-menu-tag {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: #1e293b;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
     .backup-box {
       width: 100%;
       min-height: 150px;
@@ -552,7 +637,7 @@
     <div class="section-title">
       <div>
         <h2>新增單字</h2>
-        <p class="muted">詞性請從下拉選單選擇。例句與備註分開；若例句空白，系統會自動產生例句。</p>
+        <p class="muted">詞性請從下拉選單選擇。備註可留空。</p>
       </div>
     </div>
 
@@ -576,17 +661,22 @@
 
     <div class="actions" style="margin-bottom: 12px;">
       <button class="primary" id="saveBtn" type="button">儲存單字</button>
-      <button class="ghost" id="generateExampleBtn" type="button">自動產生例句</button>
       <button class="ghost hidden" id="cancelBtn" type="button">取消編輯</button>
       <span class="muted" id="saveHint">資料會儲存在此瀏覽器。</span>
     </div>
 
-    <div class="two-grid">
-      <label>
-        <span class="field-title">例句</span>
-        <textarea id="exampleInput" placeholder="例句，例如：저는 사과를 좋아해요. 若空白，系統會自動產生例句。"></textarea>
-      </label>
+    <div class="custom-menu-box">
+      <div>
+        <strong>快捷加入自訂選單</strong>
+      </div>
+      <div class="quick-menu-inline" style="margin-top:10px;">
+        <input id="newCustomMenuInput" placeholder="新增自訂選單名稱，例如：旅遊 / 必背 / 第1課" />
+        <button class="ghost" id="addCustomMenuBtn" type="button">新增選單</button>
+      </div>
+      <div class="quick-menu-row" id="formCustomMenuButtons"></div>
+    </div>
 
+    <div class="two-grid">
       <label>
         <span class="field-title">備註</span>
         <textarea id="noteInput" placeholder="備註可留空，例如：發音提示、用法、容易混淆的地方。"></textarea>
@@ -616,6 +706,12 @@
       <label><input type="radio" name="scope" value="accuracyRate" />依正確率</label>
       <label><input type="radio" name="scope" value="srs" />遺忘曲線 / 今日到期</label>
       <label><input type="radio" name="scope" value="newWords" />新單字</label>
+      <label><input type="radio" name="scope" value="customMenu" />自訂選單</label>
+    </div>
+
+    <div class="actions" style="margin-bottom: 12px;">
+      <span>選單</span>
+      <select id="quizCustomMenuSelect" style="width: 220px;"></select>
     </div>
 
     <div class="actions">
@@ -660,6 +756,14 @@
           <button class="flag-btn favorite" id="quizFavoriteBtn" type="button" title="我的最愛" aria-label="我的最愛">★</button>
           <button class="flag-btn important" id="quizImportantBtn" type="button" title="驚嘆號" aria-label="驚嘆號">!</button>
         </div>
+        <div class="custom-menu-box" style="margin-top:12px; text-align:left;">
+          <div class="muted">快捷加入自訂選單</div>
+          <div class="quick-menu-inline">
+            <input id="quizNewCustomMenuInput" placeholder="新增選單名稱" />
+            <button class="ghost" id="quizAddCustomMenuBtn" type="button">新增選單</button>
+          </div>
+          <div class="quick-menu-row" id="quizCustomMenuButtons"></div>
+        </div>
       </div>
 
       <button class="ghost" id="speakBtn" type="button">播放發音</button>
@@ -684,7 +788,8 @@
       <div class="filters">
         <select id="categoryFilter" style="max-width: 240px;"></select>
         <select id="posFilter" style="max-width: 220px;"></select>
-        <input id="searchInput" placeholder="搜尋韓文 / 中文 / 備註 / 例句" />
+        <select id="customMenuFilter" style="max-width: 220px;"></select>
+        <input id="searchInput" placeholder="搜尋韓文 / 中文 / 備註" />
       </div>
 
       <div class="actions" style="margin-top: 14px;">
@@ -735,14 +840,17 @@
 
   const STORAGE_KEY = "kwords-vocab-v2";
   const OLD_STORAGE_KEY = "kwords-vocab-v1";
+  const CUSTOM_MENU_KEY = "kwords-custom-menus-v1";
   const $ = (id) => document.getElementById(id);
   const dayMs = 24 * 60 * 60 * 1000;
 
   let words = migrateWords(loadWords());
+  let customMenus = loadCustomMenus();
   let lastImportIgnoredCount = 0;
   let editingId = null;
   let duplicateConfirmKey = "";
   let quiz = null;
+  let formSelectedMenus = [];
 
   function now() {
     return Date.now();
@@ -760,6 +868,90 @@
       lastAnswerCorrect: null,
       lastWrongAt: null
     };
+  }
+
+  function normalizeMenuName(name) {
+    return String(name || "").trim().replace(/\s+/g, " ");
+  }
+
+  function loadCustomMenus() {
+    try {
+      const raw = localStorage.getItem(CUSTOM_MENU_KEY);
+      const parsed = JSON.parse(raw || "[]");
+      if (Array.isArray(parsed)) {
+        return [...new Set(parsed.map(normalizeMenuName).filter(Boolean))];
+      }
+    } catch (_) {}
+
+    return [];
+  }
+
+  function saveCustomMenusOnly() {
+    localStorage.setItem(CUSTOM_MENU_KEY, JSON.stringify(customMenus));
+  }
+
+  function ensureCustomMenusFromWords() {
+    const merged = new Set(customMenus);
+    words.forEach(w => {
+      (Array.isArray(w.customMenus) ? w.customMenus : []).forEach(name => {
+        const normalized = normalizeMenuName(name);
+        if (normalized) merged.add(normalized);
+      });
+    });
+    customMenus = [...merged].sort((a, b) => a.localeCompare(b, "zh-Hant"));
+  }
+
+  function createCustomMenu(name) {
+    const normalized = normalizeMenuName(name);
+    if (!normalized) {
+      alert("請先輸入自訂選單名稱。");
+      return "";
+    }
+
+    if (!customMenus.includes(normalized)) {
+      customMenus.push(normalized);
+      customMenus.sort((a, b) => a.localeCompare(b, "zh-Hant"));
+      saveCustomMenusOnly();
+    }
+
+    return normalized;
+  }
+
+  function getWordMenuList(w) {
+    return Array.isArray(w.customMenus) ? w.customMenus : [];
+  }
+
+  function wordInMenu(w, menuName) {
+    return getWordMenuList(w).includes(menuName);
+  }
+
+  function renderQuickMenuButtons(list, activeList, action) {
+    if (!list.length) {
+      return `<div class="quick-menu-empty">尚未建立自訂選單。</div>`;
+    }
+
+    return list.map(name => `
+      <button
+        class="quick-menu-btn ${activeList.includes(name) ? "active" : ""}"
+        type="button"
+        title="${escapeAttr(name)}"
+        onclick="${action}('${escapeJs(name)}')"
+      >${escapeHtml(name)}</button>
+    `).join("");
+  }
+
+  function renderMenuSelectOptions(selectId, placeholder = "請選擇自訂選單") {
+    const select = $(selectId);
+    if (!select) return;
+    const current = select.value;
+
+    select.innerHTML = `<option value="">${escapeHtml(placeholder)}</option>` + customMenus
+      .map(name => `<option value="${escapeAttr(name)}">${escapeHtml(name)}</option>`)
+      .join("");
+
+    if (customMenus.includes(current)) {
+      select.value = current;
+    }
   }
 
   function hasFinalConsonant(text) {
@@ -832,189 +1024,34 @@
   }
 
   function makeOldExample(korean, chinese, pos) {
-    if (!korean || !chinese) return "";
-    if (pos.includes("動詞")) return `저는 오늘 ${korean}.`;
-    if (pos.includes("形容詞")) return `정말 ${korean}.`;
-    if (pos.includes("副詞")) return `저는 ${korean} 말해요.`;
-    if (pos.includes("感嘆詞")) return `${korean}! 정말 놀랐어요.`;
-    if (pos.includes("片語")) return `이 표현은 '${korean}'입니다.`;
-    return `저는 ${korean}${objectParticle(korean)} 좋아해요.`;
+    return "";
   }
 
   function makeOldExampleZh(korean, chinese, pos) {
-    if (!korean || !chinese) return "";
-    if (pos.includes("動詞")) return `我今天${chinese}。`;
-    if (pos.includes("形容詞")) return `真的很${chinese}。`;
-    if (pos.includes("副詞")) return `我${chinese}地說。`;
-    if (pos.includes("感嘆詞")) return `${chinese}！我真的嚇了一跳。`;
-    if (pos.includes("片語")) return `這個表達是「${chinese}」。`;
-    return `我喜歡${chinese}。`;
+    return "";
   }
 
   function makeExample(korean, chinese, pos) {
-    if (!korean || !chinese) return "";
-
-    const formal = toFormalPresent(korean);
-    const nounSubject = `${korean}${subjectParticle(korean)}`;
-    const nounTopic = `${korean}${topicParticle(korean)}`;
-    const nounObject = `${korean}${objectParticle(korean)}`;
-
-    if (pos.includes("動詞")) {
-      return pickByWord(korean, chinese, pos, [
-        `저는 오늘 ${formal}.`,
-        `주말에 가족과 함께 ${formal}.`,
-        `친구와 같이 ${formal}.`,
-        `학교에서 ${formal}.`,
-        `시간이 있을 때 ${formal}.`,
-        `내일 다시 ${formal}.`
-      ]);
-    }
-
-    if (pos.includes("形容詞")) {
-      return pickByWord(korean, chinese, pos, [
-        `정말 ${formal}.`,
-        `이곳은 ${formal}.`,
-        `오늘 날씨가 ${formal}.`,
-        `그 사람은 ${formal}.`,
-        `생각보다 ${formal}.`,
-        `이 물건은 ${formal}.`
-      ]);
-    }
-
-    if (pos.includes("副詞")) {
-      return pickByWord(korean, chinese, pos, [
-        `저는 ${korean} 운동해요.`,
-        `친구가 ${korean} 말해요.`,
-        `오늘은 ${korean} 집에 있어요.`,
-        `${korean} 생각났어요.`,
-        `수업 시간에 ${korean} 질문해요.`,
-        `저는 그 말을 ${korean} 들었어요.`
-      ]);
-    }
-
-    if (pos.includes("感嘆詞")) {
-      return pickByWord(korean, chinese, pos, [
-        `${korean}! 정말 놀랐어요.`,
-        `${korean}! 다시 말해 주세요.`,
-        `${korean}! 기분이 좋아요.`
-      ]);
-    }
-
-    if (pos.includes("冠形詞")) {
-      return pickByWord(korean, chinese, pos, [
-        `${korean} 사람에게 기회가 있어요.`,
-        `${korean} 학생이 책을 읽어요.`,
-        `저는 ${korean} 문제를 확인했어요.`
-      ]);
-    }
-
-    if (pos.includes("片語")) {
-      return pickByWord(korean, chinese, pos, [
-        `이 표현은 '${korean}'입니다.`,
-        `대화에서 '${korean}'라고 말해요.`,
-        `오늘 '${korean}'라는 표현을 배웠어요.`
-      ]);
-    }
-
-    return pickByWord(korean, chinese, pos, [
-      `이것은 ${korean}${copulaEnding(korean)}.`,
-      `저는 ${nounObject} 좋아해요.`,
-      `${nounSubject} 여기 있어요.`,
-      `오늘 ${nounObject} 봤어요.`,
-      `${nounTopic} 정말 중요해요.`,
-      `저는 ${nounObject} 찾고 있어요.`,
-      `책상 위에 ${nounSubject} 있어요.`,
-      `친구에게 ${nounObject} 보여 줬어요.`
-    ]);
+    return "";
   }
 
   function makeExampleZh(korean, chinese, pos) {
-    if (!korean || !chinese) return "";
-
-    if (pos.includes("動詞")) {
-      return pickByWord(korean, chinese, pos, [
-        `我今天${chinese}。`,
-        `週末和家人一起${chinese}。`,
-        `和朋友一起${chinese}。`,
-        `在學校${chinese}。`,
-        `有時間的時候${chinese}。`,
-        `明天再${chinese}。`
-      ]);
-    }
-
-    if (pos.includes("形容詞")) {
-      return pickByWord(korean, chinese, pos, [
-        `真的很${chinese}。`,
-        `這裡很${chinese}。`,
-        `今天天氣很${chinese}。`,
-        `那個人很${chinese}。`,
-        `比想像中${chinese}。`,
-        `這個東西很${chinese}。`
-      ]);
-    }
-
-    if (pos.includes("副詞")) {
-      return pickByWord(korean, chinese, pos, [
-        `我${chinese}運動。`,
-        `朋友${chinese}地說。`,
-        `今天${chinese}待在家。`,
-        `${chinese}想起來了。`,
-        `上課時${chinese}提問。`,
-        `我${chinese}聽了那句話。`
-      ]);
-    }
-
-    if (pos.includes("感嘆詞")) {
-      return pickByWord(korean, chinese, pos, [
-        `${chinese}！我真的嚇了一跳。`,
-        `${chinese}！請再說一次。`,
-        `${chinese}！心情很好。`
-      ]);
-    }
-
-    if (pos.includes("冠形詞")) {
-      return pickByWord(korean, chinese, pos, [
-        `${chinese}人都有機會。`,
-        `${chinese}學生都在看書。`,
-        `我確認了${chinese}問題。`
-      ]);
-    }
-
-    if (pos.includes("片語")) {
-      return pickByWord(korean, chinese, pos, [
-        `這個表達是「${chinese}」。`,
-        `對話中會說「${chinese}」。`,
-        `今天學了「${chinese}」這個表達。`
-      ]);
-    }
-
-    return pickByWord(korean, chinese, pos, [
-      `這是${chinese}。`,
-      `我喜歡${chinese}。`,
-      `${chinese}在這裡。`,
-      `今天看到了${chinese}。`,
-      `${chinese}很重要。`,
-      `我正在找${chinese}。`,
-      `桌上有${chinese}。`,
-      `我把${chinese}給朋友看。`
-    ]);
+    return "";
   }
 
   function refreshOldAutoExamples() {
     let changed = false;
 
     words = words.map(w => {
-      const oldExample = makeOldExample(w.korean, w.chinese, w.pos);
-      const oldExampleZh = makeOldExampleZh(w.korean, w.chinese, w.pos);
       const next = { ...w };
 
-      if (!String(w.example || "").trim() || String(w.example || "").trim() === oldExample) {
-        next.example = makeExample(w.korean, w.chinese, w.pos);
+      if (next.example) {
+        next.example = "";
         changed = true;
       }
 
-      if (!String(w.exampleZh || "").trim() || String(w.exampleZh || "").trim() === oldExampleZh) {
-        next.exampleZh = makeExampleZh(w.korean, w.chinese, w.pos);
+      if (next.exampleZh) {
+        next.exampleZh = "";
         changed = true;
       }
 
@@ -1047,8 +1084,6 @@
       const korean = String(w.korean || w.kor || w.kr || "").trim();
       const chinese = String(w.chinese || w.chi || w.zh || w.tw || w.meaning || "").trim();
       const pos = normalizePos(w.pos || w.partOfSpeech || "");
-      const exampleFromOld = [w.example, w.exampleKo].find(Boolean) || "";
-      const exampleZhFromOld = [w.exampleZh, w.exampleChinese, w.exampleTw, w.exampleCn].find(Boolean) || "";
 
       return {
         id: w.id || crypto.randomUUID(),
@@ -1056,9 +1091,10 @@
         chinese,
         pos,
         category: String(w.category || w.cat || "未分類"),
-        example: String(exampleFromOld || makeExample(korean, chinese, pos)),
-        exampleZh: String(exampleZhFromOld || makeExampleZh(korean, chinese, pos)),
+        example: "",
+        exampleZh: "",
         note: String(w.note || ""),
+        customMenus: Array.isArray(w.customMenus) ? [...new Set(w.customMenus.map(v => String(v || "").trim()).filter(Boolean))] : [],
         favorite: Boolean(w.favorite || w.isFavorite || w.flags?.favorite),
         important: Boolean(w.important || w.isImportant || w.flags?.important),
         stats: { ...makeStats(), ...(w.stats || {}) }
@@ -1073,9 +1109,10 @@
       chinese,
       pos,
       category: category || "未分類",
-      example: example || makeExample(korean, chinese, pos),
-      exampleZh: exampleZh || makeExampleZh(korean, chinese, pos),
+      example: "",
+      exampleZh: "",
       note: note || "",
+      customMenus: [],
       favorite: false,
       important: false,
       stats: makeStats()
@@ -1083,11 +1120,14 @@
   }
 
   function saveWords() {
+    ensureCustomMenusFromWords();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+    saveCustomMenusOnly();
     renderAll();
   }
 
   function init() {
+    ensureCustomMenusFromWords();
     refreshOldAutoExamples();
     renderSelectOptions();
     bindEvents();
@@ -1113,9 +1153,43 @@
     select.value = smartValues.includes(current) ? current : "all";
   }
 
+  function renderCustomMenuFilter() {
+    renderMenuSelectOptions("customMenuFilter", "全部自訂選單");
+  }
+
+  function renderLibraryCustomMenuOverview() {}
+
+  function renderFormCustomMenuButtons() {
+    const box = $("formCustomMenuButtons");
+    if (!box) return;
+    box.innerHTML = renderQuickMenuButtons(customMenus, formSelectedMenus, "toggleFormCustomMenu");
+  }
+
+  function renderQuizCustomMenuButtons() {
+    const box = $("quizCustomMenuButtons");
+    if (!box) return;
+
+    if (!quiz) {
+      box.innerHTML = renderQuickMenuButtons(customMenus, [], "noopCustomMenu");
+      return;
+    }
+
+    const item = quiz.items[quiz.index];
+    box.innerHTML = renderQuickMenuButtons(customMenus, getWordMenuList(item), "toggleQuizCustomMenu");
+  }
+
+  function renderQuizCustomMenuSelect() {
+    renderMenuSelectOptions("quizCustomMenuSelect", "請選擇測驗用選單");
+  }
+
   function renderAll() {
     renderCategoryFilter();
+    renderCustomMenuFilter();
+    renderLibraryCustomMenuOverview();
+    renderFormCustomMenuButtons();
+    renderQuizCustomMenuSelect();
     renderWordList();
+    renderQuizCustomMenuButtons();
     updateQuestionLimit();
     renderDuplicateAlert();
   }
@@ -1123,6 +1197,7 @@
   function renderWordList() {
     const libraryView = $("categoryFilter").value || "all";
     const pos = $("posFilter").value || "all";
+    const customMenu = $("customMenuFilter")?.value || "";
     const keyword = normalize($("searchInput").value);
     let filtered = [...words];
 
@@ -1142,8 +1217,9 @@
 
     filtered = filtered.filter(w => {
       const byPos = pos === "all" || w.pos === pos;
-      const text = normalize(`${w.korean}${w.chinese}${w.note}${w.category}${w.example}${w.exampleZh}`);
-      return byPos && (!keyword || text.includes(keyword));
+      const byMenu = !customMenu || wordInMenu(w, customMenu);
+      const text = normalize(`${w.korean}${w.chinese}${w.note}${w.category}`);
+      return byPos && byMenu && (!keyword || text.includes(keyword));
     });
 
     filtered = sortLibraryWords(filtered, libraryView);
@@ -1158,16 +1234,6 @@
       const isNew = isNewWord(w);
       const dueDate = w.stats?.dueAt ? new Date(w.stats.dueAt).toLocaleDateString("zh-TW") : "今天";
 
-      const exampleBlock = w.example
-        ? `<div class="example">
-            <div class="example-line">
-              <button class="icon-btn" type="button" title="播放例句" aria-label="播放例句" onclick="speak('${escapeJs(w.example)}')">🔊</button>
-              <span>例句：${escapeHtml(w.example)}</span>
-            </div>
-            ${w.exampleZh ? `<div class="zh" style="margin-left:38px;">中文：${escapeHtml(w.exampleZh)}</div>` : ""}
-          </div>`
-        : "";
-
       return `
         <article class="word">
           <div>
@@ -1179,8 +1245,11 @@
             </div>
             <div class="zh" style="margin-left:38px;">${escapeHtml(w.chinese)}</div>
             <div class="tag" style="margin-left:38px;">${escapeHtml(w.pos)}｜${escapeHtml(w.category || "未分類")}</div>
-            ${exampleBlock}
             ${w.note ? `<div class="muted">備註：${escapeHtml(w.note).replace(/\n/g, "<br>")}</div>` : ""}
+            <div class="custom-menu-box">
+              <div class="muted">快捷加入自訂選單</div>
+              <div class="quick-menu-row">${renderQuickMenuButtons(customMenus, getWordMenuList(w), `toggleWordCustomMenu.bind(null, '${w.id}')`)}</div>
+            </div>
 
             <div class="accuracy-box">
               <div class="accuracy-label">
@@ -1307,7 +1376,6 @@
 
   function bindEvents() {
     $("saveBtn").addEventListener("click", saveWordFromForm);
-    $("generateExampleBtn").addEventListener("click", generateExampleToForm);
     $("cancelBtn").addEventListener("click", resetForm);
     $("koreanInput").addEventListener("input", () => {
       duplicateConfirmKey = "";
@@ -1317,7 +1385,11 @@
     $("duplicateEditBtn").addEventListener("click", openDuplicateWord);
     $("categoryFilter").addEventListener("change", renderWordList);
     $("posFilter").addEventListener("change", renderWordList);
+    $("customMenuFilter").addEventListener("change", renderWordList);
     $("searchInput").addEventListener("input", renderWordList);
+    $("addCustomMenuBtn").addEventListener("click", () => addCustomMenuFromInput("newCustomMenuInput", true));
+    $("quizAddCustomMenuBtn").addEventListener("click", addQuizCustomMenu);
+    $("quizCustomMenuSelect").addEventListener("change", updateQuestionLimit);
     $("questionCount").addEventListener("input", updateQuestionLimit);
     $("accuracyRateThreshold").addEventListener("input", updateQuestionLimit);
     $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
@@ -1357,6 +1429,92 @@
     $("clearDbBtn").addEventListener("click", clearDatabase);
     $("resetSrsBtn").addEventListener("click", resetAllSrs);
   }
+
+  function addCustomMenuFromInput(inputId, autoSelectForForm = false) {
+    const input = $(inputId);
+    const created = createCustomMenu(input?.value || "");
+    if (!created) return;
+
+    if (input) input.value = "";
+
+    if (autoSelectForForm && !formSelectedMenus.includes(created)) {
+      formSelectedMenus.push(created);
+    }
+
+    showSaveHint(`已新增自訂選單：${created}`, true);
+    renderAll();
+  }
+
+  function addQuizCustomMenu() {
+    const input = $("quizNewCustomMenuInput");
+    const created = createCustomMenu(input?.value || "");
+    if (!created) return;
+
+    if (input) input.value = "";
+
+    if (quiz) {
+      toggleWordMenu(quiz.items[quiz.index].id, created, true);
+      return;
+    }
+
+    renderAll();
+  }
+
+  window.noopCustomMenu = function() {};
+
+  window.toggleFormCustomMenu = function(menuName) {
+    const normalized = normalizeMenuName(menuName);
+    if (!normalized) return;
+
+    if (formSelectedMenus.includes(normalized)) {
+      formSelectedMenus = formSelectedMenus.filter(name => name !== normalized);
+    } else {
+      formSelectedMenus = [...formSelectedMenus, normalized];
+    }
+
+    renderFormCustomMenuButtons();
+  };
+
+  function toggleWordMenu(id, menuName, forceActive = null) {
+    const normalized = normalizeMenuName(menuName);
+    if (!normalized) return;
+
+    if (!customMenus.includes(normalized)) {
+      customMenus.push(normalized);
+      customMenus.sort((a, b) => a.localeCompare(b, "zh-Hant"));
+    }
+
+    words = words.map(w => {
+      if (w.id !== id) return w;
+
+      const currentMenus = [...new Set(getWordMenuList(w))];
+      const hasMenu = currentMenus.includes(normalized);
+      const shouldAdd = forceActive === null ? !hasMenu : Boolean(forceActive);
+      const nextMenus = shouldAdd
+        ? [...currentMenus, normalized]
+        : currentMenus.filter(name => name !== normalized);
+
+      return { ...w, customMenus: nextMenus };
+    });
+
+    if (quiz) {
+      const updatedWord = words.find(w => w.id === id);
+      if (updatedWord) {
+        quiz.items = quiz.items.map(item => item.id === id ? updatedWord : item);
+      }
+    }
+
+    saveWords();
+  }
+
+  window.toggleWordCustomMenu = function(id, menuName) {
+    toggleWordMenu(id, menuName);
+  };
+
+  window.toggleQuizCustomMenu = function(menuName) {
+    if (!quiz) return;
+    toggleWordMenu(quiz.items[quiz.index].id, menuName);
+  };
 
   function getDuplicateKey(value) {
     return normalizeImportKey(value);
@@ -1446,26 +1604,15 @@
     window.editWord(target.id);
   }
 
-  function generateExampleToForm() {
-    const korean = $("koreanInput").value.trim();
-    const chinese = $("chineseInput").value.trim();
-    const pos = $("posInput").value;
-
-    if (!korean || !chinese) {
-      alert("請先輸入韓文與中文，才能產生例句。");
-      return;
-    }
-
-    $("exampleInput").value = makeExample(korean, chinese, pos);
-  }
+  function generateExampleToForm() {}
 
   function saveWordFromForm() {
     const korean = $("koreanInput").value.trim();
     const chinese = $("chineseInput").value.trim();
     const pos = $("posInput").value;
     const category = $("categoryInput").value.trim() || "未分類";
-    const example = $("exampleInput").value.trim() || makeExample(korean, chinese, pos);
-    const exampleZh = makeExampleZh(korean, chinese, pos);
+    const example = "";
+    const exampleZh = "";
     const note = $("noteInput").value.trim();
 
     if (!korean || !chinese) {
@@ -1491,12 +1638,15 @@
         category,
         example,
         exampleZh,
-        note
+        note,
+        customMenus: [...new Set(formSelectedMenus)]
       } : w);
 
       showSaveHint("已更新單字。", true);
     } else {
-      words.unshift(makeWord(korean, chinese, pos, category, example, note, exampleZh));
+      const newWord = makeWord(korean, chinese, pos, category, example, note, exampleZh);
+      newWord.customMenus = [...new Set(formSelectedMenus)];
+      words.unshift(newWord);
       showSaveHint("已儲存單字，已加入單字庫。", true);
     }
 
@@ -1508,11 +1658,11 @@
   function resetForm(shouldRender = true) {
     editingId = null;
     duplicateConfirmKey = "";
+    formSelectedMenus = [];
     $("koreanInput").value = "";
     $("chineseInput").value = "";
     $("posInput").value = POS_LIST[0];
     $("categoryInput").value = "";
-    $("exampleInput").value = "";
     $("noteInput").value = "";
     $("saveBtn").textContent = "儲存單字";
     $("cancelBtn").classList.add("hidden");
@@ -1541,8 +1691,9 @@
     $("chineseInput").value = w.chinese;
     $("posInput").value = w.pos;
     $("categoryInput").value = w.category || "未分類";
-    $("exampleInput").value = w.example || makeExample(w.korean, w.chinese, w.pos);
     $("noteInput").value = w.note || "";
+    formSelectedMenus = [...getWordMenuList(w)];
+    renderFormCustomMenuButtons();
     $("saveBtn").textContent = "更新單字";
     $("cancelBtn").classList.remove("hidden");
 
@@ -1584,6 +1735,7 @@
 
     $("quizFavoriteBtn").classList.toggle("active", Boolean(item.favorite));
     $("quizImportantBtn").classList.toggle("active", Boolean(item.important));
+    renderQuizCustomMenuButtons();
   }
 
   function resetAllSrs() {
@@ -1602,6 +1754,10 @@
     if (scope === "all") return [...words];
     if (scope === "srs") return words.filter(w => (w.stats?.dueAt || 0) <= now());
     if (scope === "newWords") return words.filter(w => isNewWord(w));
+    if (scope === "customMenu") {
+      const selectedMenu = $("quizCustomMenuSelect").value;
+      return selectedMenu ? words.filter(w => wordInMenu(w, selectedMenu)) : [];
+    }
 
     const threshold = getAccuracyThreshold();
     const op = $("accuracyRateOperator").value;
@@ -1686,7 +1842,6 @@
     const item = quiz.items[quiz.index];
     const userAnswer = $("answerInput").value.trim();
     const correct = item.currentMode === "koToZh" ? item.chinese : item.korean;
-    const isLastQuestion = quiz.index >= quiz.items.length - 1;
     const isCorrect = normalize(userAnswer) === normalize(correct);
 
     if (quiz.checked[quiz.index] !== null) {
