@@ -539,6 +539,12 @@
       margin-top: 6px;
     }
 
+    .quick-menu-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
     .quick-menu-btn {
       min-width: 30px;
       height: 28px;
@@ -550,6 +556,26 @@
       font-size: 13px;
       font-weight: 800;
       opacity: 0.92;
+    }
+
+    .quick-menu-delete {
+      width: 22px;
+      height: 22px;
+      min-width: 22px;
+      padding: 0;
+      border-radius: 999px;
+      background: #3f1d1d;
+      color: #fecaca;
+      border: 1px solid #7f1d1d;
+      font-size: 14px;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .quick-menu-delete:hover {
+      background: #7f1d1d;
+      color: #fff;
+      transform: none;
     }
 
     .quick-menu-btn.active {
@@ -916,6 +942,33 @@
     return normalized;
   }
 
+  function deleteCustomMenu(menuName) {
+    const normalized = normalizeMenuName(menuName);
+    if (!normalized) return;
+
+    const count = words.filter(w => wordInMenu(w, normalized)).length;
+    const message = `確定要刪除自訂選單「${normalized}」嗎？
+
+這不會刪除單字，只會把 ${count} 個單字從這個選單分類中移除。`;
+
+    if (!confirm(message)) return;
+
+    customMenus = customMenus.filter(name => name !== normalized);
+
+    words = words.map(w => ({
+      ...w,
+      customMenus: Array.isArray(w.customMenus)
+        ? w.customMenus.filter(name => name !== normalized)
+        : []
+    }));
+
+    formSelectedMenus = formSelectedMenus.filter(name => name !== normalized);
+
+    saveCustomMenusOnly();
+    saveWords();
+    showSaveHint(`已刪除自訂選單：${normalized}`, true);
+  }
+
   function getWordMenuList(w) {
     return Array.isArray(w.customMenus) ? w.customMenus : [];
   }
@@ -924,18 +977,29 @@
     return getWordMenuList(w).includes(menuName);
   }
 
-  function renderQuickMenuButtons(list, activeList, action) {
+  function renderQuickMenuButtons(list, activeList, action, showDelete = true) {
     if (!list.length) {
       return `<div class="quick-menu-empty">尚未建立自訂選單。</div>`;
     }
 
     return list.map(name => `
-      <button
-        class="quick-menu-btn ${activeList.includes(name) ? "active" : ""}"
-        type="button"
-        title="${escapeAttr(name)}"
-        onclick="${action}('${escapeJs(name)}')"
-      >${escapeHtml(name)}</button>
+      <span class="quick-menu-wrap">
+        <button
+          class="quick-menu-btn ${activeList.includes(name) ? "active" : ""}"
+          type="button"
+          title="${escapeAttr(name)}"
+          onclick="${action}('${escapeJs(name)}')"
+        >${escapeHtml(name)}</button>
+        ${showDelete ? `
+          <button
+            class="quick-menu-delete"
+            type="button"
+            title="刪除選單：${escapeAttr(name)}"
+            aria-label="刪除選單：${escapeAttr(name)}"
+            onclick="event.stopPropagation(); deleteCustomMenu('${escapeJs(name)}')"
+          >×</button>
+        ` : ""}
+      </span>
     `).join("");
   }
 
@@ -1158,7 +1222,7 @@
   }
 
   function renderCustomMenuFilter() {
-    // 自訂選單已整合到單字庫管理主要下拉選單。
+    // 自訂選單已整合到單字庫管理主要下拉選單；新增單字區可刪除自訂選單。
   }
 
   function renderLibraryCustomMenuOverview() {}
@@ -1174,12 +1238,12 @@
     if (!box) return;
 
     if (!quiz) {
-      box.innerHTML = renderQuickMenuButtons(customMenus, [], "noopCustomMenu");
+      box.innerHTML = renderQuickMenuButtons(customMenus, [], "noopCustomMenu", false);
       return;
     }
 
     const item = quiz.items[quiz.index];
-    box.innerHTML = renderQuickMenuButtons(customMenus, getWordMenuList(item), "toggleQuizCustomMenu");
+    box.innerHTML = renderQuickMenuButtons(customMenus, getWordMenuList(item), "toggleQuizCustomMenu", false);
   }
 
   function renderQuizCustomMenuSelect() {
@@ -1255,7 +1319,7 @@
             ${w.note ? `<div class="muted">備註：${escapeHtml(w.note).replace(/\n/g, "<br>")}</div>` : ""}
             <div class="custom-menu-box">
               <div class="muted">快捷加入自訂選單</div>
-              <div class="quick-menu-row">${renderQuickMenuButtons(customMenus, getWordMenuList(w), `toggleWordCustomMenu.bind(null, '${w.id}')`)}</div>
+              <div class="quick-menu-row">${renderQuickMenuButtons(customMenus, getWordMenuList(w), `toggleWordCustomMenu.bind(null, '${w.id}')`, false)}</div>
             </div>
 
             <div class="accuracy-box">
@@ -1466,6 +1530,7 @@
     renderAll();
   }
 
+  window.deleteCustomMenu = deleteCustomMenu;
   window.noopCustomMenu = function() {};
 
   window.toggleFormCustomMenu = function(menuName) {
