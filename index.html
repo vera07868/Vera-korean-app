@@ -788,7 +788,6 @@
       <div class="filters">
         <select id="categoryFilter" style="max-width: 240px;"></select>
         <select id="posFilter" style="max-width: 220px;"></select>
-        <select id="customMenuFilter" style="max-width: 220px;"></select>
         <input id="searchInput" placeholder="搜尋韓文 / 中文 / 備註" />
       </div>
 
@@ -1144,17 +1143,22 @@
   function renderCategoryFilter() {
     const select = $("categoryFilter");
     const current = select.value || "all";
+    const menuOptions = customMenus.map(name => ({
+      value: `customMenu::${name}`,
+      label: `自訂｜${name}`
+    }));
+    const allOptions = [...LIBRARY_VIEW_OPTIONS, ...menuOptions];
 
-    select.innerHTML = LIBRARY_VIEW_OPTIONS
+    select.innerHTML = allOptions
       .map(opt => `<option value="${escapeAttr(opt.value)}">${escapeHtml(opt.label)}</option>`)
       .join("");
 
-    const smartValues = LIBRARY_VIEW_OPTIONS.map(opt => opt.value);
+    const smartValues = allOptions.map(opt => opt.value);
     select.value = smartValues.includes(current) ? current : "all";
   }
 
   function renderCustomMenuFilter() {
-    renderMenuSelectOptions("customMenuFilter", "全部自訂選單");
+    // 自訂選單已整合到單字庫管理主要下拉選單。
   }
 
   function renderLibraryCustomMenuOverview() {}
@@ -1197,9 +1201,13 @@
   function renderWordList() {
     const libraryView = $("categoryFilter").value || "all";
     const pos = $("posFilter").value || "all";
-    const customMenu = $("customMenuFilter")?.value || "";
+    const selectedCustomMenu = libraryView.startsWith("customMenu::") ? libraryView.replace("customMenu::", "") : "";
     const keyword = normalize($("searchInput").value);
     let filtered = [...words];
+
+    if (selectedCustomMenu) {
+      filtered = filtered.filter(w => wordInMenu(w, selectedCustomMenu));
+    }
 
     if (libraryView === "recentWrong") {
       filtered = filtered.filter(w => hasWrongRecord(w));
@@ -1217,9 +1225,8 @@
 
     filtered = filtered.filter(w => {
       const byPos = pos === "all" || w.pos === pos;
-      const byMenu = !customMenu || wordInMenu(w, customMenu);
       const text = normalize(`${w.korean}${w.chinese}${w.note}${w.category}`);
-      return byPos && byMenu && (!keyword || text.includes(keyword));
+      return byPos && (!keyword || text.includes(keyword));
     });
 
     filtered = sortLibraryWords(filtered, libraryView);
@@ -1385,7 +1392,6 @@
     $("duplicateEditBtn").addEventListener("click", openDuplicateWord);
     $("categoryFilter").addEventListener("change", renderWordList);
     $("posFilter").addEventListener("change", renderWordList);
-    $("customMenuFilter").addEventListener("change", renderWordList);
     $("searchInput").addEventListener("input", renderWordList);
     $("addCustomMenuBtn").addEventListener("click", () => addCustomMenuFromInput("newCustomMenuInput", true));
     $("quizAddCustomMenuBtn").addEventListener("click", addQuizCustomMenu);
