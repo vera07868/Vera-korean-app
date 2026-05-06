@@ -650,6 +650,77 @@
       font-weight: 700;
     }
 
+    .quiz-custom-menu-fold {
+      width: fit-content;
+      max-width: 100%;
+      margin: 10px auto 0;
+      text-align: left;
+    }
+
+    .quiz-custom-menu-fold > summary {
+      list-style: none;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 6px 12px;
+      background: #1e293b;
+      color: #c7d2fe;
+      border: 1px solid #334155;
+      font-size: 13px;
+      font-weight: 800;
+      user-select: none;
+    }
+
+    .quiz-custom-menu-fold > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .quiz-custom-menu-fold > summary::after {
+      content: "＋";
+      margin-left: 6px;
+      font-size: 12px;
+    }
+
+    .quiz-custom-menu-fold[open] {
+      width: min(420px, 100%);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #020617;
+      padding: 8px 10px;
+    }
+
+    .quiz-custom-menu-fold[open] > summary {
+      width: fit-content;
+      margin-bottom: 6px;
+      background: #312e81;
+      color: #e0e7ff;
+      border-color: #818cf8;
+    }
+
+    .quiz-custom-menu-fold[open] > summary::after {
+      content: "－";
+    }
+
+    .quiz-custom-menu-panel .quick-menu-inline {
+      margin-top: 0;
+    }
+
+    .quiz-custom-menu-panel .quick-menu-inline input {
+      width: min(180px, 100%);
+      height: 32px;
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .quiz-custom-menu-panel .quick-menu-inline button {
+      height: 32px;
+      padding: 6px 11px;
+      font-size: 13px;
+    }
+
+    .quiz-custom-menu-panel .quick-menu-row {
+      margin-top: 6px;
+    }
+
     .backup-box {
       width: 100%;
       min-height: 150px;
@@ -811,14 +882,16 @@
           <button class="flag-btn favorite" id="quizFavoriteBtn" type="button" title="我的最愛" aria-label="我的最愛">★</button>
           <button class="flag-btn important" id="quizImportantBtn" type="button" title="驚嘆號" aria-label="驚嘆號">!</button>
         </div>
-        <div class="custom-menu-box" style="margin-top:12px; text-align:left;">
-          <div class="muted">快捷加入自訂選單</div>
-          <div class="quick-menu-inline">
-            <input id="quizNewCustomMenuInput" placeholder="新增選單名稱" />
-            <button class="ghost" id="quizAddCustomMenuBtn" type="button">新增選單</button>
+        <details class="quiz-custom-menu-fold">
+          <summary>自訂選單</summary>
+          <div class="quiz-custom-menu-panel">
+            <div class="quick-menu-inline">
+              <input id="quizNewCustomMenuInput" placeholder="新增選單名稱" />
+              <button class="ghost" id="quizAddCustomMenuBtn" type="button">新增</button>
+            </div>
+            <div class="quick-menu-row" id="quizCustomMenuButtons"></div>
           </div>
-          <div class="quick-menu-row" id="quizCustomMenuButtons"></div>
-        </div>
+        </details>
       </div>
 
       <button class="ghost" id="speakBtn" type="button">播放發音</button>
