@@ -829,9 +829,13 @@
     <h3>2. 測驗範圍</h3>
     <div class="modes">
       <label><input type="radio" name="scope" value="all" checked />全部</label>
-      <label><input type="radio" name="scope" value="accuracyRate" />依正確率</label>
-      <label><input type="radio" name="scope" value="srs" />遺忘曲線 / 今日到期</label>
+      <label><input type="radio" name="scope" value="accuracyRate" />正確率</label>
+      <label><input type="radio" name="scope" value="recentWrong" />最近錯的</label>
+      <label><input type="radio" name="scope" value="favorite" />★ 我的最愛</label>
+      <label><input type="radio" name="scope" value="important" />! 驚嘆號</label>
+      <label><input type="radio" name="scope" value="srs" />今日到期</label>
       <label><input type="radio" name="scope" value="newWords" />新單字</label>
+      <label><input type="radio" name="scope" value="mastered" />已熟悉</label>
       <label><input type="radio" name="scope" value="customMenu" />自訂選單</label>
     </div>
 
@@ -1934,8 +1938,12 @@
     const scope = getScope();
 
     if (scope === "all") return [...words];
+    if (scope === "recentWrong") return words.filter(w => hasWrongRecord(w));
+    if (scope === "favorite") return words.filter(w => w.favorite);
+    if (scope === "important") return words.filter(w => w.important);
     if (scope === "srs") return words.filter(w => (w.stats?.dueAt || 0) <= now());
     if (scope === "newWords") return words.filter(w => isNewWord(w));
+    if (scope === "mastered") return words.filter(w => (getWordStats(w).attempts || 0) >= 3 && getAccuracyRate(w) >= 80);
     if (scope === "customMenu") {
       const selectedMenu = $("quizCustomMenuSelect").value;
       return selectedMenu ? words.filter(w => wordInMenu(w, selectedMenu)) : [];
@@ -2036,10 +2044,32 @@
 
     const box = $("resultBox");
     box.className = `result ${isCorrect ? "ok" : "bad"}`;
-    box.textContent = isCorrect ? "答對了！" : `答錯了，正確答案：${correct}`;
+    box.textContent = getAnswerFeedback(item, correct, isCorrect);
 
     speak(item.korean);
     saveWords();
+  }
+
+  function getAnswerFeedback(item, correct, isCorrect) {
+    if (item.currentMode === "listen") {
+      return isCorrect
+        ? `答對了！${item.korean}｜${item.chinese}`
+        : `答錯了，正確答案：${item.korean}｜${item.chinese}`;
+    }
+
+    if (item.currentMode === "zhToKo") {
+      return isCorrect
+        ? `答對了！${item.korean}｜${item.chinese}`
+        : `答錯了，正確答案：${item.korean}｜${item.chinese}`;
+    }
+
+    if (item.currentMode === "koToZh") {
+      return isCorrect
+        ? `答對了！${item.chinese}｜${item.korean}`
+        : `答錯了，正確答案：${item.chinese}｜${item.korean}`;
+    }
+
+    return isCorrect ? "答對了！" : `答錯了，正確答案：${correct}`;
   }
 
   function updateStats(id, isCorrect) {
