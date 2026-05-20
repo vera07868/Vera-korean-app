@@ -650,6 +650,18 @@
       font-weight: 700;
     }
 
+    .quiz-custom-menu-setting {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #020617;
+      padding: 8px 10px;
+      margin-top: 8px;
+    }
+
+    .quiz-custom-menu-setting .quick-menu-row {
+      margin-top: 6px;
+    }
+
     .quiz-custom-menu-fold {
       width: fit-content;
       max-width: 100%;
@@ -839,9 +851,9 @@
       <label><input type="radio" name="scope" value="customMenu" />自訂選單</label>
     </div>
 
-    <div class="actions" style="margin-bottom: 12px;">
-      <span>選單</span>
-      <select id="quizCustomMenuSelect" style="width: 220px;"></select>
+    <div class="quiz-custom-menu-setting" style="margin-bottom: 12px;">
+      <div class="muted">自訂選單可複選</div>
+      <div class="quick-menu-row" id="quizCustomMenuScopeButtons"></div>
     </div>
 
     <div class="actions">
@@ -982,6 +994,7 @@
   let duplicateConfirmKey = "";
   let quiz = null;
   let formSelectedMenus = [];
+  let quizSelectedMenus = [];
 
   function now() {
     return Date.now();
@@ -1069,6 +1082,7 @@
     }));
 
     formSelectedMenus = formSelectedMenus.filter(name => name !== normalized);
+    quizSelectedMenus = quizSelectedMenus.filter(name => name !== normalized);
 
     saveCustomMenusOnly();
     saveWords();
@@ -1362,7 +1376,24 @@
   }
 
   function renderQuizCustomMenuSelect() {
-    renderMenuSelectOptions("quizCustomMenuSelect", "請選擇測驗用選單");
+    const box = $("quizCustomMenuScopeButtons");
+    if (!box) return;
+
+    quizSelectedMenus = quizSelectedMenus.filter(name => customMenus.includes(name));
+
+    if (!customMenus.length) {
+      box.innerHTML = `<div class="quick-menu-empty">尚未建立自訂選單。</div>`;
+      return;
+    }
+
+    box.innerHTML = customMenus.map(name => `
+      <button
+        class="quick-menu-btn ${quizSelectedMenus.includes(name) ? "active" : ""}"
+        type="button"
+        title="${escapeAttr(name)}"
+        onclick="toggleQuizScopeMenu('${escapeJs(name)}')"
+      >${escapeHtml(name)}</button>
+    `).join("");
   }
 
   function renderAll() {
@@ -1574,7 +1605,7 @@
     $("searchInput").addEventListener("input", renderWordList);
     $("addCustomMenuBtn").addEventListener("click", () => addCustomMenuFromInput("newCustomMenuInput", true));
     $("quizAddCustomMenuBtn").addEventListener("click", addQuizCustomMenu);
-    $("quizCustomMenuSelect").addEventListener("change", updateQuestionLimit);
+    // 自訂選單測驗範圍改用多選按鈕，不需要綁定 select change。
     $("questionCount").addEventListener("input", updateQuestionLimit);
     $("accuracyRateThreshold").addEventListener("input", updateQuestionLimit);
     $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
@@ -1646,6 +1677,21 @@
   }
 
   window.deleteCustomMenu = deleteCustomMenu;
+
+  window.toggleQuizScopeMenu = function(menuName) {
+    const normalized = normalizeMenuName(menuName);
+    if (!normalized) return;
+
+    if (quizSelectedMenus.includes(normalized)) {
+      quizSelectedMenus = quizSelectedMenus.filter(name => name !== normalized);
+    } else {
+      quizSelectedMenus = [...quizSelectedMenus, normalized];
+    }
+
+    renderQuizCustomMenuSelect();
+    updateQuestionLimit();
+  };
+
   window.noopCustomMenu = function() {};
 
   window.toggleFormCustomMenu = function(menuName) {
@@ -1945,8 +1991,8 @@
     if (scope === "newWords") return words.filter(w => isNewWord(w));
     if (scope === "mastered") return words.filter(w => (getWordStats(w).attempts || 0) >= 3 && getAccuracyRate(w) >= 80);
     if (scope === "customMenu") {
-      const selectedMenu = $("quizCustomMenuSelect").value;
-      return selectedMenu ? words.filter(w => wordInMenu(w, selectedMenu)) : [];
+      if (!quizSelectedMenus.length) return [];
+      return words.filter(w => quizSelectedMenus.some(menuName => wordInMenu(w, menuName)));
     }
 
     const threshold = getAccuracyThreshold();
