@@ -1014,6 +1014,18 @@
     };
   }
 
+  // ★ 新增：間隔抖動函式，減少大量單字同一天到期
+  function applyIntervalFuzz(intervalDays) {
+    if (intervalDays <= 1) return intervalDays;
+
+    // 短間隔給較大相對抖動，長間隔給適度抖動
+    const ratio = intervalDays < 7 ? 0.22 : (intervalDays < 21 ? 0.16 : 0.12);
+    const maxOffset = Math.max(1, intervalDays * ratio);
+    const offset = (Math.random() * 2 - 1) * maxOffset; // -max ~ +max
+
+    return Math.max(1, Math.round(intervalDays + offset));
+  }
+
   function normalizeMenuName(name) {
     return String(name || "").trim().replace(/\s+/g, " ");
   }
@@ -1605,7 +1617,6 @@
     $("searchInput").addEventListener("input", renderWordList);
     $("addCustomMenuBtn").addEventListener("click", () => addCustomMenuFromInput("newCustomMenuInput", true));
     $("quizAddCustomMenuBtn").addEventListener("click", addQuizCustomMenu);
-    // 自訂選單測驗範圍改用多選按鈕，不需要綁定 select change。
     $("questionCount").addEventListener("input", updateQuestionLimit);
     $("accuracyRateThreshold").addEventListener("input", updateQuestionLimit);
     $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
@@ -2118,6 +2129,7 @@
     return isCorrect ? "答對了！" : `答錯了，正確答案：${correct}`;
   }
 
+  // ★ 修改後的 updateStats（加入間隔抖動）
   function updateStats(id, isCorrect) {
     const reviewedAt = now();
 
@@ -2141,6 +2153,9 @@
         }
 
         s.ease = Math.min(3.2, s.ease + 0.08);
+
+        // 套用抖動，避免大量單字同步到期
+        s.intervalDays = applyIntervalFuzz(s.intervalDays);
       } else {
         s.wrong += 1;
         s.lastWrongAt = reviewedAt;
