@@ -19,9 +19,7 @@
       --warn: #f59e0b;
       --shadow: 0 14px 35px rgba(0, 0, 0, 0.35);
     }
-
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
@@ -30,17 +28,13 @@
       min-height: 100vh;
       padding: 24px;
     }
-
     .container { max-width: 1100px; margin: 0 auto; }
-
     h1 {
       text-align: center;
       margin: 0 0 18px;
       font-size: clamp(28px, 4vw, 44px);
     }
-
     h2, h3 { margin-top: 0; }
-
     .card, details.card {
       background: rgba(15, 23, 42, 0.96);
       border: 1px solid var(--border);
@@ -49,7 +43,6 @@
       padding: 22px;
       margin-bottom: 22px;
     }
-
     .section-title {
       display: flex;
       justify-content: space-between;
@@ -57,30 +50,25 @@
       align-items: center;
       margin-bottom: 14px;
     }
-
     .form-grid {
       display: grid;
       grid-template-columns: 1.2fr 1.2fr 1fr 1fr;
       gap: 12px;
       margin-bottom: 12px;
     }
-
     .two-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
       margin-bottom: 12px;
     }
-
     .actions, .filters, .modes, .pills {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
       align-items: center;
     }
-
     button, input, select, textarea { font: inherit; }
-
     button {
       border: 0;
       border-radius: 999px;
@@ -91,19 +79,15 @@
       transition: 0.18s ease;
       font-weight: 650;
     }
-
     button:hover {
       transform: translateY(-1px);
       filter: brightness(1.08);
     }
-
     button:active { transform: translateY(0); }
-
     .primary { background: var(--primary); color: white; }
     .primary:hover { background: #4f46e5; }
     .danger { background: var(--danger); color: white; }
     .ghost { background: #1e293b; color: #c7d2fe; }
-
     input, select, textarea {
       width: 100%;
       border: 1px solid var(--border);
@@ -114,7 +98,6 @@
       outline: none;
       min-width: 0;
     }
-
     select {
       height: 48px;
       line-height: 1.2;
@@ -122,41 +105,33 @@
       -webkit-appearance: menulist;
       overflow: hidden;
     }
-
     select option {
       color: #f8fafc;
       background: #020617;
       font-size: 16px;
     }
-
     input::placeholder, textarea::placeholder {
       color: #94a3b8;
     }
-
     input:focus, select:focus, textarea:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
     }
-
     textarea {
       min-height: 92px;
       resize: vertical;
     }
-
     label .field-title {
       display: block;
       font-weight: 800;
       margin-bottom: 6px;
       color: #e2e8f0;
     }
-
     .muted {
       color: var(--muted);
       font-size: 14px;
     }
-
     .hidden { display: none !important; }
-
     .duplicate-alert {
       display: flex;
       justify-content: space-between;
@@ -169,28 +144,23 @@
       padding: 12px 14px;
       margin-bottom: 14px;
     }
-
     .duplicate-alert strong {
       display: block;
       margin-bottom: 4px;
       color: #fde68a;
       font-size: 16px;
     }
-
     .duplicate-alert p {
       margin: 0;
       color: #fef3c7;
       font-size: 14px;
       line-height: 1.55;
     }
-
     .duplicate-alert .duplicate-actions {
       flex: 0 0 auto;
       justify-content: flex-end;
     }
-
     .modes { margin: 12px 0; }
-
     .modes label {
       width: auto;
       background: #020617;
@@ -200,12 +170,10 @@
       cursor: pointer;
       user-select: none;
     }
-
     .modes input {
       width: auto;
       margin-right: 6px;
     }
-
     .toggle-inline {
       width: auto;
       display: inline-flex;
@@ -221,33 +189,28 @@
       font-weight: 700;
       white-space: nowrap;
     }
-
     .toggle-inline input {
       width: auto;
       margin: 0;
     }
-
     .progress {
       height: 12px;
       background: #1e293b;
       border-radius: 999px;
       overflow: hidden;
     }
-
     .progress > div {
       height: 100%;
       width: 0%;
       background: linear-gradient(90deg, var(--primary), #06b6d4);
       transition: width 0.25s ease;
     }
-
     .quiz-panel {
       display: grid;
       gap: 14px;
       text-align: center;
       margin-top: 14px;
     }
-
     .question-card {
       border-radius: 20px;
       border: 1px dashed #6366f1;
@@ -255,7 +218,6 @@
       padding: 26px 18px;
       text-align: center;
     }
-
     .badge {
       display: inline-flex;
       background: #1e293b;
@@ -265,36 +227,30 @@
       font-weight: 700;
       margin-bottom: 12px;
     }
-
     .question-text {
       font-size: clamp(30px, 6vw, 58px);
       line-height: 1.2;
       font-weight: 800;
       word-break: keep-all;
     }
-
     .answer-input {
       width: min(100%, 520px);
       text-align: center;
       font-size: 22px;
       margin: 0 auto;
     }
-
     .result {
       min-height: 30px;
       font-size: 18px;
       font-weight: 800;
       text-align: center;
     }
-
     .result.ok { color: var(--ok); }
     .result.bad { color: var(--danger); }
-
     details.card {
       padding: 0;
       overflow: hidden;
     }
-
     details.card > summary {
       list-style: none;
       cursor: pointer;
@@ -306,21 +262,16 @@
       gap: 12px;
       align-items: center;
     }
-
     details.card > summary::-webkit-details-marker { display: none; }
-
     details.card[open] > summary {
       border-bottom: 1px solid var(--border);
     }
-
     .content { padding: 22px; }
-
     .words {
       display: grid;
       gap: 10px;
       margin-top: 14px;
     }
-
     .word {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -331,30 +282,23 @@
       background: #020617;
       padding: 14px;
     }
-
     .word-line, .example-line {
       display: flex;
       align-items: center;
       gap: 8px;
     }
-
     .word-line {
       margin-bottom: 2px;
     }
-
     .example-line {
       align-items: flex-start;
     }
-
     .ko {
       font-size: 24px;
       font-weight: 800;
     }
-
     .zh, .tag { color: var(--muted); }
-
     .tag { font-size: 13px; }
-
     .example {
       background: #0f172a;
       border: 1px solid #1e293b;
@@ -362,7 +306,6 @@
       padding: 8px 10px;
       margin-top: 6px;
     }
-
     .icon-btn {
       flex: 0 0 auto;
       width: 30px;
@@ -377,7 +320,6 @@
       color: #c7d2fe;
       font-size: 15px;
     }
-
     .flag-btn {
       flex: 0 0 auto;
       width: 30px;
@@ -393,33 +335,28 @@
       font-size: 16px;
       opacity: 0.85;
     }
-
     .flag-btn.active.favorite {
       background: #713f12;
       color: #fde68a;
       border-color: #f59e0b;
       opacity: 1;
     }
-
     .flag-btn.active.important {
       background: #7f1d1d;
       color: #fecaca;
       border-color: #ef4444;
       opacity: 1;
     }
-
     .quiz-flags {
       display: flex;
       justify-content: center;
       gap: 8px;
       margin-top: 10px;
     }
-
     .accuracy-box {
       margin-top: 9px;
       max-width: 260px;
     }
-
     .accuracy-label {
       display: flex;
       justify-content: space-between;
@@ -429,14 +366,12 @@
       font-weight: 700;
       margin-bottom: 5px;
     }
-
     .accuracy-bar {
       height: 10px;
       background: #1e293b;
       border-radius: 999px;
       overflow: hidden;
     }
-
     .accuracy-bar > div {
       height: 100%;
       width: 0%;
@@ -444,7 +379,6 @@
       border-radius: 999px;
       transition: width 0.25s ease;
     }
-
     .pill {
       border-radius: 999px;
       padding: 4px 9px;
@@ -453,10 +387,8 @@
       font-size: 12px;
       font-weight: 700;
     }
-
     .pill.warn { background: #451a03; color: #fbbf24; }
     .pill.ok { background: #052e16; color: #86efac; }
-
     .mini {
       display: flex;
       gap: 8px;
@@ -464,16 +396,13 @@
       justify-content: flex-end;
       align-items: flex-start;
     }
-
     .mini button {
       padding: 8px 12px;
       font-size: 14px;
     }
-
     .word-menu {
       position: relative;
     }
-
     .word-menu > summary {
       list-style: none;
       cursor: pointer;
@@ -485,14 +414,11 @@
       font-weight: 700;
       user-select: none;
     }
-
     .word-menu > summary::-webkit-details-marker { display: none; }
-
     .word-menu[open] > summary {
       background: #312e81;
       color: #e0e7ff;
     }
-
     .word-menu-panel {
       position: absolute;
       right: 0;
@@ -507,13 +433,11 @@
       background: #020617;
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
     }
-
     .word-menu-panel button {
       width: 100%;
       justify-content: center;
       white-space: nowrap;
     }
-
     .custom-menu-box {
       margin-top: 8px;
       border: 1px solid var(--border);
@@ -521,16 +445,13 @@
       background: #020617;
       padding: 8px 10px;
     }
-
     .custom-menu-box strong {
       font-size: 15px;
     }
-
     .custom-menu-box .muted {
       font-size: 12px;
       line-height: 1.35;
     }
-
     .quick-menu-row {
       display: flex;
       gap: 6px;
@@ -538,13 +459,11 @@
       align-items: center;
       margin-top: 6px;
     }
-
     .quick-menu-wrap {
       display: inline-flex;
       align-items: center;
       gap: 3px;
     }
-
     .quick-menu-btn {
       min-width: 30px;
       height: 28px;
@@ -557,11 +476,9 @@
       font-weight: 800;
       opacity: 0.92;
     }
-
     .custom-menu-manage {
       margin-top: 8px;
     }
-
     .custom-menu-manage > summary {
       width: fit-content;
       list-style: none;
@@ -575,16 +492,13 @@
       font-weight: 800;
       user-select: none;
     }
-
     .custom-menu-manage > summary::-webkit-details-marker {
       display: none;
     }
-
     .custom-menu-manage[open] > summary {
       background: #1e293b;
       border-color: #6366f1;
     }
-
     .menu-delete-btn {
       min-width: 30px;
       height: 28px;
@@ -596,13 +510,11 @@
       font-size: 12px;
       font-weight: 900;
     }
-
     .menu-delete-btn:hover {
       background: #7f1d1d;
       color: #fff;
       transform: none;
     }
-
     .quick-menu-btn.active {
       background: #312e81;
       color: #e0e7ff;
@@ -610,13 +522,11 @@
       opacity: 1;
       box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.16);
     }
-
     .quick-menu-empty {
       color: var(--muted);
       font-size: 12px;
       margin-top: 6px;
     }
-
     .quick-menu-inline {
       display: flex;
       gap: 6px;
@@ -624,20 +534,17 @@
       align-items: center;
       margin-top: 6px;
     }
-
     .quick-menu-inline input {
       width: min(210px, 100%);
       height: 36px;
       padding: 8px 11px;
       font-size: 14px;
     }
-
     .quick-menu-inline button {
       height: 36px;
       padding: 8px 13px;
       font-size: 14px;
     }
-
     .quick-menu-tag {
       display: inline-flex;
       align-items: center;
@@ -649,7 +556,6 @@
       font-size: 12px;
       font-weight: 700;
     }
-
     .quiz-custom-menu-setting {
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -657,18 +563,15 @@
       padding: 8px 10px;
       margin-top: 8px;
     }
-
     .quiz-custom-menu-setting .quick-menu-row {
       margin-top: 6px;
     }
-
     .quiz-custom-menu-fold {
       width: fit-content;
       max-width: 100%;
       margin: 10px auto 0;
       text-align: left;
     }
-
     .quiz-custom-menu-fold > summary {
       list-style: none;
       cursor: pointer;
@@ -681,17 +584,14 @@
       font-weight: 800;
       user-select: none;
     }
-
     .quiz-custom-menu-fold > summary::-webkit-details-marker {
       display: none;
     }
-
     .quiz-custom-menu-fold > summary::after {
       content: "＋";
       margin-left: 6px;
       font-size: 12px;
     }
-
     .quiz-custom-menu-fold[open] {
       width: min(420px, 100%);
       border: 1px solid var(--border);
@@ -699,7 +599,6 @@
       background: #020617;
       padding: 8px 10px;
     }
-
     .quiz-custom-menu-fold[open] > summary {
       width: fit-content;
       margin-bottom: 6px;
@@ -707,32 +606,26 @@
       color: #e0e7ff;
       border-color: #818cf8;
     }
-
     .quiz-custom-menu-fold[open] > summary::after {
       content: "－";
     }
-
     .quiz-custom-menu-panel .quick-menu-inline {
       margin-top: 0;
     }
-
     .quiz-custom-menu-panel .quick-menu-inline input {
       width: min(180px, 100%);
       height: 32px;
       padding: 6px 10px;
       font-size: 13px;
     }
-
     .quiz-custom-menu-panel .quick-menu-inline button {
       height: 32px;
       padding: 6px 11px;
       font-size: 13px;
     }
-
     .quiz-custom-menu-panel .quick-menu-row {
       margin-top: 6px;
     }
-
     .backup-box {
       width: 100%;
       min-height: 150px;
@@ -740,7 +633,6 @@
       font-size: 13px;
       margin-top: 12px;
     }
-
     @media (max-width: 760px) {
       body { padding: 14px; }
       .form-grid, .two-grid, .word { grid-template-columns: 1fr; }
@@ -751,22 +643,18 @@
         right: auto;
         left: 0;
       }
-
       .duplicate-alert {
         flex-direction: column;
       }
-
       .duplicate-alert .duplicate-actions {
         justify-content: flex-start;
       }
     }
   </style>
 </head>
-
 <body>
 <main class="container">
   <h1>韓文背單字</h1>
-
   <section class="card">
     <div class="section-title">
       <div>
@@ -774,7 +662,6 @@
         <p class="muted">詞性請從下拉選單選擇。備註可留空。</p>
       </div>
     </div>
-
     <div class="duplicate-alert hidden" id="duplicateAlert" role="alert">
       <div>
         <strong id="duplicateTitle">偵測到可能重複的單字</strong>
@@ -785,20 +672,17 @@
         <button class="primary" id="duplicateContinueBtn" type="button">仍要重複儲存</button>
       </div>
     </div>
-
     <div class="form-grid">
       <input id="koreanInput" placeholder="韓文，例如：사과" />
       <input id="chineseInput" placeholder="中文，例如：蘋果" />
       <select id="posInput" aria-label="詞性分類"></select>
       <input id="categoryInput" placeholder="分類，例如：食物 / 旅遊" />
     </div>
-
     <div class="actions" style="margin-bottom: 12px;">
       <button class="primary" id="saveBtn" type="button">儲存單字</button>
       <button class="ghost hidden" id="cancelBtn" type="button">取消編輯</button>
       <span class="muted" id="saveHint">資料會儲存在此瀏覽器。</span>
     </div>
-
     <div class="custom-menu-box">
       <div>
         <strong>快捷加入自訂選單</strong>
@@ -813,7 +697,6 @@
         <div class="quick-menu-row" id="customMenuManageButtons"></div>
       </details>
     </div>
-
     <div class="two-grid">
       <label>
         <span class="field-title">備註</span>
@@ -821,7 +704,6 @@
       </label>
     </div>
   </section>
-
   <section class="card">
     <div class="section-title">
       <div>
@@ -829,7 +711,6 @@
         <p class="muted">測驗範圍可選全部、依正確率、遺忘曲線今日到期，或新單字。</p>
       </div>
     </div>
-
     <h3>1. 測驗模式</h3>
     <div class="modes">
       <label><input type="radio" name="mode" value="zhToKo" checked />中翻韓</label>
@@ -837,7 +718,6 @@
       <label><input type="radio" name="mode" value="listen" />聽音拼字</label>
       <label><input type="radio" name="mode" value="mixed" />隨機混合</label>
     </div>
-
     <h3>2. 測驗範圍</h3>
     <div class="modes">
       <label><input type="radio" name="scope" value="all" checked />全部</label>
@@ -850,12 +730,10 @@
       <label><input type="radio" name="scope" value="mastered" />已熟悉</label>
       <label><input type="radio" name="scope" value="customMenu" />自訂選單</label>
     </div>
-
     <div class="quiz-custom-menu-setting" style="margin-bottom: 12px;">
       <div class="muted">自訂選單可複選</div>
       <div class="quick-menu-row" id="quizCustomMenuScopeButtons"></div>
     </div>
-
     <div class="actions">
       <span>正確率</span>
       <select id="accuracyRateOperator" style="width: 100px;">
@@ -865,7 +743,6 @@
       <input id="accuracyRateThreshold" type="number" min="0" max="100" value="100" style="width: 110px;" />
       <span>%</span>
     </div>
-
     <div class="actions" style="margin-top: 12px;">
       <label style="width:auto;">
         題數：
@@ -876,7 +753,6 @@
       <button class="primary" id="startQuizBtn" type="button">開始測驗挑戰</button>
     </div>
   </section>
-
   <section class="card hidden" id="quizSection">
     <div class="section-title">
       <div>
@@ -885,11 +761,9 @@
       </div>
       <button class="danger" id="endQuizBtn" type="button">結束測驗</button>
     </div>
-
     <div class="progress">
       <div id="progressBar"></div>
     </div>
-
     <div class="quiz-panel">
       <div class="question-card">
         <div class="badge" id="quizPos"></div>
@@ -909,11 +783,9 @@
           </div>
         </details>
       </div>
-
       <button class="ghost" id="speakBtn" type="button">播放發音</button>
       <input class="answer-input" id="answerInput" placeholder="輸入答案後按 Enter" />
       <div class="result" id="resultBox"></div>
-
       <div class="actions" style="justify-content:center;">
         <button id="prevBtn" type="button">⬅ 上一題</button>
         <button class="primary" id="submitBtn" type="button">提交答案</button>
@@ -921,20 +793,17 @@
       </div>
     </div>
   </section>
-
   <details class="card" id="wordLibraryDetails">
     <summary>
       <span>單字庫管理</span>
       <span class="muted" id="wordCountText">目前 0 個單字</span>
     </summary>
-
     <div class="content">
       <div class="filters">
         <select id="categoryFilter" style="max-width: 240px;"></select>
         <select id="posFilter" style="max-width: 220px;"></select>
         <input id="searchInput" placeholder="搜尋韓文 / 中文 / 備註" />
       </div>
-
       <div class="actions" style="margin-top: 14px;">
         <button class="ghost" id="backupBtn" type="button">備份複製</button>
         <button class="ghost" id="downloadBackupBtn" type="button">下載備份檔</button>
@@ -942,19 +811,15 @@
         <input id="backupFileInput" type="file" accept=".json,.txt,application/json,text/plain" hidden />
         <button class="danger" id="clearDbBtn" type="button">清空資料庫</button>
       </div>
-
       <textarea class="backup-box" id="backupText" placeholder="可貼上 JSON 備份資料；也可貼上一行一筆：韓文｜中文｜詞性｜分類，或 韓文[TAB]中文[TAB]詞性[TAB]分類。匯入時會自動忽略非韓文開頭的聊天說明文字。"></textarea>
-
       <div class="actions" style="margin-top: 10px;">
         <button class="primary" id="appendImportBtn" type="button">追加匯入</button>
         <button class="ghost" id="importBtn" type="button">覆蓋匯入</button>
       </div>
-
       <div class="words" id="wordList"></div>
     </div>
   </details>
 </main>
-
 <script>
   const POS_LIST = [
     "名詞 (명사)",
@@ -968,7 +833,6 @@
     "助詞 (조사)",
     "片語/習慣用語"
   ];
-
   const LIBRARY_VIEW_OPTIONS = [
     { value: "all", label: "全部" },
     { value: "accuracyLow", label: "正確率（低到高）" },
@@ -980,13 +844,11 @@
     { value: "newWords", label: "新單字" },
     { value: "mastered", label: "已熟悉" }
   ];
-
   const STORAGE_KEY = "kwords-vocab-v2";
   const OLD_STORAGE_KEY = "kwords-vocab-v1";
   const CUSTOM_MENU_KEY = "kwords-custom-menus-v1";
   const $ = (id) => document.getElementById(id);
   const dayMs = 24 * 60 * 60 * 1000;
-
   let words = migrateWords(loadWords());
   let customMenus = loadCustomMenus();
   let lastImportIgnoredCount = 0;
@@ -995,11 +857,9 @@
   let quiz = null;
   let formSelectedMenus = [];
   let quizSelectedMenus = [];
-
   function now() {
     return Date.now();
   }
-
   function makeStats() {
     return {
       attempts: 0,
@@ -1013,39 +873,9 @@
       lastWrongAt: null
     };
   }
-
-  // 加入隨機偏移，避免大量單字同一天到期（只影響實際 dueAt，不改變儲存的 intervalDays）
-  function fuzzInterval(days) {
-    const interval = Number(days) || 0;
-    if (interval <= 1) return interval;
-    const maxFuzz = Math.max(1, Math.round(interval * 0.15));
-    const offset = Math.floor(Math.random() * (maxFuzz * 2 + 1)) - maxFuzz;
-    return Math.max(1, interval + offset);
-  }
-
-  // 一次性把舊的同步到期日重新打散（只改 dueAt，不動學習進度）
-  function rebalanceExistingDueDates() {
-    let changed = false;
-    words = words.map(w => {
-      const s = { ...makeStats(), ...(w.stats || {}) };
-      if (!s.lastReviewedAt || !s.intervalDays || s.intervalDays < 1) return w;
-
-      const newDue = s.lastReviewedAt + fuzzInterval(s.intervalDays) * dayMs;
-      if (newDue !== s.dueAt) {
-        changed = true;
-        return { ...w, stats: { ...s, dueAt: newDue } };
-      }
-      return w;
-    });
-    if (changed) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
-    }
-  }
-
   function normalizeMenuName(name) {
     return String(name || "").trim().replace(/\s+/g, " ");
   }
-
   function loadCustomMenus() {
     try {
       const raw = localStorage.getItem(CUSTOM_MENU_KEY);
@@ -1054,14 +884,11 @@
         return [...new Set(parsed.map(normalizeMenuName).filter(Boolean))];
       }
     } catch (_) {}
-
     return [];
   }
-
   function saveCustomMenusOnly() {
     localStorage.setItem(CUSTOM_MENU_KEY, JSON.stringify(customMenus));
   }
-
   function ensureCustomMenusFromWords() {
     const merged = new Set(customMenus);
     words.forEach(w => {
@@ -1072,64 +899,49 @@
     });
     customMenus = [...merged].sort((a, b) => a.localeCompare(b, "zh-Hant"));
   }
-
   function createCustomMenu(name) {
     const normalized = normalizeMenuName(name);
     if (!normalized) {
       alert("請先輸入自訂選單名稱。");
       return "";
     }
-
     if (!customMenus.includes(normalized)) {
       customMenus.push(normalized);
       customMenus.sort((a, b) => a.localeCompare(b, "zh-Hant"));
       saveCustomMenusOnly();
     }
-
     return normalized;
   }
-
   function deleteCustomMenu(menuName) {
     const normalized = normalizeMenuName(menuName);
     if (!normalized) return;
-
     const count = words.filter(w => wordInMenu(w, normalized)).length;
     const message = `確定要刪除自訂選單「${normalized}」嗎？
-
 這不會刪除單字，只會把 ${count} 個單字從這個選單分類中移除。`;
-
     if (!confirm(message)) return;
-
     customMenus = customMenus.filter(name => name !== normalized);
-
     words = words.map(w => ({
       ...w,
       customMenus: Array.isArray(w.customMenus)
         ? w.customMenus.filter(name => name !== normalized)
         : []
     }));
-
     formSelectedMenus = formSelectedMenus.filter(name => name !== normalized);
     quizSelectedMenus = quizSelectedMenus.filter(name => name !== normalized);
-
     saveCustomMenusOnly();
     saveWords();
     showSaveHint(`已刪除自訂選單：${normalized}`, true);
   }
-
   function getWordMenuList(w) {
     return Array.isArray(w.customMenus) ? w.customMenus : [];
   }
-
   function wordInMenu(w, menuName) {
     return getWordMenuList(w).includes(menuName);
   }
-
   function renderQuickMenuButtons(list, activeList, action) {
     if (!list.length) {
       return `<div class="quick-menu-empty">尚未建立自訂選單。</div>`;
     }
-
     return list.map(name => `
       <button
         class="quick-menu-btn ${activeList.includes(name) ? "active" : ""}"
@@ -1139,16 +951,13 @@
       >${escapeHtml(name)}</button>
     `).join("");
   }
-
   function renderCustomMenuManageButtons() {
     const box = $("customMenuManageButtons");
     if (!box) return;
-
     if (!customMenus.length) {
       box.innerHTML = `<div class="quick-menu-empty">尚未建立自訂選單。</div>`;
       return;
     }
-
     box.innerHTML = customMenus.map(name => `
       <button
         class="menu-delete-btn"
@@ -1158,152 +967,115 @@
       >刪除｜${escapeHtml(name)}</button>
     `).join("");
   }
-
   function renderMenuSelectOptions(selectId, placeholder = "請選擇自訂選單") {
     const select = $(selectId);
     if (!select) return;
     const current = select.value;
-
     select.innerHTML = `<option value="">${escapeHtml(placeholder)}</option>` + customMenus
       .map(name => `<option value="${escapeAttr(name)}">${escapeHtml(name)}</option>`)
       .join("");
-
     if (customMenus.includes(current)) {
       select.value = current;
     }
   }
-
   function hasFinalConsonant(text) {
     const hangulOnly = String(text || "").trim().replace(/[^\uAC00-\uD7A3]/g, "");
     if (!hangulOnly) return false;
-
     const lastChar = hangulOnly[hangulOnly.length - 1];
     const code = lastChar.charCodeAt(0) - 0xAC00;
-
     if (code < 0 || code > 11171) return false;
-
     return code % 28 !== 0;
   }
-
   function objectParticle(text) {
     return hasFinalConsonant(text) ? "을" : "를";
   }
-
   function subjectParticle(text) {
     return hasFinalConsonant(text) ? "이" : "가";
   }
-
   function topicParticle(text) {
     return hasFinalConsonant(text) ? "은" : "는";
   }
-
   function copulaEnding(text) {
     return hasFinalConsonant(text) ? "이에요" : "예요";
   }
-
   function hashText(text) {
     let hash = 0;
     const value = String(text || "");
-
     for (let i = 0; i < value.length; i += 1) {
       hash = ((hash << 5) - hash) + value.charCodeAt(i);
       hash |= 0;
     }
-
     return Math.abs(hash);
   }
-
   function pickByWord(korean, chinese, pos, list) {
     if (!list.length) return "";
     const index = hashText(`${korean}|${chinese}|${pos}`) % list.length;
     return list[index];
   }
-
   function addFinalConsonantToLastSyllable(text, finalIndex) {
     const value = String(text || "");
     if (!value) return value;
-
     const last = value[value.length - 1];
     const code = last.charCodeAt(0) - 0xAC00;
-
     if (code < 0 || code > 11171) return value;
     if (code % 28 !== 0) return value;
-
     return value.slice(0, -1) + String.fromCharCode(last.charCodeAt(0) + finalIndex);
   }
-
   function toFormalPresent(korean) {
     const word = String(korean || "").trim();
     if (!word.endsWith("다") || word.length < 2) return word;
-
     const stem = word.slice(0, -1);
     if (hasFinalConsonant(stem)) return `${stem}습니다`;
-
     return `${addFinalConsonantToLastSyllable(stem, 17)}니다`;
   }
-
   function makeOldExample(korean, chinese, pos) {
     return "";
   }
-
   function makeOldExampleZh(korean, chinese, pos) {
     return "";
   }
-
   function makeExample(korean, chinese, pos) {
     return "";
   }
-
   function makeExampleZh(korean, chinese, pos) {
     return "";
   }
-
   function refreshOldAutoExamples() {
     let changed = false;
-
     words = words.map(w => {
       const next = { ...w };
-
       if (next.example) {
         next.example = "";
         changed = true;
       }
-
       if (next.exampleZh) {
         next.exampleZh = "";
         changed = true;
       }
-
       return next;
     });
-
     if (changed) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
     }
   }
-
   function loadWords() {
     const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY);
-
     if (raw) {
       try {
         return JSON.parse(raw);
       } catch (_) {}
     }
-
     return [
       makeWord("사과", "蘋果", "名詞 (명사)", "食物", "", ""),
       makeWord("가다", "去", "動詞 (동사)", "日常", "", ""),
       makeWord("예쁘다", "漂亮", "形容詞 (형용사)", "形容", "", "")
     ];
   }
-
   function migrateWords(list) {
     return (Array.isArray(list) ? list : []).map((w) => {
       const korean = String(w.korean || w.kor || w.kr || "").trim();
       const chinese = String(w.chinese || w.chi || w.zh || w.tw || w.meaning || "").trim();
       const pos = normalizePos(w.pos || w.partOfSpeech || "");
-
       return {
         id: w.id || crypto.randomUUID(),
         korean,
@@ -1320,7 +1092,6 @@
       };
     }).filter(w => w.korean && w.chinese);
   }
-
   function makeWord(korean, chinese, pos, category, example, note, exampleZh) {
     return {
       id: crypto.randomUUID(),
@@ -1337,30 +1108,25 @@
       stats: makeStats()
     };
   }
-
   function saveWords() {
     ensureCustomMenusFromWords();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
     saveCustomMenusOnly();
     renderAll();
   }
-
   function init() {
     ensureCustomMenusFromWords();
     refreshOldAutoExamples();
-    rebalanceExistingDueDates(); // 啟動時自動把舊的同步到期日打散
     renderSelectOptions();
     bindEvents();
     renderAll();
   }
-
   function renderSelectOptions() {
     const posOptions = POS_LIST.map(pos => `<option value="${escapeAttr(pos)}">${escapeHtml(pos)}</option>`).join("");
     $("posInput").innerHTML = posOptions;
     $("posFilter").innerHTML = `<option value="all">全部詞性</option>${posOptions}`;
     $("posInput").value = POS_LIST[0];
   }
-
   function renderCategoryFilter() {
     const select = $("categoryFilter");
     const current = select.value || "all";
@@ -1369,52 +1135,40 @@
       label: `自訂｜${name}`
     }));
     const allOptions = [...LIBRARY_VIEW_OPTIONS, ...menuOptions];
-
     select.innerHTML = allOptions
       .map(opt => `<option value="${escapeAttr(opt.value)}">${escapeHtml(opt.label)}</option>`)
       .join("");
-
     const smartValues = allOptions.map(opt => opt.value);
     select.value = smartValues.includes(current) ? current : "all";
   }
-
   function renderCustomMenuFilter() {
     // 自訂選單已整合到單字庫管理主要下拉選單；新增單字區可刪除自訂選單。
   }
-
   function renderLibraryCustomMenuOverview() {}
-
   function renderFormCustomMenuButtons() {
     const box = $("formCustomMenuButtons");
     if (!box) return;
     box.innerHTML = renderQuickMenuButtons(customMenus, formSelectedMenus, "toggleFormCustomMenu");
     renderCustomMenuManageButtons();
   }
-
   function renderQuizCustomMenuButtons() {
     const box = $("quizCustomMenuButtons");
     if (!box) return;
-
     if (!quiz) {
       box.innerHTML = renderQuickMenuButtons(customMenus, [], "noopCustomMenu");
       return;
     }
-
     const item = quiz.items[quiz.index];
     box.innerHTML = renderQuickMenuButtons(customMenus, getWordMenuList(item), "toggleQuizCustomMenu");
   }
-
   function renderQuizCustomMenuSelect() {
     const box = $("quizCustomMenuScopeButtons");
     if (!box) return;
-
     quizSelectedMenus = quizSelectedMenus.filter(name => customMenus.includes(name));
-
     if (!customMenus.length) {
       box.innerHTML = `<div class="quick-menu-empty">尚未建立自訂選單。</div>`;
       return;
     }
-
     box.innerHTML = customMenus.map(name => `
       <button
         class="quick-menu-btn ${quizSelectedMenus.includes(name) ? "active" : ""}"
@@ -1424,7 +1178,6 @@
       >${escapeHtml(name)}</button>
     `).join("");
   }
-
   function renderAll() {
     renderCategoryFilter();
     renderCustomMenuFilter();
@@ -1436,18 +1189,15 @@
     updateQuestionLimit();
     renderDuplicateAlert();
   }
-
   function renderWordList() {
     const libraryView = $("categoryFilter").value || "all";
     const pos = $("posFilter").value || "all";
     const selectedCustomMenu = libraryView.startsWith("customMenu::") ? libraryView.replace("customMenu::", "") : "";
     const keyword = normalize($("searchInput").value);
     let filtered = [...words];
-
     if (selectedCustomMenu) {
       filtered = filtered.filter(w => wordInMenu(w, selectedCustomMenu));
     }
-
     if (libraryView === "recentWrong") {
       filtered = filtered.filter(w => hasWrongRecord(w));
     } else if (libraryView === "dueToday") {
@@ -1461,25 +1211,20 @@
     } else if (libraryView === "important") {
       filtered = filtered.filter(w => w.important);
     }
-
     filtered = filtered.filter(w => {
       const byPos = pos === "all" || w.pos === pos;
       const text = normalize(`${w.korean}${w.chinese}${w.note}${w.category}`);
       return byPos && (!keyword || text.includes(keyword));
     });
-
     filtered = sortLibraryWords(filtered, libraryView);
-
     const dueCount = words.filter(w => (w.stats?.dueAt || 0) <= now()).length;
     const newCount = words.filter(w => isNewWord(w)).length;
     $("wordCountText").textContent = `目前 ${words.length} 個單字｜今日到期 ${dueCount}｜新單字 ${newCount}`;
-
     $("wordList").innerHTML = filtered.map(w => {
       const accuracy = getAccuracyRate(w);
       const isDue = (w.stats?.dueAt || 0) <= now();
       const isNew = isNewWord(w);
       const dueDate = w.stats?.dueAt ? new Date(w.stats.dueAt).toLocaleDateString("zh-TW") : "今天";
-
       return `
         <article class="word">
           <div>
@@ -1496,7 +1241,6 @@
               <div class="muted">快捷加入自訂選單</div>
               <div class="quick-menu-row">${renderQuickMenuButtons(customMenus, getWordMenuList(w), `toggleWordCustomMenu.bind(null, '${w.id}')`)}</div>
             </div>
-
             <div class="accuracy-box">
               <div class="accuracy-label">
                 <span>正確率</span>
@@ -1506,7 +1250,6 @@
                 <div style="width:${accuracy}%;"></div>
               </div>
             </div>
-
             <div class="pills" style="margin-top: 8px;">
               <span class="pill ${accuracy >= 70 ? "ok" : "warn"}">正確率 ${accuracy}%</span>
               ${isNew ? `<span class="pill ok">新單字</span>` : ""}
@@ -1515,7 +1258,6 @@
               <span class="pill">間隔 ${w.stats?.intervalDays || 0} 天</span>
             </div>
           </div>
-
           <div class="mini">
             <details class="word-menu">
               <summary>管理</summary>
@@ -1530,10 +1272,8 @@
       `;
     }).join("") || `<p class="muted">目前沒有符合條件的單字。</p>`;
   }
-
   function sortLibraryWords(list, libraryView) {
     const copy = [...list];
-
     if (libraryView === "accuracyLow") {
       return copy.sort((a, b) => {
         return getAccuracyRate(a) - getAccuracyRate(b)
@@ -1541,85 +1281,67 @@
           || (getWordStats(b).attempts || 0) - (getWordStats(a).attempts || 0);
       });
     }
-
     if (libraryView === "recentWrong") {
       return copy.sort((a, b) => {
         return getLastWrongTime(b) - getLastWrongTime(a)
           || getWrongRate(b) - getWrongRate(a);
       });
     }
-
     if (libraryView === "reviewPriority") {
       return copy.sort((a, b) => {
         return getReviewPriorityScore(b) - getReviewPriorityScore(a);
       });
     }
-
     if (libraryView === "favorite" || libraryView === "important") {
       return copy.sort((a, b) => {
         return getReviewPriorityScore(b) - getReviewPriorityScore(a)
           || getAccuracyRate(a) - getAccuracyRate(b);
       });
     }
-
     if (libraryView === "dueToday") {
       return copy.sort((a, b) => {
         return getAccuracyRate(a) - getAccuracyRate(b)
           || getWrongRate(b) - getWrongRate(a);
       });
     }
-
     if (libraryView === "mastered") {
       return copy.sort((a, b) => {
         return getAccuracyRate(b) - getAccuracyRate(a)
           || (getWordStats(b).attempts || 0) - (getWordStats(a).attempts || 0);
       });
     }
-
     return copy;
   }
-
   function getReviewPriorityScore(w) {
     const s = getWordStats(w);
     const dueBonus = (s.dueAt || 0) <= now() ? 10000 : 0;
     const recentlyWrongBonus = s.lastAnswerCorrect === false ? 2000 : 0;
     const lowAccuracyScore = 100 - getAccuracyRate(w);
     const wrongRateScore = getWrongRate(w);
-
     return dueBonus + recentlyWrongBonus + lowAccuracyScore * 50 + wrongRateScore * 30;
   }
-
   function getWordStats(w) {
     return { ...makeStats(), ...(w.stats || {}) };
   }
-
   function getWrongCount(w) {
     const s = getWordStats(w);
     return Math.max(0, Number(s.wrong || 1) - 1);
   }
-
   function getWrongRate(w) {
     const s = getWordStats(w);
-
     if (!s.attempts) return 0;
-
     return Math.min(100, Math.max(0, Math.round((getWrongCount(w) / s.attempts) * 100)));
   }
-
   function getLastWrongTime(w) {
     const s = getWordStats(w);
-
     if (s.lastWrongAt) return Number(s.lastWrongAt);
     if (s.lastAnswerCorrect === false) return Number(s.lastReviewedAt || 0);
     if (getWrongCount(w) > 0) return Number(s.lastReviewedAt || 0);
-
     return 0;
   }
-
   function hasWrongRecord(w) {
     return getLastWrongTime(w) > 0 || getWrongCount(w) > 0;
   }
-
   function bindEvents() {
     $("saveBtn").addEventListener("click", saveWordFromForm);
     $("cancelBtn").addEventListener("click", resetForm);
@@ -1638,27 +1360,21 @@
     $("questionCount").addEventListener("input", updateQuestionLimit);
     $("accuracyRateThreshold").addEventListener("input", updateQuestionLimit);
     $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
-
     document.querySelectorAll("input[name='scope']").forEach(r => {
       r.addEventListener("change", updateQuestionLimit);
     });
-
     $("startQuizBtn").addEventListener("click", startQuiz);
     $("submitBtn").addEventListener("click", submitAnswer);
-
     $("answerInput").addEventListener("keydown", e => {
       if (e.key === "Enter") submitAnswer();
     });
-
     $("prevBtn").addEventListener("click", () => moveQuiz(-1));
     $("nextBtn").addEventListener("click", () => {
       if (!quiz) return;
-
       if (quiz.index >= quiz.items.length - 1) {
         endQuiz();
         return;
       }
-
       moveQuiz(1);
     });
     $("endQuizBtn").addEventListener("click", endQuiz);
@@ -1674,150 +1390,114 @@
     $("clearDbBtn").addEventListener("click", clearDatabase);
     $("resetSrsBtn").addEventListener("click", resetAllSrs);
   }
-
   function addCustomMenuFromInput(inputId, autoSelectForForm = false) {
     const input = $(inputId);
     const created = createCustomMenu(input?.value || "");
     if (!created) return;
-
     if (input) input.value = "";
-
     if (autoSelectForForm && !formSelectedMenus.includes(created)) {
       formSelectedMenus.push(created);
     }
-
     showSaveHint(`已新增自訂選單：${created}`, true);
     renderAll();
   }
-
   function addQuizCustomMenu() {
     const input = $("quizNewCustomMenuInput");
     const created = createCustomMenu(input?.value || "");
     if (!created) return;
-
     if (input) input.value = "";
-
     if (quiz) {
       toggleWordMenu(quiz.items[quiz.index].id, created, true);
       return;
     }
-
     renderAll();
   }
-
   window.deleteCustomMenu = deleteCustomMenu;
-
   window.toggleQuizScopeMenu = function(menuName) {
     const normalized = normalizeMenuName(menuName);
     if (!normalized) return;
-
     if (quizSelectedMenus.includes(normalized)) {
       quizSelectedMenus = quizSelectedMenus.filter(name => name !== normalized);
     } else {
       quizSelectedMenus = [...quizSelectedMenus, normalized];
     }
-
     renderQuizCustomMenuSelect();
     updateQuestionLimit();
   };
-
   window.noopCustomMenu = function() {};
-
   window.toggleFormCustomMenu = function(menuName) {
     const normalized = normalizeMenuName(menuName);
     if (!normalized) return;
-
     if (formSelectedMenus.includes(normalized)) {
       formSelectedMenus = formSelectedMenus.filter(name => name !== normalized);
     } else {
       formSelectedMenus = [...formSelectedMenus, normalized];
     }
-
     renderFormCustomMenuButtons();
   };
-
   function toggleWordMenu(id, menuName, forceActive = null) {
     const normalized = normalizeMenuName(menuName);
     if (!normalized) return;
-
     if (!customMenus.includes(normalized)) {
       customMenus.push(normalized);
       customMenus.sort((a, b) => a.localeCompare(b, "zh-Hant"));
     }
-
     words = words.map(w => {
       if (w.id !== id) return w;
-
       const currentMenus = [...new Set(getWordMenuList(w))];
       const hasMenu = currentMenus.includes(normalized);
       const shouldAdd = forceActive === null ? !hasMenu : Boolean(forceActive);
       const nextMenus = shouldAdd
         ? [...currentMenus, normalized]
         : currentMenus.filter(name => name !== normalized);
-
       return { ...w, customMenus: nextMenus };
     });
-
     if (quiz) {
       const updatedWord = words.find(w => w.id === id);
       if (updatedWord) {
         quiz.items = quiz.items.map(item => item.id === id ? updatedWord : item);
       }
     }
-
     saveWords();
   }
-
   window.toggleWordCustomMenu = function(id, menuName) {
     toggleWordMenu(id, menuName);
   };
-
   window.toggleQuizCustomMenu = function(menuName) {
     if (!quiz) return;
     toggleWordMenu(quiz.items[quiz.index].id, menuName);
   };
-
   function getDuplicateKey(value) {
     return normalizeImportKey(value);
   }
-
   function getDuplicateMatchesForInput() {
     const korean = $("koreanInput")?.value.trim() || "";
     const key = getDuplicateKey(korean);
-
     if (!key) return [];
-
     return words.filter(w => w.id !== editingId && getDuplicateKey(w.korean) === key);
   }
-
   function getDuplicateGroups() {
     const map = new Map();
-
     words.forEach(w => {
       const key = getDuplicateKey(w.korean);
       if (!key) return;
       if (!map.has(key)) map.set(key, []);
       map.get(key).push(w);
     });
-
     return [...map.values()].filter(group => group.length > 1);
   }
-
   function summarizeDuplicateWords(list, limit = 3) {
     return list.slice(0, limit)
       .map(w => `${w.korean}（${w.chinese}）`)
       .join("、");
   }
-
   function renderDuplicateAlert() {
     const box = $("duplicateAlert");
     if (!box) return;
-
     const inputMatches = getDuplicateMatchesForInput();
     const groups = getDuplicateGroups();
     const continueBtn = $("duplicateContinueBtn");
     const editBtn = $("duplicateEditBtn");
-
     if (inputMatches.length) {
       const korean = $("koreanInput").value.trim();
       const summary = summarizeDuplicateWords(inputMatches, 4);
@@ -1830,7 +1510,6 @@
       box.classList.remove("hidden");
       return;
     }
-
     if (groups.length) {
       const firstGroup = groups[0];
       const firstSummary = summarizeDuplicateWords(firstGroup, 4);
@@ -1842,31 +1521,24 @@
       box.classList.remove("hidden");
       return;
     }
-
     box.classList.add("hidden");
   }
-
   function confirmDuplicateAndSave() {
     const korean = $("koreanInput").value.trim();
     duplicateConfirmKey = getDuplicateKey(korean);
     saveWordFromForm();
   }
-
   function openDuplicateWord() {
     const inputMatches = getDuplicateMatchesForInput();
     const groups = getDuplicateGroups();
     const target = inputMatches[0] || groups[0]?.[0];
-
     if (!target) return;
-
     $("wordLibraryDetails").open = true;
     $("searchInput").value = target.korean;
     renderWordList();
     window.editWord(target.id);
   }
-
   function generateExampleToForm() {}
-
   function saveWordFromForm() {
     const korean = $("koreanInput").value.trim();
     const chinese = $("chineseInput").value.trim();
@@ -1875,21 +1547,17 @@
     const example = "";
     const exampleZh = "";
     const note = $("noteInput").value.trim();
-
     if (!korean || !chinese) {
       alert("請至少輸入韓文與中文。");
       return;
     }
-
     const duplicateKey = getDuplicateKey(korean);
     const duplicateMatches = words.filter(w => w.id !== editingId && getDuplicateKey(w.korean) === duplicateKey);
-
     if (duplicateMatches.length && duplicateConfirmKey !== duplicateKey) {
       renderDuplicateAlert();
       showSaveHint("偵測到重複單字，請先確認是否仍要重複儲存。", false);
       return;
     }
-
     if (editingId) {
       words = words.map(w => w.id === editingId ? {
         ...w,
@@ -1902,7 +1570,6 @@
         note,
         customMenus: [...new Set(formSelectedMenus)]
       } : w);
-
       showSaveHint("已更新單字。", true);
     } else {
       const newWord = makeWord(korean, chinese, pos, category, example, note, exampleZh);
@@ -1910,12 +1577,10 @@
       words.unshift(newWord);
       showSaveHint("已儲存單字，已加入單字庫。", true);
     }
-
     duplicateConfirmKey = "";
     resetForm(false);
     saveWords();
   }
-
   function resetForm(shouldRender = true) {
     editingId = null;
     duplicateConfirmKey = "";
@@ -1927,25 +1592,20 @@
     $("noteInput").value = "";
     $("saveBtn").textContent = "儲存單字";
     $("cancelBtn").classList.add("hidden");
-
     if (shouldRender) renderAll();
   }
-
   function showSaveHint(text, ok = false) {
     const el = $("saveHint");
     el.textContent = text;
     el.style.color = ok ? "var(--ok)" : "var(--muted)";
-
     setTimeout(() => {
       el.textContent = "資料會儲存在此瀏覽器。";
       el.style.color = "var(--muted)";
     }, 2200);
   }
-
   window.editWord = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
-
     editingId = id;
     duplicateConfirmKey = "";
     $("koreanInput").value = w.korean;
@@ -1956,62 +1616,48 @@
     formSelectedMenus = [...getWordMenuList(w)];
     renderFormCustomMenuButtons();
     $("saveBtn").textContent = "更新單字";
-    $("cancelBtn").classList.remove("hidden");
-
+    $("cancelBtn").classList.add("hidden");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
   window.deleteWord = function(id) {
     if (!confirm("確定要刪除這個單字嗎？")) return;
     words = words.filter(w => w.id !== id);
     saveWords();
   };
-
   window.resetOneSrs = function(id) {
     words = words.map(w => w.id === id ? { ...w, stats: makeStats() } : w);
     saveWords();
   };
-
   window.toggleWordFlag = function(id, type) {
     if (!["favorite", "important"].includes(type)) return;
-
     words = words.map(w => w.id === id ? { ...w, [type]: !w[type] } : w);
-
     if (quiz) {
       const updatedWord = words.find(w => w.id === id);
       if (updatedWord) {
         quiz.items = quiz.items.map(item => item.id === id ? updatedWord : item);
       }
     }
-
     saveWords();
     updateQuizFlagButtons();
   };
-
   function updateQuizFlagButtons() {
     if (!quiz) return;
-
     const item = quiz.items[quiz.index];
     if (!item) return;
-
     $("quizFavoriteBtn").classList.toggle("active", Boolean(item.favorite));
     $("quizImportantBtn").classList.toggle("active", Boolean(item.important));
     renderQuizCustomMenuButtons();
   }
-
   function resetAllSrs() {
     if (!confirm("確定要重置全部單字的 SRS 與正確率統計嗎？")) return;
     words = words.map(w => ({ ...w, stats: makeStats() }));
     saveWords();
   }
-
   function getScope() {
     return document.querySelector("input[name='scope']:checked").value;
   }
-
   function getPool() {
     const scope = getScope();
-
     if (scope === "all") return [...words];
     if (scope === "recentWrong") return words.filter(w => hasWrongRecord(w));
     if (scope === "favorite") return words.filter(w => w.favorite);
@@ -2023,66 +1669,49 @@
       if (!quizSelectedMenus.length) return [];
       return words.filter(w => quizSelectedMenus.some(menuName => wordInMenu(w, menuName)));
     }
-
     const threshold = getAccuracyThreshold();
     const op = $("accuracyRateOperator").value;
-
     return words.filter(w => op === ">=" ? getAccuracyRate(w) >= threshold : getAccuracyRate(w) <= threshold);
   }
-
   function updateQuestionLimit() {
     clampAccuracyInput();
-
     const pool = getPool();
     $("questionLimit").textContent = `/ ${pool.length}`;
-
     const input = $("questionCount");
     input.max = Math.max(pool.length, 1);
-
     if (+input.value > pool.length) {
       input.value = pool.length || 1;
     }
   }
-
   function getMode() {
     return document.querySelector("input[name='mode']:checked").value;
   }
-
   function startQuiz() {
     let pool = getPool();
-
     if (!pool.length) {
       alert("目前這個範圍沒有可測驗的單字。可以改成全部單字，或新增單字後再測驗。");
       return;
     }
-
     pool = shuffle(pool).slice(0, Math.min(+$("questionCount").value || 1, pool.length));
-
     quiz = {
       items: pool,
       index: 0,
       mode: getMode(),
       checked: Array(pool.length).fill(null)
     };
-
     $("quizSection").classList.remove("hidden");
     renderQuizQuestion();
     $("quizSection").scrollIntoView({ behavior: "smooth" });
   }
-
   function renderQuizQuestion() {
     if (!quiz) return;
-
     const latestItem = words.find(w => w.id === quiz.items[quiz.index].id);
     if (latestItem) quiz.items[quiz.index] = latestItem;
-
     const item = quiz.items[quiz.index];
     const isLastQuestion = quiz.index >= quiz.items.length - 1;
     const modes = ["zhToKo", "koToZh", "listen"];
     const mode = quiz.mode === "mixed" ? modes[Math.floor(Math.random() * modes.length)] : quiz.mode;
-
     item.currentMode = mode;
-
     $("quizProgressText").textContent = `進度：${quiz.index + 1} / ${quiz.items.length}`;
     $("progressBar").style.width = `${((quiz.index + 1) / quiz.items.length) * 100}%`;
     $("quizPos").textContent = item.pos;
@@ -2095,72 +1724,56 @@
     $("resultBox").className = "result";
     updateQuizFlagButtons();
     $("answerInput").focus();
-
     if (mode === "listen") {
       setTimeout(() => speak(item.korean), 200);
     }
   }
-
   function submitAnswer() {
     if (!quiz) return;
-
     const item = quiz.items[quiz.index];
     const userAnswer = $("answerInput").value.trim();
     const correct = item.currentMode === "koToZh" ? item.chinese : item.korean;
     const isCorrect = normalize(userAnswer) === normalize(correct);
-
     if (quiz.checked[quiz.index] !== null) {
       speak(item.korean);
       return;
     }
-
     quiz.checked[quiz.index] = isCorrect;
     updateStats(item.id, isCorrect);
-
     const box = $("resultBox");
     box.className = `result ${isCorrect ? "ok" : "bad"}`;
     box.textContent = getAnswerFeedback(item, correct, isCorrect);
-
     speak(item.korean);
     saveWords();
   }
-
   function getAnswerFeedback(item, correct, isCorrect) {
     if (item.currentMode === "listen") {
       return isCorrect
         ? `答對了！${item.korean}｜${item.chinese}`
         : `答錯了，正確答案：${item.korean}｜${item.chinese}`;
     }
-
     if (item.currentMode === "zhToKo") {
       return isCorrect
         ? `答對了！${item.korean}｜${item.chinese}`
         : `答錯了，正確答案：${item.korean}｜${item.chinese}`;
     }
-
     if (item.currentMode === "koToZh") {
       return isCorrect
         ? `答對了！${item.chinese}｜${item.korean}`
         : `答錯了，正確答案：${item.chinese}｜${item.korean}`;
     }
-
     return isCorrect ? "答對了！" : `答錯了，正確答案：${correct}`;
   }
-
   function updateStats(id, isCorrect) {
     const reviewedAt = now();
-
     words = words.map(w => {
       if (w.id !== id) return w;
-
       const s = { ...makeStats(), ...(w.stats || {}) };
       s.attempts += 1;
       s.lastReviewedAt = reviewedAt;
       s.lastAnswerCorrect = isCorrect;
-
       if (isCorrect) {
         s.reps += 1;
-
         if (s.reps === 1) {
           s.intervalDays = 1;
         } else if (s.reps === 2) {
@@ -2168,7 +1781,6 @@
         } else {
           s.intervalDays = Math.max(5, Math.round(s.intervalDays * s.ease));
         }
-
         s.ease = Math.min(3.2, s.ease + 0.08);
       } else {
         s.wrong += 1;
@@ -2178,82 +1790,103 @@
         s.ease = Math.max(1.3, s.ease - 0.25);
       }
 
-      // 使用 fuzz 後的間隔來設定實際到期日，避免大量單字同步到期
-      s.dueAt = reviewedAt + fuzzInterval(s.intervalDays) * dayMs;
+      // === SRS 防過度集中 & 平滑化調整 (Load Balancing & Fuzzing) ===
+      let targetInterval = s.intervalDays;
+      
+      // 1. 微小隨機抖動 (Fuzzing)：當間隔 >= 2 天時，微調 ±10%~20%，避免批次刷題時卡在同一天
+      if (targetInterval >= 2 && targetInterval < 7) {
+        const fuzz = (Math.random() - 0.5) * 0.8; // 約 ±0.4 天
+        targetInterval = Math.max(1, Math.round(targetInterval + fuzz));
+      } else if (targetInterval >= 7) {
+        const fuzzFactor = 0.85 + Math.random() * 0.3; // 85% ~ 115%
+        targetInterval = Math.max(4, Math.round(targetInterval * fuzzFactor));
+      }
 
+      // 2. 每日到期卡額/負擔均衡 (Load Balancing)：避免目標當天過度擁擠
+      if (targetInterval > 0) {
+        const todayMs = new Date().setHours(0,0,0,0);
+        // 算出未來 1~30 天每天已經預計到期的單字數量
+        const countsByDay = {};
+        words.forEach(otherWord => {
+          if (otherWord.id === id || !otherWord.stats?.dueAt) return;
+          const dueDayOffset = Math.floor((otherWord.stats.dueAt - todayMs) / dayMs);
+          if (dueDayOffset > 0) {
+            countsByDay[dueDayOffset] = (countsByDay[dueDayOffset] || 0) + 1;
+          }
+        });
+
+        // 判斷平均每日建議最大量（基本閾值至少 15 個單字）
+        const totalDueWords = Object.values(countsByDay).reduce((a, b) => a + b, 0);
+        const maxPerDay = Math.max(15, Math.ceil(totalDueWords / 10));
+
+        // 如果目標日期的單字數已經過載，尋找附近 (+1 ~ -1) 負擔最輕的一天
+        let bestInterval = targetInterval;
+        if ((countsByDay[targetInterval] || 0) >= maxPerDay) {
+          const candidates = [targetInterval, targetInterval + 1, targetInterval - 1].filter(d => d >= 1);
+          candidates.sort((a, b) => (countsByDay[a] || 0) - (countsByDay[b] || 0));
+          bestInterval = candidates[0];
+        }
+        s.intervalDays = bestInterval;
+      } else {
+        s.intervalDays = targetInterval;
+      }
+
+      s.dueAt = reviewedAt + s.intervalDays * dayMs;
       return { ...w, stats: s };
     });
   }
-
   function moveQuiz(delta) {
     if (!quiz) return;
-
     quiz.index = Math.min(Math.max(quiz.index + delta, 0), quiz.items.length - 1);
     renderQuizQuestion();
   }
-
   function endQuiz() {
     if (!quiz) return;
-
     const total = quiz.items.length;
     const answeredResults = quiz.checked.filter(v => v !== null);
     const answered = answeredResults.length;
     const score = answeredResults.filter(v => v === true).length;
     const accuracy = answered ? Math.round((score / answered) * 100) : 0;
     const skippedText = answered < total ? "（未作答題目不列入計算）" : "";
-
     alert(`測驗結束！已作答 ${answered} / ${total} 題，答對 ${score} 題，正確率 ${accuracy}%。${skippedText}`);
-
     quiz = null;
     $("quizSection").classList.add("hidden");
     renderAll();
   }
-
   function isNewWord(w) {
     const s = { ...makeStats(), ...(w.stats || {}) };
     return !s.attempts;
   }
-
   function getAccuracyRate(w) {
     const s = { ...makeStats(), ...(w.stats || {}) };
-
     if (!s.attempts) return 100;
-
     const wrongCount = Math.max(0, Number(s.wrong || 1) - 1);
     const correctCount = Math.max(0, s.attempts - wrongCount);
     const rate = Math.round((correctCount / s.attempts) * 100);
-
     return Math.min(100, Math.max(0, rate));
   }
-
   function getAccuracyThreshold() {
     const value = Number($("accuracyRateThreshold").value || 0);
     return Math.min(100, Math.max(0, value));
   }
-
   function clampAccuracyInput() {
     const input = $("accuracyRateThreshold");
     const value = Number(input.value || 0);
-
     if (value > 100) input.value = 100;
     if (value < 0) input.value = 0;
   }
-
   function backupCopy() {
     const data = JSON.stringify(words, null, 2);
-
     $("backupText").value = data;
     navigator.clipboard?.writeText(data).catch(() => {});
     showSaveHint("備份已顯示在備份區，也已嘗試複製到剪貼簿。", true);
   }
-
   function downloadBackupFile() {
     const data = JSON.stringify(words, null, 2);
     const blob = new Blob([data], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-
     link.href = url;
     link.download = `korean_words_backup_${date}.json`;
     document.body.appendChild(link);
@@ -2262,13 +1895,10 @@
     URL.revokeObjectURL(url);
     showSaveHint("已下載備份檔。", true);
   }
-
   function importBackupFile() {
     const input = $("backupFileInput");
     const file = input.files?.[0];
-
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = () => {
       try {
@@ -2285,7 +1915,6 @@
     };
     reader.readAsText(file);
   }
-
   function appendImportBackup() {
     try {
       appendImportedWords(parseImportText($("backupText").value));
@@ -2293,42 +1922,34 @@
       alert("追加匯入失敗，請確認內容是 JSON，或是一行一筆：韓文｜中文｜詞性｜分類。");
     }
   }
-
   function appendImportedWords(importedRaw) {
     const importedWords = migrateWords(importedRaw);
     const existed = new Set(words.map(w => normalizeImportKey(w.korean)));
     const existedIds = new Set(words.map(w => String(w.id)));
     let added = 0;
     let skipped = 0;
-
     importedWords.forEach(w => {
       const key = normalizeImportKey(w.korean);
-
       if (!key || existed.has(key)) {
         skipped += 1;
         return;
       }
-
       if (!w.id || existedIds.has(String(w.id))) {
         w.id = crypto.randomUUID();
       }
-
       existed.add(key);
       existedIds.add(String(w.id));
       words.push(w);
       added += 1;
     });
-
     saveWords();
     const ignoredText = lastImportIgnoredCount ? `，忽略非單字資料 ${lastImportIgnoredCount} 行` : "";
     const duplicateCount = getDuplicateGroups().length;
     const duplicateText = duplicateCount ? `，目前仍有 ${duplicateCount} 組重複單字` : "";
     showSaveHint(`追加完成，新增 ${added} 筆，略過重複 ${skipped} 筆${ignoredText}${duplicateText}。`, true);
   }
-
   function importBackup() {
     if (!confirm("覆蓋匯入會取代目前全部單字。確定要繼續嗎？")) return;
-
     try {
       const importedWords = parseImportText($("backupText").value);
       words = migrateWords(importedWords);
@@ -2341,59 +1962,44 @@
       alert("覆蓋匯入失敗，請確認內容是 JSON，或是一行一筆：韓文｜中文｜詞性｜分類。");
     }
   }
-
   function normalizeImportKey(value) {
     return String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
   }
-
   function parseImportText(text) {
     const raw = String(text || "").trim();
     lastImportIgnoredCount = 0;
-
     if (!raw) {
       throw new Error("empty");
     }
-
     if (raw.startsWith("[") || raw.startsWith("{")) {
       const data = JSON.parse(raw);
       return Array.isArray(data) ? data : [data];
     }
-
     return parsePlainTextImport(raw);
   }
-
   function parsePlainTextImport(raw) {
     const rows = raw
       .split(/\r?\n/)
       .map(line => line.trim())
       .filter(line => line && !line.startsWith("#"));
-
     const imported = [];
     let ignored = 0;
-
     rows.forEach(line => {
       const parsed = parseImportLine(line);
-
       if (!parsed) {
         ignored += 1;
         return;
       }
-
       imported.push(parsed);
     });
-
     lastImportIgnoredCount = ignored;
-
     if (!imported.length) {
       throw new Error("no valid words");
     }
-
     return imported;
   }
-
   function parseImportLine(line) {
     let parts = [];
-
     if (line.includes("\t")) {
       parts = line.split("\t").map(v => v.trim());
     } else if (line.includes("｜") || line.includes("|")) {
@@ -2401,17 +2007,14 @@
     } else {
       return null;
     }
-
     const korean = cleanImportField(parts[0] || "");
     const chinese = cleanImportField(parts[1] || "");
     const pos = normalizePos(cleanImportField(parts[2] || ""));
     const category = cleanImportField(parts[3] || "未分類") || "未分類";
     const note = parts.slice(4).map(cleanImportField).filter(Boolean).join("｜");
-
     if (!isValidKoreanImportWord(korean) || !chinese) {
       return null;
     }
-
     return {
       korean,
       chinese,
@@ -2420,31 +2023,24 @@
       note
     };
   }
-
   function cleanImportField(value) {
     return String(value || "")
       .replace(/^```+\w*\s*/, "")
       .replace(/```+$/, "")
       .trim();
   }
-
   function isValidKoreanImportWord(value) {
     const text = String(value || "").trim();
-
     if (!text) return false;
     if (!/[가-힣ㄱ-ㅎㅏ-ㅣ]/.test(text)) return false;
     if (text.length > 40) return false;
     if (/Thought for|下載|修改|匯入|sandbox:|http|file_|已貼上|在這段|我已經|直接複製/i.test(text)) return false;
-
     return true;
   }
-
   function normalizePos(pos) {
     const text = String(pos || "").trim();
-
     if (!text) return POS_LIST[0];
     if (POS_LIST.includes(text)) return text;
-
     if (text.includes("代名") || text.includes("대명")) return "代名詞 (대명사)";
     if (text.includes("數") || text.includes("수사")) return "數詞 (수사)";
     if (text.includes("動") || text.includes("동사")) return "動詞 (동사)";
@@ -2455,17 +2051,57 @@
     if (text.includes("助") || text.includes("조사")) return "助詞 (조사)";
     if (text.includes("片語") || text.includes("慣用") || text.includes("표현")) return "片語/習慣用語";
     if (text.includes("名") || text.includes("명사")) return "名詞 (명사)";
-
     return POS_LIST[0];
   }
-
   function clearDatabase() {
     if (!confirm("確定要清空全部單字嗎？這個動作無法復原。")) return;
-
     words = [];
     saveWords();
   }
-
   window.speak = function(text) {
     if (!("speechSynthesis" in window)) {
-      alert("此瀏覽器不支援語音播放。
+      alert("此瀏覽器不支援語音播放。請使用 Chrome / Edge / Safari。");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "ko-KR";
+    utter.rate = getSpeechRate(text);
+    window.speechSynthesis.speak(utter);
+  };
+  function getSpeechRate(text) {
+    const hangulLength = String(text || "").replace(/[^가-힣]/g, "").length;
+    if (hangulLength >= 8) return 0.62;
+    if (hangulLength >= 6) return 0.68;
+    if (hangulLength >= 4) return 0.76;
+    return 0.85;
+  }
+  function shuffle(arr) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+  function normalize(text) {
+    return String(text || "").trim().toLowerCase().replace(/[\s。！？!?,，.]/g, "");
+  }
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"]/g, ch => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;"
+    }[ch]));
+  }
+  function escapeAttr(value) {
+    return escapeHtml(value);
+  }
+  function escapeJs(value) {
+    return String(value).replace(/[\\'\n\r]/g, " ");
+  }
+  init();
+</script>
+</body>
+</html>
