@@ -748,7 +748,7 @@
     <div class="modes">
       <label><input type="radio" name="mode" value="zhToKo" checked />中翻韓</label>
       <label><input type="radio" name="mode" value="koToZh" />韓翻中</label>
-      <label><input type="radio" name="mode" value="multipleChoice" />四選一單選</label>
+      <label><input type="radio" name="mode" value="multipleChoice" />四選一單選 (不計SRS)</label>
       <label><input type="radio" name="mode" value="listen" />聽音拼字</label>
       <label><input type="radio" name="mode" value="mixed" />隨機混合</label>
     </div>
@@ -1656,7 +1656,7 @@
     formSelectedMenus = [...getWordMenuList(w)];
     renderFormCustomMenuButtons();
     $("saveBtn").textContent = "更新單字";
-    $("cancelBtn").classList.add("hidden");
+    $("cancelBtn").classList.remove("hidden");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   window.deleteWord = function(id) {
@@ -1842,13 +1842,12 @@
     });
 
     quiz.checked[quiz.index] = isCorrect;
-    updateStats(item.id, isCorrect);
     
+    // 四選一模式下不更新 SRS 及正確率統計，僅顯示答案結果與播放發音
     const box = $("resultBox");
     box.className = `result ${isCorrect ? "ok" : "bad"}`;
-    box.textContent = isCorrect ? "答對了！" : `答錯了，正確答案：${correct}`;
+    box.textContent = isCorrect ? "答對了！(不計入SRS)" : `答錯了，正確答案：${correct} (不計入SRS)`;
     speak(item.korean);
-    saveWords();
   }
 
   function submitAnswer(userOpt) {
