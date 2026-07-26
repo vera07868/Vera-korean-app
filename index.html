@@ -239,6 +239,39 @@
       font-size: 22px;
       margin: 0 auto;
     }
+    /* 四選一按鈕樣式 */
+    .mc-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: min(100%, 600px);
+      margin: 0 auto;
+    }
+    .mc-btn {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .mc-btn:hover {
+      background: #334155;
+      border-color: var(--primary);
+    }
+    .mc-btn.correct {
+      background: #052e16 !important;
+      border-color: var(--ok) !important;
+      color: #86efac !important;
+    }
+    .mc-btn.wrong {
+      background: #451a03 !important;
+      border-color: var(--danger) !important;
+      color: #fecaca !important;
+    }
     .result {
       min-height: 30px;
       font-size: 18px;
@@ -635,7 +668,7 @@
     }
     @media (max-width: 760px) {
       body { padding: 14px; }
-      .form-grid, .two-grid, .word { grid-template-columns: 1fr; }
+      .form-grid, .two-grid, .word, .mc-container { grid-template-columns: 1fr; }
       .section-title { flex-direction: column; align-items: flex-start; }
       details.card > summary { flex-direction: column; align-items: flex-start; }
       .mini { justify-content: flex-start; }
@@ -715,6 +748,7 @@
     <div class="modes">
       <label><input type="radio" name="mode" value="zhToKo" checked />中翻韓</label>
       <label><input type="radio" name="mode" value="koToZh" />韓翻中</label>
+      <label><input type="radio" name="mode" value="multipleChoice" />四選一單選</label>
       <label><input type="radio" name="mode" value="listen" />聽音拼字</label>
       <label><input type="radio" name="mode" value="mixed" />隨機混合</label>
     </div>
@@ -784,7 +818,13 @@
         </details>
       </div>
       <button class="ghost" id="speakBtn" type="button">播放發音</button>
+      
+      <!-- 輸入框作答 -->
       <input class="answer-input" id="answerInput" placeholder="輸入答案後按 Enter" />
+      
+      <!-- 四選一選擇題作答 -->
+      <div class="mc-container hidden" id="mcContainer"></div>
+
       <div class="result" id="resultBox"></div>
       <div class="actions" style="justify-content:center;">
         <button id="prevBtn" type="button">⬅ 上一題</button>
@@ -1364,7 +1404,7 @@
       r.addEventListener("change", updateQuestionLimit);
     });
     $("startQuizBtn").addEventListener("click", startQuiz);
-    $("submitBtn").addEventListener("click", submitAnswer);
+    $("submitBtn").addEventListener("click", () => submitAnswer());
     $("answerInput").addEventListener("keydown", e => {
       if (e.key === "Enter") submitAnswer();
     });
@@ -1703,37 +1743,123 @@
     renderQuizQuestion();
     $("quizSection").scrollIntoView({ behavior: "smooth" });
   }
+  function generateMultipleChoiceOptions(currentItem, modeType) {
+    const correctText = modeType === "zhToKo" ? currentItem.korean : currentItem.chinese;
+    const targetField = modeType === "zhToKo" ? "korean" : "chinese";
+    
+    // 從單字庫挑選其他單字做為幹擾項
+    const otherWords = words.filter(w => w.id !== currentItem.id);
+    const shuffledOthers = shuffle(otherWords);
+    
+    const options = [correctText];
+    for (let w of shuffledOthers) {
+      const val = w[targetField];
+      if (val && !options.includes(val)) {
+        options.push(val);
+      }
+      if (options.length >= 4) break;
+    }
+    return shuffle(options);
+  }
+
   function renderQuizQuestion() {
     if (!quiz) return;
     const latestItem = words.find(w => w.id === quiz.items[quiz.index].id);
     if (latestItem) quiz.items[quiz.index] = latestItem;
     const item = quiz.items[quiz.index];
     const isLastQuestion = quiz.index >= quiz.items.length - 1;
-    const modes = ["zhToKo", "koToZh", "listen"];
-    const mode = quiz.mode === "mixed" ? modes[Math.floor(Math.random() * modes.length)] : quiz.mode;
+    
+    const modes = ["zhToKo", "koToZh", "listen", "multipleChoice"];
+    let mode = quiz.mode === "mixed" ? modes[Math.floor(Math.random() * modes.length)] : quiz.mode;
     item.currentMode = mode;
+
     $("quizProgressText").textContent = `進度：${quiz.index + 1} / ${quiz.items.length}`;
     $("progressBar").style.width = `${((quiz.index + 1) / quiz.items.length) * 100}%`;
     $("quizPos").textContent = item.pos;
-    $("questionText").textContent = mode === "zhToKo" ? item.chinese : mode === "koToZh" ? item.korean : "請聽發音後拼出韓文";
-    $("speakBtn").classList.toggle("hidden", mode !== "listen");
-    $("nextBtn").textContent = isLastQuestion ? "結束測驗" : "下一題";
-    $("nextBtn").classList.toggle("primary", isLastQuestion);
+    
+    // 重置介面與按鈕狀態
+    $("submitBtn").classList.remove("hidden");
     $("answerInput").value = "";
     $("resultBox").textContent = "";
     $("resultBox").className = "result";
+    $("mcContainer").innerHTML = "";
+
+    if (mode === "multipleChoice") {
+      const isQuestionZh = Math.random() < 0.5;
+      item.mcQuestionType = isQuestionZh ? "zhToKo" : "koToZh";
+      $("questionText").textContent = isQuestionZh ? item.chinese : item.korean;
+      
+      $("answerInput").classList.add("hidden");
+      $("mcContainer").classList.remove("hidden");
+      $("submitBtn").classList.add("hidden"); // 選擇題直接點選項作答
+
+      const options = generateMultipleChoiceOptions(item, item.mcQuestionType);
+      item.currentMcOptions = options;
+
+      options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "mc-btn";
+        btn.textContent = opt;
+        btn.onclick = () => submitMcAnswer(opt, btn);
+        $("mcContainer").appendChild(btn);
+      });
+    } else {
+      $("answerInput").classList.remove("hidden");
+      $("mcContainer").classList.add("hidden");
+      $("questionText").textContent = mode === "zhToKo" ? item.chinese : mode === "koToZh" ? item.korean : "請聽發音後拼出韓文";
+    }
+
+    $("speakBtn").classList.toggle("hidden", mode !== "listen" && mode !== "multipleChoice");
+    $("nextBtn").textContent = isLastQuestion ? "結束測驗" : "下一題";
+    $("nextBtn").classList.toggle("primary", isLastQuestion);
     updateQuizFlagButtons();
-    $("answerInput").focus();
+
+    if (mode !== "multipleChoice") {
+      $("answerInput").focus();
+    }
     if (mode === "listen") {
       setTimeout(() => speak(item.korean), 200);
     }
   }
-  function submitAnswer() {
+
+  function submitMcAnswer(selectedOpt, btn) {
+    if (!quiz) return;
+    if (quiz.checked[quiz.index] !== null) return; // 避免重複點擊
+    
+    const item = quiz.items[quiz.index];
+    const correct = item.mcQuestionType === "zhToKo" ? item.korean : item.chinese;
+    const isCorrect = selectedOpt === correct;
+
+    // 標示選項顏色
+    const buttons = $("mcContainer").querySelectorAll(".mc-btn");
+    buttons.forEach(b => {
+      if (b.textContent === correct) {
+        b.classList.add("correct");
+      } else if (b === btn && !isCorrect) {
+        b.classList.add("wrong");
+      }
+    });
+
+    quiz.checked[quiz.index] = isCorrect;
+    updateStats(item.id, isCorrect);
+    
+    const box = $("resultBox");
+    box.className = `result ${isCorrect ? "ok" : "bad"}`;
+    box.textContent = isCorrect ? "答對了！" : `答錯了，正確答案：${correct}`;
+    speak(item.korean);
+    saveWords();
+  }
+
+  function submitAnswer(userOpt) {
     if (!quiz) return;
     const item = quiz.items[quiz.index];
-    const userAnswer = $("answerInput").value.trim();
+    if (item.currentMode === "multipleChoice") return;
+
+    const userAnswer = userOpt || $("answerInput").value.trim();
     const correct = item.currentMode === "koToZh" ? item.chinese : item.korean;
     const isCorrect = normalize(userAnswer) === normalize(correct);
+    
     if (quiz.checked[quiz.index] !== null) {
       speak(item.korean);
       return;
@@ -1746,6 +1872,7 @@
     speak(item.korean);
     saveWords();
   }
+
   function getAnswerFeedback(item, correct, isCorrect) {
     if (item.currentMode === "listen") {
       return isCorrect
@@ -1764,6 +1891,7 @@
     }
     return isCorrect ? "答對了！" : `答錯了，正確答案：${correct}`;
   }
+
   function updateStats(id, isCorrect) {
     const reviewedAt = now();
     words = words.map(w => {
@@ -2071,10 +2199,10 @@
   };
   function getSpeechRate(text) {
     const hangulLength = String(text || "").replace(/[^가-힣]/g, "").length;
-    if (hangulLength >= 8) return 0.62;
-    if (hangulLength >= 6) return 0.68;
-    if (hangulLength >= 4) return 0.76;
-    return 0.85;
+    if (hangulLength >= 8) return 0.50;
+    if (hangulLength >= 6) return 0.55;
+    if (hangulLength >= 4) return 0.62;
+    return 0.70;
   }
   function shuffle(arr) {
     const copy = [...arr];
