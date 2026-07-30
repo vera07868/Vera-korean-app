@@ -759,7 +759,7 @@
       <label><input type="radio" name="scope" value="recentWrong" />最近錯的</label>
       <label><input type="radio" name="scope" value="favorite" />★ 我的最愛</label>
       <label><input type="radio" name="scope" value="important" />! 驚嘆號</label>
-      <label><input type="radio" name="scope" value="srs" />今日到期 (上限70)</label>
+      <label><input type="radio" name="scope" value="srs" />今日到期</label>
       <label><input type="radio" name="scope" value="newWords" />新單字</label>
       <label><input type="radio" name="scope" value="mastered" />已熟悉</label>
       <label><input type="radio" name="scope" value="customMenu" />自訂選單</label>
@@ -887,7 +887,6 @@
   const STORAGE_KEY = "kwords-vocab-v2";
   const OLD_STORAGE_KEY = "kwords-vocab-v1";
   const CUSTOM_MENU_KEY = "kwords-custom-menus-v1";
-  const DAILY_SRS_LIMIT = 70; // 設定每日到期上限為 70 個單字
   const $ = (id) => document.getElementById(id);
   const dayMs = 24 * 60 * 60 * 1000;
   let words = migrateWords(loadWords());
@@ -1258,10 +1257,9 @@
       return byPos && (!keyword || text.includes(keyword));
     });
     filtered = sortLibraryWords(filtered, libraryView);
-    const dueTotalCount = words.filter(w => (w.stats?.dueAt || 0) <= now()).length;
-    const dueCountText = dueTotalCount > DAILY_SRS_LIMIT ? `${DAILY_SRS_LIMIT} (累積上限卡額，共 ${dueTotalCount} 個到期)` : `${dueTotalCount}`;
+    const dueCount = words.filter(w => (w.stats?.dueAt || 0) <= now()).length;
     const newCount = words.filter(w => isNewWord(w)).length;
-    $("wordCountText").textContent = `目前 ${words.length} 個單字｜今日到期 ${dueCountText}｜新單字 ${newCount}`;
+    $("wordCountText").textContent = `目前 ${words.length} 個單字｜今日到期 ${dueCount}｜新單字 ${newCount}`;
     $("wordList").innerHTML = filtered.map(w => {
       const accuracy = getAccuracyRate(w);
       const isDue = (w.stats?.dueAt || 0) <= now();
@@ -1658,7 +1656,7 @@
     formSelectedMenus = [...getWordMenuList(w)];
     renderFormCustomMenuButtons();
     $("saveBtn").textContent = "更新單字";
-    $("cancelBtn").classList.add("hidden");
+    $("cancelBtn").classList.remove("hidden");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   window.deleteWord = function(id) {
@@ -1704,12 +1702,7 @@
     if (scope === "recentWrong") return words.filter(w => hasWrongRecord(w));
     if (scope === "favorite") return words.filter(w => w.favorite);
     if (scope === "important") return words.filter(w => w.important);
-    if (scope === "srs") {
-      const dueWords = words.filter(w => (w.stats?.dueAt || 0) <= now());
-      // 當今日到期數量超過 DAILY_SRS_LIMIT (70個) 時，優先挑選「最久沒複習」與「正確率低/最不熟」的 70 個單字
-      dueWords.sort((a, b) => getReviewPriorityScore(b) - getReviewPriorityScore(a));
-      return dueWords.slice(0, DAILY_SRS_LIMIT);
-    }
+    if (scope === "srs") return words.filter(w => (w.stats?.dueAt || 0) <= now());
     if (scope === "newWords") return words.filter(w => isNewWord(w));
     if (scope === "mastered") return words.filter(w => (getWordStats(w).attempts || 0) >= 3 && getAccuracyRate(w) >= 80);
     if (scope === "customMenu") {
@@ -2201,9 +2194,11 @@
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = "ko-KR";
     
+    // 動態語速與音調調整，避免極短字或收音發音怪異/過快
     const hangulLength = String(text || "").replace(/[^가-힣]/g, "").length;
     utter.rate = getSpeechRate(text);
     
+    // 如果是 2 字以下的極短字（例如 우유、그릇），將 pitch 固定在標準 1.0，確保聲音穩定
     if (hangulLength <= 2) {
       utter.pitch = 1.0;
     }
@@ -2212,10 +2207,11 @@
   };
   function getSpeechRate(text) {
     const hangulLength = String(text || "").replace(/[^가-힣]/g, "").length;
+    // 針對短字進一步放慢速度，讓發音更清楚
     if (hangulLength >= 8) return 0.55;
     if (hangulLength >= 5) return 0.50;
     if (hangulLength >= 3) return 0.45;
-    return 0.40;
+    return 0.40; // 1~2 個字時調至 0.40，讓收音與純元音更加清晰自然
   }
   function shuffle(arr) {
     const copy = [...arr];
