@@ -1567,12 +1567,20 @@
     const korean = $("koreanInput").value.trim();
     duplicateConfirmKey = getDuplicateKey(korean);
     saveWordFromForm();
+    // 點擊確認後自動隱藏通知提示框
+    const box = $("duplicateAlert");
+    if (box) box.classList.add("hidden");
   }
   function openDuplicateWord() {
     const inputMatches = getDuplicateMatchesForInput();
     const groups = getDuplicateGroups();
     const target = inputMatches[0] || groups[0]?.[0];
     if (!target) return;
+    
+    // 點擊查看原單字後自動隱藏通知提示框
+    const box = $("duplicateAlert");
+    if (box) box.classList.add("hidden");
+
     $("wordLibraryDetails").open = true;
     $("searchInput").value = target.korean;
     renderWordList();
