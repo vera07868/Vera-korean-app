@@ -894,6 +894,7 @@
   let lastImportIgnoredCount = 0;
   let editingId = null;
   let duplicateConfirmKey = "";
+  let userDismissedAlert = false; // 紀錄使用者是否選擇忽略重複提醒
   let quiz = null;
   let formSelectedMenus = [];
   let quizSelectedMenus = [];
@@ -1387,6 +1388,7 @@
     $("cancelBtn").addEventListener("click", resetForm);
     $("koreanInput").addEventListener("input", () => {
       duplicateConfirmKey = "";
+      userDismissedAlert = false; // 當使用者重新在輸入框輸入新字時，重置忽略狀態
       renderDuplicateAlert();
     });
     $("duplicateContinueBtn").addEventListener("click", confirmDuplicateAndSave);
@@ -1534,6 +1536,13 @@
   function renderDuplicateAlert() {
     const box = $("duplicateAlert");
     if (!box) return;
+
+    // 若使用者已選擇隱藏此提醒，直接維持隱藏狀態
+    if (userDismissedAlert) {
+      box.classList.add("hidden");
+      return;
+    }
+
     const inputMatches = getDuplicateMatchesForInput();
     const groups = getDuplicateGroups();
     const continueBtn = $("duplicateContinueBtn");
@@ -1566,6 +1575,7 @@
 
   function askToDismissAlert() {
     if (confirm("已完成動作。是否要隱藏頂部的重複單字提醒？")) {
+      userDismissedAlert = true; // 設定全域標記為 true
       const box = $("duplicateAlert");
       if (box) box.classList.add("hidden");
     }
