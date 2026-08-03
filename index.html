@@ -239,7 +239,6 @@
       font-size: 22px;
       margin: 0 auto;
     }
-    /* 四選一按鈕樣式 */
     .mc-container {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1389,7 +1388,7 @@
     $("cancelBtn").addEventListener("click", resetForm);
     $("koreanInput").addEventListener("input", () => {
       duplicateConfirmKey = "";
-      isAlertDismissedManually = false; // 使用者重新在輸入框打字時，解除忽略手動狀態
+      isAlertDismissedManually = false;
       renderDuplicateAlert();
     });
     $("duplicateDismissBtn").addEventListener("click", dismissDuplicateAlert);
@@ -1400,7 +1399,6 @@
     $("searchInput").addEventListener("input", renderWordList);
     $("addCustomMenuBtn").addEventListener("click", () => addCustomMenuFromInput("newCustomMenuInput", true));
     $("quizAddCustomMenuBtn").addEventListener("click", addQuizCustomMenu);
-    // 自訂選單測驗範圍改用多選按鈕，不需要綁定 select change。
     $("questionCount").addEventListener("input", updateQuestionLimit);
     $("accuracyRateThreshold").addEventListener("input", updateQuestionLimit);
     $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
@@ -1520,16 +1518,6 @@
     if (!key) return [];
     return words.filter(w => w.id !== editingId && getDuplicateKey(w.korean) === key);
   }
-  function getDuplicateGroups() {
-    const map = new Map();
-    words.forEach(w => {
-      const key = getDuplicateKey(w.korean);
-      if (!key) return;
-      if (!map.has(key)) map.set(key, []);
-      map.get(key).push(w);
-    });
-    return [...map.values()].filter(group => group.length > 1);
-  }
   function summarizeDuplicateWords(list, limit = 3) {
     return list.slice(0, limit)
       .map(w => `${w.korean}（${w.chinese}）`)
@@ -1540,18 +1528,16 @@
     const box = $("duplicateAlert");
     if (!box) return;
 
-    // 若點擊過手動忽略，隱藏提示框
     if (isAlertDismissedManually) {
       box.classList.add("hidden");
       return;
     }
 
     const inputMatches = getDuplicateMatchesForInput();
-    const groups = getDuplicateGroups();
     const continueBtn = $("duplicateContinueBtn");
     const editBtn = $("duplicateEditBtn");
 
-    // 【修正重點】：優先 1 - 檢查使用者當前在輸入框中打字的單字 (有打字且重複則絕對優先顯示)
+    // 【核心修正】：只比對目前「輸入框中有打字」且與庫內重複的狀況
     if (inputMatches.length) {
       const korean = $("koreanInput").value.trim();
       const summary = summarizeDuplicateWords(inputMatches, 4);
@@ -1565,19 +1551,7 @@
       return;
     }
 
-    // 優先 2 - 輸入框沒打字時，才提示單字庫內部既存的歷史重複
-    if (groups.length && !$("koreanInput")?.value.trim()) {
-      const firstGroup = groups[0];
-      const firstSummary = summarizeDuplicateWords(firstGroup, 4);
-      $("duplicateTitle").textContent = "單字庫內已有重複單字";
-      $("duplicateMessage").textContent = `目前找到 ${groups.length} 組重複。第一組：${firstSummary}。請確認是否是不小心重複輸入。`;
-      continueBtn.classList.add("hidden");
-      editBtn.classList.remove("hidden");
-      editBtn.textContent = "查看第一組重複";
-      box.classList.remove("hidden");
-      return;
-    }
-
+    // 若輸入框沒有打字或沒有對應的重複，直接隱藏 Alert（徹底清除舊單字累積警告）
     box.classList.add("hidden");
   }
 
@@ -1595,8 +1569,7 @@
   }
   function openDuplicateWord() {
     const inputMatches = getDuplicateMatchesForInput();
-    const groups = getDuplicateGroups();
-    const target = inputMatches[0] || groups[0]?.[0];
+    const target = inputMatches[0];
     if (!target) return;
     
     $("wordLibraryDetails").open = true;
