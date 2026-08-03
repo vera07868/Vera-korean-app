@@ -888,7 +888,6 @@
   const STORAGE_KEY = "kwords-vocab-v2";
   const OLD_STORAGE_KEY = "kwords-vocab-v1";
   const CUSTOM_MENU_KEY = "kwords-custom-menus-v1";
-  const DISMISS_ALERT_KEY = "kwords-dismiss-duplicate-alert"; // 快取 Key，記錄持久忽略狀態
   const $ = (id) => document.getElementById(id);
   const dayMs = 24 * 60 * 60 * 1000;
   let words = migrateWords(loadWords());
@@ -896,6 +895,7 @@
   let lastImportIgnoredCount = 0;
   let editingId = null;
   let duplicateConfirmKey = "";
+  let isAlertDismissedManually = false; // 單次手動忽略狀態標記
   let quiz = null;
   let formSelectedMenus = [];
   let quizSelectedMenus = [];
@@ -1389,6 +1389,7 @@
     $("cancelBtn").addEventListener("click", resetForm);
     $("koreanInput").addEventListener("input", () => {
       duplicateConfirmKey = "";
+      isAlertDismissedManually = false; // 使用者打字時解除「手動隱藏」，重新比對輸入
       renderDuplicateAlert();
     });
     $("duplicateDismissBtn").addEventListener("click", dismissDuplicateAlert);
@@ -1535,16 +1536,12 @@
       .join("、");
   }
 
-  function isAlertDismissed() {
-    return localStorage.getItem(DISMISS_ALERT_KEY) === "true";
-  }
-
   function renderDuplicateAlert() {
     const box = $("duplicateAlert");
     if (!box) return;
 
-    // 優先檢查持久化記憶：若使用者曾點擊忽略，直接關閉警示
-    if (isAlertDismissed()) {
+    // 若使用者手動點擊了「✕ 忽略此提醒」，則在輸入框清空前暫不顯示
+    if (isAlertDismissedManually) {
       box.classList.add("hidden");
       return;
     }
@@ -1554,6 +1551,7 @@
     const continueBtn = $("duplicateContinueBtn");
     const editBtn = $("duplicateEditBtn");
 
+    // 優先 1：使用者當前在輸入框中打字，與資料庫產生重複 (此為最高優先檢查)
     if (inputMatches.length) {
       const korean = $("koreanInput").value.trim();
       const summary = summarizeDuplicateWords(inputMatches, 4);
@@ -1566,7 +1564,9 @@
       box.classList.remove("hidden");
       return;
     }
-    if (groups.length) {
+
+    // 優先 2：資料庫內既存歷史重複單字（若輸入框沒打字時才顯示）
+    if (groups.length && !$("koreanInput")?.value.trim()) {
       const firstGroup = groups[0];
       const firstSummary = summarizeDuplicateWords(firstGroup, 4);
       $("duplicateTitle").textContent = "單字庫內已有重複單字";
@@ -1577,12 +1577,12 @@
       box.classList.remove("hidden");
       return;
     }
+
     box.classList.add("hidden");
   }
 
   function dismissDuplicateAlert() {
-    // 寫入永久快取，即使重整頁面也不會再跳出
-    localStorage.setItem(DISMISS_ALERT_KEY, "true");
+    isAlertDismissedManually = true;
     const box = $("duplicateAlert");
     if (box) box.classList.add("hidden");
   }
@@ -1621,6 +1621,7 @@
     const duplicateKey = getDuplicateKey(korean);
     const duplicateMatches = words.filter(w => w.id !== editingId && getDuplicateKey(w.korean) === duplicateKey);
     if (duplicateMatches.length && duplicateConfirmKey !== duplicateKey) {
+      isAlertDismissedManually = false;
       renderDuplicateAlert();
       showSaveHint("偵測到重複單字，請先確認是否仍要重複儲存。", false);
       return;
@@ -1651,6 +1652,7 @@
   function resetForm(shouldRender = true) {
     editingId = null;
     duplicateConfirmKey = "";
+    isAlertDismissedManually = false;
     formSelectedMenus = [];
     $("koreanInput").value = "";
     $("chineseInput").value = "";
@@ -1675,6 +1677,7 @@
     if (!w) return;
     editingId = id;
     duplicateConfirmKey = "";
+    isAlertDismissedManually = false;
     $("koreanInput").value = w.korean;
     $("chineseInput").value = w.chinese;
     $("posInput").value = w.pos;
@@ -1689,10 +1692,6 @@
   window.deleteWord = function(id) {
     if (!confirm("確定要刪除這個單字嗎？")) return;
     words = words.filter(w => w.id !== id);
-    // 刪除單字後若庫內已無重複，自動恢復提醒狀態
-    if (getDuplicateGroups().length === 0) {
-      localStorage.removeItem(DISMISS_ALERT_KEY);
-    }
     saveWords();
   };
   window.resetOneSrs = function(id) {
@@ -2214,7 +2213,6 @@
   function clearDatabase() {
     if (!confirm("確定要清空全部單字嗎？這個動作無法復原。")) return;
     words = [];
-    localStorage.removeItem(DISMISS_ALERT_KEY);
     saveWords();
   }
   window.speak = function(text) {
