@@ -895,7 +895,7 @@
   let lastImportIgnoredCount = 0;
   let editingId = null;
   let duplicateConfirmKey = "";
-  let isAlertDismissedManually = false; // 單次手動忽略狀態標記
+  let isAlertDismissedManually = false;
   let quiz = null;
   let formSelectedMenus = [];
   let quizSelectedMenus = [];
@@ -1389,7 +1389,7 @@
     $("cancelBtn").addEventListener("click", resetForm);
     $("koreanInput").addEventListener("input", () => {
       duplicateConfirmKey = "";
-      isAlertDismissedManually = false; // 使用者打字時解除「手動隱藏」，重新比對輸入
+      isAlertDismissedManually = false; // 使用者重新在輸入框打字時，解除忽略手動狀態
       renderDuplicateAlert();
     });
     $("duplicateDismissBtn").addEventListener("click", dismissDuplicateAlert);
@@ -1540,7 +1540,7 @@
     const box = $("duplicateAlert");
     if (!box) return;
 
-    // 若使用者手動點擊了「✕ 忽略此提醒」，則在輸入框清空前暫不顯示
+    // 若點擊過手動忽略，隱藏提示框
     if (isAlertDismissedManually) {
       box.classList.add("hidden");
       return;
@@ -1551,7 +1551,7 @@
     const continueBtn = $("duplicateContinueBtn");
     const editBtn = $("duplicateEditBtn");
 
-    // 優先 1：使用者當前在輸入框中打字，與資料庫產生重複 (此為最高優先檢查)
+    // 【修正重點】：優先 1 - 檢查使用者當前在輸入框中打字的單字 (有打字且重複則絕對優先顯示)
     if (inputMatches.length) {
       const korean = $("koreanInput").value.trim();
       const summary = summarizeDuplicateWords(inputMatches, 4);
@@ -1565,7 +1565,7 @@
       return;
     }
 
-    // 優先 2：資料庫內既存歷史重複單字（若輸入框沒打字時才顯示）
+    // 優先 2 - 輸入框沒打字時，才提示單字庫內部既存的歷史重複
     if (groups.length && !$("koreanInput")?.value.trim()) {
       const firstGroup = groups[0];
       const firstSummary = summarizeDuplicateWords(firstGroup, 4);
