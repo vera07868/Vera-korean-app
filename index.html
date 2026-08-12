@@ -225,7 +225,11 @@
       border-radius: 999px;
       padding: 6px 12px;
       font-weight: 700;
-      margin-bottom: 12px;
+      margin: 0 4px 12px;
+    }
+    .badge.category {
+      background: #064e3b;
+      color: #a7f3d0;
     }
     .question-text {
       font-size: clamp(30px, 6vw, 58px);
@@ -800,7 +804,10 @@
     </div>
     <div class="quiz-panel">
       <div class="question-card">
-        <div class="badge" id="quizPos"></div>
+        <div style="display:flex; justify-content:center; gap:6px; flex-wrap:wrap;">
+          <div class="badge" id="quizPos"></div>
+          <div class="badge category hidden" id="quizCategory"></div>
+        </div>
         <div class="question-text" id="questionText"></div>
         <div class="quiz-flags" id="quizFlagButtons">
           <button class="flag-btn favorite" id="quizFavoriteBtn" type="button" title="我的最愛" aria-label="我的最愛">★</button>
@@ -819,10 +826,8 @@
       </div>
       <button class="ghost" id="speakBtn" type="button">播放發音</button>
       
-      <!-- 輸入框作答 -->
       <input class="answer-input" id="answerInput" placeholder="輸入答案後按 Enter" />
       
-      <!-- 四選一選擇題作答 -->
       <div class="mc-container hidden" id="mcContainer"></div>
 
       <div class="result" id="resultBox"></div>
@@ -1800,6 +1805,15 @@
     $("quizProgressText").textContent = `進度：${quiz.index + 1} / ${quiz.items.length}`;
     $("progressBar").style.width = `${((quiz.index + 1) / quiz.items.length) * 100}%`;
     $("quizPos").textContent = item.pos;
+
+    // 【新增修改】：聽力測驗時同時顯示「分類 Badge」
+    const catBadge = $("quizCategory");
+    if (mode === "listen" && item.category) {
+      catBadge.textContent = item.category;
+      catBadge.classList.remove("hidden");
+    } else {
+      catBadge.classList.add("hidden");
+    }
     
     $("submitBtn").classList.remove("hidden");
     $("answerInput").value = "";
