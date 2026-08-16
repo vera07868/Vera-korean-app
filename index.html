@@ -335,13 +335,6 @@
     }
     .zh, .tag { color: var(--muted); }
     .tag { font-size: 13px; }
-    .example {
-      background: #0f172a;
-      border: 1px solid #1e293b;
-      border-radius: 12px;
-      padding: 8px 10px;
-      margin-top: 6px;
-    }
     .icon-btn {
       flex: 0 0 auto;
       width: 30px;
@@ -495,11 +488,6 @@
       align-items: center;
       margin-top: 6px;
     }
-    .quick-menu-wrap {
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-    }
     .quick-menu-btn {
       min-width: 30px;
       height: 28px;
@@ -580,17 +568,6 @@
       height: 36px;
       padding: 8px 13px;
       font-size: 14px;
-    }
-    .quick-menu-tag {
-      display: inline-flex;
-      align-items: center;
-      height: 22px;
-      padding: 0 9px;
-      border-radius: 999px;
-      background: #1e293b;
-      color: #cbd5e1;
-      font-size: 12px;
-      font-weight: 700;
     }
     .quiz-custom-menu-setting {
       border: 1px solid var(--border);
@@ -704,7 +681,7 @@
         <p id="duplicateMessage"></p>
       </div>
       <div class="actions duplicate-actions">
-        <button class="ghost" id="duplicateDismissBtn" type="button" title="隱藏提醒">✕ 忽略此提醒</button>
+        <button class="ghost" id="duplicateDismissBtn" type="button">✕ 忽略此提醒</button>
         <button class="ghost" id="duplicateEditBtn" type="button">查看原單字</button>
         <button class="primary" id="duplicateContinueBtn" type="button">仍要重複儲存</button>
       </div>
@@ -825,11 +802,8 @@
         </details>
       </div>
       <button class="ghost" id="speakBtn" type="button">播放發音</button>
-      
       <input class="answer-input" id="answerInput" placeholder="輸入答案後按 Enter" />
-      
       <div class="mc-container hidden" id="mcContainer"></div>
-
       <div class="result" id="resultBox"></div>
       <div class="actions" style="justify-content:center;">
         <button id="prevBtn" type="button">⬅ 上一題</button>
@@ -889,6 +863,18 @@
     { value: "newWords", label: "新單字" },
     { value: "mastered", label: "已熟悉" }
   ];
+
+  // 易讀錯/連音機械怪腔單字修正對照表
+  const PRONUNCIATION_FIXES = {
+    "우유": "우-유",
+    "그릇": "그륻",
+    "꽃": "꼳",
+    "빛": "빋",
+    "옷": "옫",
+    "낮": "낟",
+    "낱": "낟"
+  };
+
   const STORAGE_KEY = "kwords-vocab-v2";
   const OLD_STORAGE_KEY = "kwords-vocab-v1";
   const CUSTOM_MENU_KEY = "kwords-custom-menus-v1";
@@ -903,21 +889,7 @@
   let quiz = null;
   let formSelectedMenus = [];
   let quizSelectedMenus = [];
-  
-  // 取得今天半夜 23:59:59.999 的毫秒數
-  function getEndOfToday() {
-    const d = new Date();
-    d.setHours(23, 59, 59, 999);
-    return d.getTime();
-  }
-
-  // 取得目標天數後凌晨 0:00:00 的毫秒數
-  function getStartOfFutureDay(intervalDays) {
-    const d = new Date();
-    d.setDate(d.getDate() + intervalDays);
-    d.setHours(0, 0, 0, 0);
-    return d.getTime();
-  }
+  let cachedKoreanVoice = null;
 
   function now() {
     return Date.now();
@@ -978,8 +950,7 @@
     const normalized = normalizeMenuName(menuName);
     if (!normalized) return;
     const count = words.filter(w => wordInMenu(w, normalized)).length;
-    const message = `確定要刪除自訂選單「${normalized}」嗎？
-這不會刪除單字，只會把 ${count} 個單字從這個選單分類中移除。`;
+    const message = `確定要刪除自訂選單「${normalized}」嗎？\n這不會刪除單字，只會把 ${count} 個單字從這個選單分類中移除。`;
     if (!confirm(message)) return;
     customMenus = customMenus.filter(name => name !== normalized);
     words = words.map(w => ({
@@ -1028,25 +999,6 @@
         onclick="deleteCustomMenu('${escapeJs(name)}')"
       >刪除｜${escapeHtml(name)}</button>
     `).join("");
-  }
-  function renderMenuSelectOptions(selectId, placeholder = "請選擇自訂選單") {
-    const select = $(selectId);
-    if (!select) return;
-    const current = select.value;
-    select.innerHTML = `<option value="">${escapeHtml(placeholder)}</option>` + customMenus
-      .map(name => `<option value="${escapeAttr(name)}">${escapeHtml(name)}</option>`)
-      .join("");
-    if (customMenus.includes(current)) {
-      select.value = current;
-    }
-  }
-  function hasFinalConsonant(text) {
-    const hangulOnly = String(text || "").trim().replace(/[^\uAC00-\uD7A3]/g, "");
-    if (!hangulOnly) return false;
-    const lastChar = hangulOnly[hangulOnly.length - 1];
-    const code = lastChar.charCodeAt(0) - 0xAC00;
-    if (code < 0 || code > 11171) return false;
-    return code % 28 !== 0;
   }
   function loadWords() {
     const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY);
@@ -1109,6 +1061,7 @@
     renderSelectOptions();
     bindEvents();
     renderAll();
+    initSpeechVoices();
   }
   function renderSelectOptions() {
     const posOptions = POS_LIST.map(pos => `<option value="${escapeAttr(pos)}">${escapeHtml(pos)}</option>`).join("");
@@ -1130,8 +1083,6 @@
     const smartValues = allOptions.map(opt => opt.value);
     select.value = smartValues.includes(current) ? current : "all";
   }
-  function renderCustomMenuFilter() {}
-  function renderLibraryCustomMenuOverview() {}
   function renderFormCustomMenuButtons() {
     const box = $("formCustomMenuButtons");
     if (!box) return;
@@ -1167,8 +1118,6 @@
   }
   function renderAll() {
     renderCategoryFilter();
-    renderCustomMenuFilter();
-    renderLibraryCustomMenuOverview();
     renderFormCustomMenuButtons();
     renderQuizCustomMenuSelect();
     renderWordList();
@@ -1181,8 +1130,6 @@
     const pos = $("posFilter").value || "all";
     const selectedCustomMenu = libraryView.startsWith("customMenu::") ? libraryView.replace("customMenu::", "") : "";
     const keyword = normalize($("searchInput").value);
-    const endOfToday = getEndOfToday();
-
     let filtered = [...words];
     if (selectedCustomMenu) {
       filtered = filtered.filter(w => wordInMenu(w, selectedCustomMenu));
@@ -1190,7 +1137,7 @@
     if (libraryView === "recentWrong") {
       filtered = filtered.filter(w => hasWrongRecord(w));
     } else if (libraryView === "dueToday") {
-      filtered = filtered.filter(w => (getWordStats(w).dueAt || 0) <= endOfToday);
+      filtered = filtered.filter(w => (getWordStats(w).dueAt || 0) <= now());
     } else if (libraryView === "newWords") {
       filtered = filtered.filter(w => isNewWord(w));
     } else if (libraryView === "mastered") {
@@ -1206,13 +1153,12 @@
       return byPos && (!keyword || text.includes(keyword));
     });
     filtered = sortLibraryWords(filtered, libraryView);
-    
-    const dueCount = words.filter(w => (w.stats?.dueAt || 0) <= endOfToday).length;
+    const dueCount = words.filter(w => (w.stats?.dueAt || 0) <= now()).length;
     const newCount = words.filter(w => isNewWord(w)).length;
     $("wordCountText").textContent = `目前 ${words.length} 個單字｜今日到期 ${dueCount}｜新單字 ${newCount}`;
     $("wordList").innerHTML = filtered.map(w => {
       const accuracy = getAccuracyRate(w);
-      const isDue = (w.stats?.dueAt || 0) <= endOfToday;
+      const isDue = (w.stats?.dueAt || 0) <= now();
       const isNew = isNewWord(w);
       const dueDate = w.stats?.dueAt ? new Date(w.stats.dueAt).toLocaleDateString("zh-TW") : "今天";
       return `
@@ -1304,8 +1250,7 @@
   }
   function getReviewPriorityScore(w) {
     const s = getWordStats(w);
-    const endOfToday = getEndOfToday();
-    const dueBonus = (s.dueAt || 0) <= endOfToday ? 10000 : 0;
+    const dueBonus = (s.dueAt || 0) <= now() ? 10000 : 0;
     const recentlyWrongBonus = s.lastAnswerCorrect === false ? 2000 : 0;
     const lowAccuracyScore = 100 - getAccuracyRate(w);
     const wrongRateScore = getWrongRate(w);
@@ -1473,20 +1418,16 @@
       .map(w => `${w.korean}（${w.chinese}）`)
       .join("、");
   }
-
   function renderDuplicateAlert() {
     const box = $("duplicateAlert");
     if (!box) return;
-
     if (isAlertDismissedManually) {
       box.classList.add("hidden");
       return;
     }
-
     const inputMatches = getDuplicateMatchesForInput();
     const continueBtn = $("duplicateContinueBtn");
     const editBtn = $("duplicateEditBtn");
-
     if (inputMatches.length) {
       const korean = $("koreanInput").value.trim();
       const summary = summarizeDuplicateWords(inputMatches, 4);
@@ -1499,16 +1440,13 @@
       box.classList.remove("hidden");
       return;
     }
-
     box.classList.add("hidden");
   }
-
   function dismissDuplicateAlert() {
     isAlertDismissedManually = true;
     const box = $("duplicateAlert");
     if (box) box.classList.add("hidden");
   }
-
   function confirmDuplicateAndSave() {
     const korean = $("koreanInput").value.trim();
     duplicateConfirmKey = getDuplicateKey(korean);
@@ -1519,21 +1457,17 @@
     const inputMatches = getDuplicateMatchesForInput();
     const target = inputMatches[0];
     if (!target) return;
-    
     $("wordLibraryDetails").open = true;
     $("searchInput").value = target.korean;
     renderWordList();
     window.editWord(target.id);
     dismissDuplicateAlert();
   }
-  function generateExampleToForm() {}
   function saveWordFromForm() {
     const korean = $("koreanInput").value.trim();
     const chinese = $("chineseInput").value.trim();
     const pos = $("posInput").value;
     const category = $("categoryInput").value.trim() || "未分類";
-    const example = "";
-    const exampleZh = "";
     const note = $("noteInput").value.trim();
     if (!korean || !chinese) {
       alert("請至少輸入韓文與中文。");
@@ -1554,14 +1488,14 @@
         chinese,
         pos,
         category,
-        example,
-        exampleZh,
+        example: "",
+        exampleZh: "",
         note,
         customMenus: [...new Set(formSelectedMenus)]
       } : w);
       showSaveHint("已更新單字。", true);
     } else {
-      const newWord = makeWord(korean, chinese, pos, category, example, note, exampleZh);
+      const newWord = makeWord(korean, chinese, pos, category, "", note, "");
       newWord.customMenus = [...new Set(formSelectedMenus)];
       words.unshift(newWord);
       showSaveHint("已儲存單字，已加入單字庫。", true);
@@ -1649,13 +1583,11 @@
   }
   function getPool() {
     const scope = getScope();
-    const endOfToday = getEndOfToday();
-
     if (scope === "all") return [...words];
     if (scope === "recentWrong") return words.filter(w => hasWrongRecord(w));
     if (scope === "favorite") return words.filter(w => w.favorite);
     if (scope === "important") return words.filter(w => w.important);
-    if (scope === "srs") return words.filter(w => (w.stats?.dueAt || 0) <= endOfToday);
+    if (scope === "srs") return words.filter(w => (w.stats?.dueAt || 0) <= now());
     if (scope === "newWords") return words.filter(w => isNewWord(w));
     if (scope === "mastered") return words.filter(w => (getWordStats(w).attempts || 0) >= 3 && getAccuracyRate(w) >= 80);
     if (scope === "customMenu") {
@@ -1699,10 +1631,8 @@
   function generateMultipleChoiceOptions(currentItem, modeType) {
     const correctText = modeType === "zhToKo" ? currentItem.korean : currentItem.chinese;
     const targetField = modeType === "zhToKo" ? "korean" : "chinese";
-    
     const otherWords = words.filter(w => w.id !== currentItem.id);
     const shuffledOthers = shuffle(otherWords);
-    
     const options = [correctText];
     for (let w of shuffledOthers) {
       const val = w[targetField];
@@ -1729,6 +1659,7 @@
     $("progressBar").style.width = `${((quiz.index + 1) / quiz.items.length) * 100}%`;
     $("quizPos").textContent = item.pos;
 
+    // 聽力模式下顯示主題分類輔助
     const catBadge = $("quizCategory");
     if (mode === "listen" && item.category) {
       catBadge.textContent = item.category;
@@ -1747,7 +1678,6 @@
       const isQuestionZh = Math.random() < 0.5;
       item.mcQuestionType = isQuestionZh ? "zhToKo" : "koToZh";
       $("questionText").textContent = isQuestionZh ? item.chinese : item.korean;
-      
       $("answerInput").classList.add("hidden");
       $("mcContainer").classList.remove("hidden");
       $("submitBtn").classList.add("hidden");
@@ -1800,7 +1730,6 @@
     });
 
     quiz.checked[quiz.index] = isCorrect;
-    
     const box = $("resultBox");
     box.className = `result ${isCorrect ? "ok" : "bad"}`;
     box.textContent = isCorrect ? "答對了！(不計入SRS)" : `答錯了，正確答案：${correct} (不計入SRS)`;
@@ -1875,7 +1804,6 @@
       }
 
       let targetInterval = s.intervalDays;
-      
       if (targetInterval >= 2 && targetInterval < 7) {
         const fuzz = (Math.random() - 0.5) * 0.8;
         targetInterval = Math.max(1, Math.round(targetInterval + fuzz));
@@ -1885,10 +1813,11 @@
       }
 
       if (targetInterval > 0) {
+        const todayMs = new Date().setHours(0,0,0,0);
         const countsByDay = {};
         words.forEach(otherWord => {
           if (otherWord.id === id || !otherWord.stats?.dueAt) return;
-          const dueDayOffset = Math.floor((otherWord.stats.dueAt - getEndOfToday()) / dayMs) + 1;
+          const dueDayOffset = Math.floor((otherWord.stats.dueAt - todayMs) / dayMs);
           if (dueDayOffset > 0) {
             countsByDay[dueDayOffset] = (countsByDay[dueDayOffset] || 0) + 1;
           }
@@ -1908,7 +1837,7 @@
         s.intervalDays = targetInterval;
       }
 
-      s.dueAt = getStartOfFutureDay(s.intervalDays);
+      s.dueAt = reviewedAt + s.intervalDays * dayMs;
       return { ...w, stats: s };
     });
   }
@@ -2021,7 +1950,7 @@
     });
     saveWords();
     const ignoredText = lastImportIgnoredCount ? `，忽略非單字資料 ${lastImportIgnoredCount} 行` : "";
-    const duplicateCount = getDuplicateGroups().length;
+    const duplicateCount = getDuplicateMatchesForInput().length;
     const duplicateText = duplicateCount ? `，目前仍有 ${duplicateCount} 組重複單字` : "";
     showSaveHint(`追加完成，新增 ${added} 筆，略過重複 ${skipped} 筆${ignoredText}${duplicateText}。`, true);
   }
@@ -2032,7 +1961,7 @@
       words = migrateWords(importedWords);
       saveWords();
       const ignoredText = lastImportIgnoredCount ? `，忽略非單字資料 ${lastImportIgnoredCount} 行` : "";
-      const duplicateCount = getDuplicateGroups().length;
+      const duplicateCount = getDuplicateMatchesForInput().length;
       const duplicateText = duplicateCount ? `，偵測到 ${duplicateCount} 組重複單字` : "";
       showSaveHint(`覆蓋匯入完成，共匯入 ${words.length} 筆單字${ignoredText}${duplicateText}。`, true);
     } catch (err) {
@@ -2136,61 +2065,54 @@
     saveWords();
   }
 
-  // --- 高品質穩定語音合成 (Web Speech API + 自動防卡死機制) ---
-  let cachedKoreanVoice = null;
-  function getBestKoreanVoice() {
-    if (!("speechSynthesis" in window)) return null;
-    const voices = window.speechSynthesis.getVoices();
-    const koVoices = voices.filter(v => v.lang === "ko-KR" || v.lang.startsWith("ko"));
-    // 優先順序：線上自然音 (Natural/Online) > Google / 系統高品質音 > 一般韓語音
-    return koVoices.find(v => /natural|online|google|yuna|sora|seoyeon|heami|sunhi/i.test(v.name)) 
-        || koVoices[0] 
+  // === 高品質語音引擎選擇與朗讀邏輯 ===
+  function initSpeechVoices() {
+    if (!("speechSynthesis" in window)) return;
+    const findVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const koVoices = voices.filter(v => v.lang === "ko-KR" || v.lang.startsWith("ko"));
+      // 優先序：線上自然音 (Natural/Online) > Google/Apple 增強音 > 系統預設韓語音
+      cachedKoreanVoice = koVoices.find(v => /natural|online|google|yuna|seoyeon|enhanced|premium/i.test(v.name))
+        || koVoices[0]
         || null;
-  }
-
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.onvoiceschanged = () => {
-      cachedKoreanVoice = getBestKoreanVoice();
     };
+    findVoice();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = findVoice;
+    }
   }
 
   window.speak = function(text) {
-    if (!text) return;
     if (!("speechSynthesis" in window)) {
       alert("此瀏覽器不支援語音播放。請使用 Chrome / Edge / Safari。");
       return;
     }
-
-    // 解決 Chrome/Safari 後台或連續點擊時語音暫停 (Paused) 卡死問題
     window.speechSynthesis.cancel();
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
-    }
-
-    const utter = new SpeechSynthesisUtterance(text);
+    
+    // 取得發音修正對照或原始文字
+    const cleanWord = String(text || "").trim();
+    const spokenText = PRONUNCIATION_FIXES[cleanWord] || cleanWord;
+    
+    const utter = new SpeechSynthesisUtterance(spokenText);
     utter.lang = "ko-KR";
     
-    if (!cachedKoreanVoice) {
-      cachedKoreanVoice = getBestKoreanVoice();
-    }
     if (cachedKoreanVoice) {
       utter.voice = cachedKoreanVoice;
     }
 
-    utter.rate = getSpeechRate(text);
-    utter.pitch = 1.0;
-
+    utter.rate = getSpeechRate(cleanWord);
+    utter.pitch = 1.0; // 鎖定在 1.0 標準音頻，防止聲音機械化
+    
     window.speechSynthesis.speak(utter);
   };
 
   function getSpeechRate(text) {
     const hangulLength = String(text || "").replace(/[^가-힣]/g, "").length;
-    if (hangulLength >= 8) return 0.85;
-    if (hangulLength >= 5) return 0.80;
-    if (hangulLength >= 3) return 0.78;
-    return 0.75;
+    if (hangulLength >= 8) return 0.65;
+    if (hangulLength >= 4) return 0.58;
+    return 0.52; // 極短單字速度適中，防止因過慢引發顫音失真
   }
-  
+
   function shuffle(arr) {
     const copy = [...arr];
     for (let i = copy.length - 1; i > 0; i--) {
