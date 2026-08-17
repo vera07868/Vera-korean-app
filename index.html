@@ -2071,8 +2071,8 @@
     const findVoice = () => {
       const voices = window.speechSynthesis.getVoices();
       const koVoices = voices.filter(v => v.lang === "ko-KR" || v.lang.startsWith("ko"));
-      // 優先序：線上自然音 (Natural/Online) > Google/Apple 增強音 > 系統預設韓語音
-      cachedKoreanVoice = koVoices.find(v => /natural|online|google|yuna|seoyeon|enhanced|premium/i.test(v.name))
+      // 優先順序：線上自然音 (Natural/Online) > Google/Apple 增強音 > 系統預設韓語音
+      cachedKoreanVoice = koVoices.find(v => /natural|online|google|yuna|seoyeon|enhanced|premium|sunhi/i.test(v.name))
         || koVoices[0]
         || null;
     };
@@ -2082,35 +2082,54 @@
     }
   }
 
+  // 判斷韓文字是否以雙唇緊音 ㅃ 開頭 (Unicode 初聲 index 為 7)
+  function startsWithPpang(syllable) {
+    if (!syllable) return false;
+    const code = syllable.charCodeAt(0) - 0xAC00;
+    if (code < 0 || code > 11171) return false;
+    const initialIndex = Math.floor(code / (21 * 28));
+    return initialIndex === 7; // 7 代表初聲 ㅃ
+  }
+
   window.speak = function(text) {
     if (!("speechSynthesis" in window)) {
       alert("此瀏覽器不支援語音播放。請使用 Chrome / Edge / Safari。");
       return;
     }
     window.speechSynthesis.cancel();
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
     
-    // 取得發音修正對照或原始文字
     const cleanWord = String(text || "").trim();
-    const spokenText = PRONUNCIATION_FIXES[cleanWord] || cleanWord;
+    let spokenText = PRONUNCIATION_FIXES[cleanWord] || cleanWord;
+    
+    // 【核心修正】：針對 ㅃ 開頭單字加上極輕微雙唇閉合前導音，強迫 TTS 引擎產生雙唇爆破而非喉部 ㄲ
+    if (cleanWord.length > 0 && startsWithPpang(cleanWord[0])) {
+      spokenText = `읍 ${spokenText}`;
+    }
     
     const utter = new SpeechSynthesisUtterance(spokenText);
     utter.lang = "ko-KR";
     
+    if (!cachedKoreanVoice) {
+      initSpeechVoices();
+    }
     if (cachedKoreanVoice) {
       utter.voice = cachedKoreanVoice;
     }
 
     utter.rate = getSpeechRate(cleanWord);
-    utter.pitch = 1.0; // 鎖定在 1.0 標準音頻，防止聲音機械化
+    utter.pitch = 1.0;
     
     window.speechSynthesis.speak(utter);
   };
 
   function getSpeechRate(text) {
     const hangulLength = String(text || "").replace(/[^가-힣]/g, "").length;
-    if (hangulLength >= 8) return 0.65;
-    if (hangulLength >= 4) return 0.58;
-    return 0.52; // 極短單字速度適中，防止因過慢引發顫音失真
+    if (hangulLength >= 8) return 0.85;
+    if (hangulLength >= 4) return 0.80;
+    return 0.75; // 適中語速，防止雙唇音爆破時間被 TTS 壓縮變異
   }
 
   function shuffle(arr) {
