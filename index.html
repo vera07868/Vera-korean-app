@@ -2117,7 +2117,7 @@
     saveWords();
   }
 
-  // === 語音引擎初始化與播放模組 ===
+  // === 語音引擎初始化與多重備援播放模組 ===
   function initSpeechVoices() {
     if (!("speechSynthesis" in window)) return;
     const findVoice = () => {
@@ -2133,7 +2133,7 @@
     }
   }
 
-  // 播放發音：支援語速控制，優先使用雲端 TTS 音訊串流，失敗自動退回本機
+  // 播放發音：先依字串結構與 API 支援度切換，並具備多重降級備援
   window.speak = function(text) {
     const cleanWord = String(text || "").trim();
     if (!cleanWord) return;
@@ -2145,7 +2145,13 @@
     }
 
     const rate = getSpeechRate();
-    const audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanWord)}&le=ko`;
+
+    // 含有空白或超過單一詞彙長度時，直接調用 Google TTS 串流以確保片語支援
+    const isPhrase = /\s/.test(cleanWord);
+    const audioUrl = isPhrase
+      ? `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(cleanWord)}`
+      : `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanWord)}&le=ko`;
+
     const audio = new Audio(audioUrl);
     activeAudio = audio;
     audio.playbackRate = rate;
@@ -2153,7 +2159,16 @@
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch(() => {
-        fallbackSpeechSynthesis(cleanWord, rate);
+        // 第一備援：若有道失敗則嘗試 Google TTS
+        if (!isPhrase) {
+          const fallbackUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
+          const secondAudio = new Audio(fallbackUrl);
+          activeAudio = secondAudio;
+          secondAudio.playbackRate = rate;
+          secondAudio.play().catch(() => fallbackSpeechSynthesis(cleanWord, rate));
+        } else {
+          fallbackSpeechSynthesis(cleanWord, rate);
+        }
       });
     }
   };
