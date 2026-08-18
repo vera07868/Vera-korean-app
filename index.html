@@ -29,11 +29,45 @@
       padding: 24px;
     }
     .container { max-width: 1100px; margin: 0 auto; }
-    h1 {
-      text-align: center;
-      margin: 0 0 18px;
-      font-size: clamp(28px, 4vw, 44px);
+    
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
     }
+    h1 {
+      margin: 0;
+      font-size: clamp(26px, 4vw, 38px);
+    }
+    .speed-pill-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #0f172a;
+      border: 1px solid var(--primary);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #c7d2fe;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    }
+    .speed-select {
+      height: 32px !important;
+      padding: 2px 10px !important;
+      border-radius: 999px !important;
+      background: #020617 !important;
+      border: 1px solid #4338ca !important;
+      color: #fff !important;
+      font-size: 14px !important;
+      font-weight: 800;
+      cursor: pointer;
+      width: auto !important;
+    }
+
     h2, h3 { margin-top: 0; }
     .card, details.card {
       background: rgba(15, 23, 42, 0.96);
@@ -646,28 +680,6 @@
       font-size: 13px;
       margin-top: 12px;
     }
-    .speech-speed-wrapper {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #1e293b;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 4px 12px;
-      font-size: 13px;
-      font-weight: 700;
-      color: #c7d2fe;
-    }
-    .speech-speed-select {
-      width: auto !important;
-      height: 30px !important;
-      padding: 2px 8px !important;
-      border: none !important;
-      background: transparent !important;
-      color: #f8fafc !important;
-      font-weight: 700;
-      cursor: pointer;
-    }
     @media (max-width: 760px) {
       body { padding: 14px; }
       .form-grid, .two-grid, .word, .mc-container { grid-template-columns: 1fr; }
@@ -689,7 +701,21 @@
 </head>
 <body>
 <main class="container">
-  <h1>韓文背單字</h1>
+  <div class="header-bar">
+    <h1>韓文背單字</h1>
+    <div class="speed-pill-control">
+      <span>🔊 語音速度：</span>
+      <select id="globalSpeechRate" class="speed-select" aria-label="全域語音速度">
+        <option value="0.5">0.5x 慢速</option>
+        <option value="0.75">0.75x 稍慢</option>
+        <option value="0.9">0.9x 偏慢</option>
+        <option value="1.0" selected>1.0x 正常</option>
+        <option value="1.25">1.25x 稍快</option>
+        <option value="1.5">1.5x 快速</option>
+      </select>
+    </div>
+  </div>
+
   <section class="card">
     <div class="section-title">
       <div>
@@ -740,6 +766,7 @@
       </label>
     </div>
   </section>
+
   <section class="card">
     <div class="section-title">
       <div>
@@ -790,6 +817,7 @@
       <button class="primary" id="startQuizBtn" type="button">開始測驗挑戰</button>
     </div>
   </section>
+
   <section class="card hidden" id="quizSection">
     <div class="section-title">
       <div>
@@ -824,18 +852,7 @@
         </details>
       </div>
       <div class="actions" style="justify-content:center;">
-        <button class="ghost" id="speakBtn" type="button">播放發音</button>
-        <div class="speech-speed-wrapper">
-          <span>語速</span>
-          <select id="speechRateSelect" class="speech-speed-select" aria-label="語音播放速度">
-            <option value="0.5">0.5x</option>
-            <option value="0.75">0.75x</option>
-            <option value="0.9">0.9x</option>
-            <option value="1.0" selected>1.0x</option>
-            <option value="1.25">1.25x</option>
-            <option value="1.5">1.5x</option>
-          </select>
-        </div>
+        <button class="ghost" id="speakBtn" type="button">🔊 播放發音</button>
       </div>
       <input class="answer-input" id="answerInput" placeholder="輸入答案後按 Enter" />
       <div class="mc-container hidden" id="mcContainer"></div>
@@ -847,6 +864,7 @@
       </div>
     </div>
   </section>
+
   <details class="card" id="wordLibraryDetails">
     <summary>
       <span>單字庫管理</span>
@@ -917,7 +935,7 @@
   let cachedKoreanVoice = null;
 
   function getSpeechRate() {
-    const val = parseFloat($("speechRateSelect")?.value || localStorage.getItem(SPEECH_SPEED_KEY) || "1.0");
+    const val = parseFloat($("globalSpeechRate")?.value || localStorage.getItem(SPEECH_SPEED_KEY) || "1.0");
     return isNaN(val) ? 1.0 : val;
   }
 
@@ -1101,8 +1119,8 @@
   }
   function init() {
     const savedSpeed = localStorage.getItem(SPEECH_SPEED_KEY);
-    if (savedSpeed && $("speechRateSelect")) {
-      $("speechRateSelect").value = savedSpeed;
+    if (savedSpeed && $("globalSpeechRate")) {
+      $("globalSpeechRate").value = savedSpeed;
     }
     ensureCustomMenusFromWords();
     renderSelectOptions();
@@ -1346,7 +1364,7 @@
     $("questionCount").addEventListener("input", updateQuestionLimit);
     $("accuracyRateThreshold").addEventListener("input", updateQuestionLimit);
     $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
-    $("speechRateSelect").addEventListener("change", (e) => {
+    $("globalSpeechRate").addEventListener("change", (e) => {
       localStorage.setItem(SPEECH_SPEED_KEY, e.target.value);
     });
     document.querySelectorAll("input[name='scope']").forEach(r => {
@@ -2116,7 +2134,7 @@
     saveWords();
   }
 
-  // === 強化型語音合成引擎（純前端原聲播放，防止 CORS 阻擋） ===
+  // === 語音合成引擎 ===
   function initSpeechVoices() {
     if (!("speechSynthesis" in window)) return;
     const findVoice = () => {
@@ -2137,7 +2155,6 @@
     const cleanWord = String(text || "").trim();
     if (!cleanWord || !("speechSynthesis" in window)) return;
 
-    // 清理瀏覽器可能卡住的播放佇列
     window.speechSynthesis.cancel();
     if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
@@ -2157,7 +2174,6 @@
     utter.rate = rate;
     utter.pitch = 1.0;
 
-    // Chrome 避免長句子中斷 Bug
     utter.onerror = (e) => {
       console.warn("語音播放發生狀況:", e);
       window.speechSynthesis.cancel();
