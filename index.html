@@ -915,7 +915,6 @@
   let formSelectedMenus = [];
   let quizSelectedMenus = [];
   let cachedKoreanVoice = null;
-  let activeAudio = null;
 
   function getSpeechRate() {
     const val = parseFloat($("speechRateSelect")?.value || localStorage.getItem(SPEECH_SPEED_KEY) || "1.0");
@@ -2117,13 +2116,14 @@
     saveWords();
   }
 
-  // === 語音引擎初始化與多重備援播放模組 ===
+  // === 強化型語音合成引擎（純前端原聲播放，防止 CORS 阻擋） ===
   function initSpeechVoices() {
     if (!("speechSynthesis" in window)) return;
     const findVoice = () => {
       const voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return;
       const koVoices = voices.filter(v => v.lang === "ko-KR" || v.lang.startsWith("ko"));
-      cachedKoreanVoice = koVoices.find(v => /natural|online|google|seoyeon|yuna|enhanced|premium/i.test(v.name))
+      cachedKoreanVoice = koVoices.find(v => /natural|online|google|yuna|seoyeon|enhanced|premium/i.test(v.name))
         || koVoices[0]
         || null;
     };
@@ -2133,54 +2133,17 @@
     }
   }
 
-  // 播放發音：先依字串結構與 API 支援度切換，並具備多重降級備援
   window.speak = function(text) {
     const cleanWord = String(text || "").trim();
-    if (!cleanWord) return;
+    if (!cleanWord || !("speechSynthesis" in window)) return;
 
-    if (activeAudio) {
-      activeAudio.pause();
-      activeAudio.currentTime = 0;
-      activeAudio = null;
-    }
-
-    const rate = getSpeechRate();
-
-    // 含有空白或超過單一詞彙長度時，直接調用 Google TTS 串流以確保片語支援
-    const isPhrase = /\s/.test(cleanWord);
-    const audioUrl = isPhrase
-      ? `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(cleanWord)}`
-      : `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanWord)}&le=ko`;
-
-    const audio = new Audio(audioUrl);
-    activeAudio = audio;
-    audio.playbackRate = rate;
-
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // 第一備援：若有道失敗則嘗試 Google TTS
-        if (!isPhrase) {
-          const fallbackUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
-          const secondAudio = new Audio(fallbackUrl);
-          activeAudio = secondAudio;
-          secondAudio.playbackRate = rate;
-          secondAudio.play().catch(() => fallbackSpeechSynthesis(cleanWord, rate));
-        } else {
-          fallbackSpeechSynthesis(cleanWord, rate);
-        }
-      });
-    }
-  };
-
-  function fallbackSpeechSynthesis(cleanWord, rate = 1.0) {
-    if (!("speechSynthesis" in window)) return;
-
+    // 清理瀏覽器可能卡住的播放佇列
     window.speechSynthesis.cancel();
     if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
     }
 
+    const rate = getSpeechRate();
     const utter = new SpeechSynthesisUtterance(cleanWord);
     utter.lang = "ko-KR";
 
@@ -2194,8 +2157,14 @@
     utter.rate = rate;
     utter.pitch = 1.0;
 
+    // Chrome 避免長句子中斷 Bug
+    utter.onerror = (e) => {
+      console.warn("語音播放發生狀況:", e);
+      window.speechSynthesis.cancel();
+    };
+
     window.speechSynthesis.speak(utter);
-  }
+  };
 
   function shuffle(arr) {
     const copy = [...arr];
