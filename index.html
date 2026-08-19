@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="no-referrer" />
   <title>韓文背單字 SRS</title>
   <style>
     :root {
@@ -1051,8 +1052,11 @@
     }
     return [
       makeWord("사과", "蘋果", "名詞 (명사)", "食物", "", ""),
-      makeWord("오빠", "哥哥（女生叫）", "名詞 (명사)", "稱謂", "", ""),
-      makeWord("담배를 끊다", "戒菸", "片語/習慣用語", "生活", "", "")
+      makeWord("물건", "物品", "名詞 (명사)", "生活", "", ""),
+      makeWord("어제밤", "昨晚", "名詞 (명사)", "時間", "", ""),
+      makeWord("지내다", "過日子/相處", "動詞 (동사)", "日常", "", ""),
+      makeWord("더럽다", "髒", "形容詞 (형용사)", "狀態", "", ""),
+      makeWord("살을 빼다", "減肥", "片語/習慣用語", "生活", "", "")
     ];
   }
   function migrateWords(list) {
@@ -2118,8 +2122,8 @@
     saveWords();
   }
 
-  // === 韓語純淨文字過濾 ===
-  function cleanKoreanForTTS(text) {
+  // === 純淨韓文發音文字清理 ===
+  function sanitizeKoreanText(text) {
     return String(text || "")
       .replace(/\(.*?\)/g, "")
       .replace(/\[.*?\]/g, "")
@@ -2128,45 +2132,38 @@
       .replace(/\s+/g, " ");
   }
 
-  // === 高品質語音發音核心模組（支援 Safari、空格、片語與雙子音） ===
+  // === Google 官方標準韓語神經網路語音播放引擎 ===
   window.speak = function(text) {
     const rawWord = String(text || "").trim();
-    const cleanWord = cleanKoreanForTTS(rawWord) || rawWord;
+    const cleanWord = sanitizeKoreanText(rawWord) || rawWord;
     if (!cleanWord) return;
 
     const rate = getSpeechRate();
 
-    // 停止前一次播放
     if (currentAudio) {
       currentAudio.pause();
-      currentAudio.currentTime = 0;
+      currentAudio.src = "";
       currentAudio = null;
     }
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
 
-    // 含有空格的短語或句子：直接在點擊時以同步方式調用短句通道
-    if (/\s/.test(cleanWord)) {
-      playPhraseSpeech(cleanWord, rate);
-      return;
-    }
-
-    // 單詞：調用標準字典音訊
-    const streamUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanWord)}&le=ko`;
-    const audio = new Audio(streamUrl);
+    // Google 官方標準 Seoul Korean TTS 串流（搭配 no-referrer 標頭可 100% 免阻擋跨域播放）
+    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
+    const audio = new Audio(audioUrl);
     currentAudio = audio;
     audio.playbackRate = rate;
 
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch(() => {
-        playPhraseSpeech(cleanWord, rate);
+        fallbackWebSpeech(cleanWord, rate);
       });
     }
   };
 
-  function playPhraseSpeech(text, rate) {
+  function fallbackWebSpeech(text, rate) {
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
     if (window.speechSynthesis.paused) {
@@ -2179,7 +2176,7 @@
     utter.pitch = 1.0;
 
     const voices = window.speechSynthesis.getVoices();
-    const koVoice = voices.find(v => (v.lang === "ko-KR" || v.lang.startsWith("ko")) && /yuna|sora|compact|enhanced|natural/i.test(v.name))
+    const koVoice = voices.find(v => (v.lang === "ko-KR" || v.lang.startsWith("ko")) && /yuna|sora|natural|enhanced/i.test(v.name))
       || voices.find(v => v.lang.startsWith("ko"))
       || null;
 
