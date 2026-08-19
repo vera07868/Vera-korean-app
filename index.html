@@ -913,7 +913,7 @@
   let quiz = null;
   let formSelectedMenus = [];
   let quizSelectedMenus = [];
-  let globalAudioElement = null;
+  let currentPlayingAudio = null;
 
   function getSpeechRate() {
     const val = parseFloat($("globalSpeechRate")?.value || localStorage.getItem(SPEECH_SPEED_KEY) || "1.0");
@@ -1107,9 +1107,6 @@
     renderSelectOptions();
     bindEvents();
     renderAll();
-
-    // 預先在頁面建立單一音訊實例，徹底解鎖 Safari 音訊通道
-    globalAudioElement = new Audio();
   }
 
   function renderSelectOptions() {
@@ -1350,6 +1347,9 @@
     $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
     $("globalSpeechRate").addEventListener("change", (e) => {
       localStorage.setItem(SPEECH_SPEED_KEY, e.target.value);
+      if (currentPlayingAudio) {
+        currentPlayingAudio.playbackRate = getSpeechRate();
+      }
     });
     document.querySelectorAll("input[name='scope']").forEach(r => {
       r.addEventListener("change", updateQuestionLimit);
@@ -2118,48 +2118,45 @@
     saveWords();
   }
 
-  // === Safari 專用高相容語音播放引擎（免 CORS 串流 + Web Audio 雙通道） ===
+  // === NAVER 官方母語發音核心 ===
   window.speak = function(text) {
     const cleanWord = String(text || "").trim();
     if (!cleanWord) return;
 
-    const rate = getSpeechRate();
-
-    // 優先使用無防盜鏈限制的韓語標準真人發音串流
-    const audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanWord)}&type=2&le=ko`;
-
-    if (!globalAudioElement) {
-      globalAudioElement = new Audio();
+    if (currentPlayingAudio) {
+      currentPlayingAudio.pause();
+      currentPlayingAudio.currentTime = 0;
+      currentPlayingAudio = null;
     }
 
-    try {
-      globalAudioElement.pause();
-      globalAudioElement.src = audioUrl;
-      globalAudioElement.playbackRate = rate;
+    const rate = getSpeechRate();
+    const encoded = encodeURIComponent(cleanWord);
+    // NAVER 韓語字典真實語音音訊
+    const naverAudioUrl = `https://dict.naver.com/api/nvoice?speaker=clara&service=dictionary&speech_fmt=mp3&text=${encoded}`;
+    
+    const audio = new Audio(naverAudioUrl);
+    currentPlayingAudio = audio;
+    audio.playbackRate = rate;
 
-      const playPromise = globalAudioElement.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // 若有特殊阻擋，自動無縫退回 Apple 專屬本地語音合成
-          fallbackAppleSpeech(cleanWord, rate);
-        });
-      }
-    } catch (_) {
-      fallbackAppleSpeech(cleanWord, rate);
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((err) => {
+        console.warn("NAVER 音訊播放受阻，切換至備用通道:", err);
+        fallbackSpeech(cleanWord, rate);
+      });
     }
   };
 
-  function fallbackAppleSpeech(text, rate) {
+  function fallbackSpeech(text, rate) {
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
 
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = "ko-KR";
     utter.rate = rate;
-    utter.pitch = 1.0;
 
     const voices = window.speechSynthesis.getVoices();
-    const koVoice = voices.find(v => (v.lang === "ko-KR" || v.lang.startsWith("ko")) && /yuna|sora|compact|enhanced/i.test(v.name))
+    const koVoice = voices.find(v => (v.lang === "ko-KR" || v.lang.startsWith("ko")) && /yuna|sora|natural|enhanced/i.test(v.name))
       || voices.find(v => v.lang.startsWith("ko"))
       || null;
 
