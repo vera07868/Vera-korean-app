@@ -828,7 +828,7 @@
               <input id="quizNewCustomMenuInput" placeholder="新增選單名稱" />
               <button class="ghost" id="quizAddCustomMenuBtn" type="button">新增</button>
             </div>
-            <div class="quiz-custom-menu-row" id="quizCustomMenuButtons"></div>
+            <div class="quick-menu-row" id="quizCustomMenuButtons"></div>
           </div>
         </details>
       </div>
@@ -2118,61 +2118,69 @@
     saveWords();
   }
 
-  // === 韓語語音核心播放引擎 ===
-  function cleanSpeechText(text) {
-    if (!text) return "";
-    return String(text)
+  // === 韓語純淨文字過濾 ===
+  function cleanKoreanForTTS(text) {
+    return String(text || "")
       .replace(/\(.*?\)/g, "")
       .replace(/\[.*?\]/g, "")
-      .replace(/[^\uAC00-\uD7A3\u1100-\u11FF\u3130-\u318Fa-zA-Z0-9\s]/g, " ")
+      .replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9\s]/g, " ")
       .trim()
       .replace(/\s+/g, " ");
   }
 
+  // === 高品質語音發音核心模組（支援 Safari、空格、片語與雙子音） ===
   window.speak = function(text) {
     const rawWord = String(text || "").trim();
-    const cleanWord = cleanSpeechText(rawWord) || rawWord;
+    const cleanWord = cleanKoreanForTTS(rawWord) || rawWord;
     if (!cleanWord) return;
 
+    const rate = getSpeechRate();
+
+    // 停止前一次播放
     if (currentAudio) {
       currentAudio.pause();
-      currentAudio.src = "";
+      currentAudio.currentTime = 0;
       currentAudio = null;
     }
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
 
-    const rate = getSpeechRate();
-    const encoded = encodeURIComponent(cleanWord);
+    // 含有空格的短語或句子：直接在點擊時以同步方式調用短句通道
+    if (/\s/.test(cleanWord)) {
+      playPhraseSpeech(cleanWord, rate);
+      return;
+    }
 
-    // 第一優先：跨域高相容真人發音音訊流
-    const audioUrl = `https://dict.youdao.com/dictvoice?audio=${encoded}&le=ko`;
-    const audio = new Audio(audioUrl);
+    // 單詞：調用標準字典音訊
+    const streamUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanWord)}&le=ko`;
+    const audio = new Audio(streamUrl);
     currentAudio = audio;
     audio.playbackRate = rate;
 
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch(() => {
-        // 第二備援：Safari 本地語音合成
-        fallbackNativeSpeech(cleanWord, rate);
+        playPhraseSpeech(cleanWord, rate);
       });
     }
   };
 
-  function fallbackNativeSpeech(cleanWord, rate) {
+  function playPhraseSpeech(text, rate) {
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
 
-    const utter = new SpeechSynthesisUtterance(cleanWord);
+    const utter = new SpeechSynthesisUtterance(text);
     utter.lang = "ko-KR";
     utter.rate = rate;
     utter.pitch = 1.0;
 
     const voices = window.speechSynthesis.getVoices();
-    const koVoice = voices.find(v => (v.lang === "ko-KR" || v.lang.startsWith("ko")) && /yuna|sora|enhanced|premium|natural/i.test(v.name))
-      || voices.find(v => v.lang === "ko-KR" || v.lang.startsWith("ko"))
+    const koVoice = voices.find(v => (v.lang === "ko-KR" || v.lang.startsWith("ko")) && /yuna|sora|compact|enhanced|natural/i.test(v.name))
+      || voices.find(v => v.lang.startsWith("ko"))
       || null;
 
     if (koVoice) utter.voice = koVoice;
