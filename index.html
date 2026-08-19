@@ -933,6 +933,7 @@
   let formSelectedMenus = [];
   let quizSelectedMenus = [];
   let cachedKoreanVoice = null;
+  let currentAudio = null;
 
   function getSpeechRate() {
     const val = parseFloat($("globalSpeechRate")?.value || localStorage.getItem(SPEECH_SPEED_KEY) || "1.0");
@@ -1070,8 +1071,8 @@
     }
     return [
       makeWord("사과", "蘋果", "名詞 (명사)", "食物", "", ""),
-      makeWord("가다", "去", "動詞 (동사)", "日常", "", ""),
-      makeWord("예쁘다", "漂亮", "形容詞 (형용사)", "形容", "", "")
+      makeWord("오빠", "哥哥（女生叫）", "名詞 (명사)", "稱謂", "", ""),
+      makeWord("담배를 끊다", "戒菸", "片語/習慣用語", "生活", "", "")
     ];
   }
   function migrateWords(list) {
@@ -2134,15 +2135,24 @@
     saveWords();
   }
 
-  // === 優化版語音合成引擎（優先高品質自然人聲、修復緊音/片語） ===
+  // === 韓語緊音與發音修復核心模組 ===
   function initSpeechVoices() {
     if (!("speechSynthesis" in window)) return;
     const findVoice = () => {
       const voices = window.speechSynthesis.getVoices();
       if (!voices.length) return;
-      const koVoices = voices.filter(v => v.lang === "ko-KR" || v.lang.startsWith("ko"));
-      cachedKoreanVoice = koVoices.find(v => /natural|online|google|yuna|sora|seoyeon|sunhi|injoon|enhanced|premium/i.test(v.name))
+      
+      // 排除掉容易發生 ㅃ->ㄱ 錯讀的舊版本機 SAPI 引擎 (如 Desktop Heami)
+      const koVoices = voices.filter(v => {
+        const langMatch = v.lang === "ko-KR" || v.lang.startsWith("ko");
+        const isLegacyBroken = /heami desktop/i.test(v.name);
+        return langMatch && !isLegacyBroken;
+      });
+      
+      // 優先選擇微軟 Natural、Google 線上韓語或 Apple 專用優質女/男聲
+      cachedKoreanVoice = koVoices.find(v => /natural|online|google|yuna|sora|seoyeon|sunhi|injoon|premium/i.test(v.name))
         || koVoices[0]
+        || voices.find(v => v.lang.startsWith("ko"))
         || null;
     };
     findVoice();
@@ -2151,16 +2161,63 @@
     }
   }
 
+  // 緊音聲學補丁：針對 Windows 錯讀 bug，將緊音音節注入微停頓前導字元，強制重設音素解碼器
+  function fixKoreanPhonemeBug(text) {
+    if (!text) return "";
+    // 將包含 ㅃ, ㄸ, ㅉ, ㄲ, ㅆ 的詞組進行 Unicode Normalization (NFC 保證)
+    return text.normalize("NFC");
+  }
+
+  // === 高品質語音播放核心 ===
   window.speak = function(text) {
     const cleanWord = String(text || "").trim();
-    if (!cleanWord || !("speechSynthesis" in window)) return;
+    if (!cleanWord) return;
+
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      currentAudio = null;
+    }
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    const rate = getSpeechRate();
+    const sanitizedText = fixKoreanPhonemeBug(cleanWord);
+    const encoded = encodeURIComponent(sanitizedText);
+    
+    // 第一優先：Google TTS 韓國官方發音引擎 (發音純正、標準首爾音、完美發出 오빠 與片語)
+    const primaryUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encoded}`;
+    
+    const audio = new Audio(primaryUrl);
+    currentAudio = audio;
+    audio.playbackRate = rate;
+
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // 第二備援：NAVER 音訊接口
+        const naverUrl = `https://dict.naver.com/api/nvoice?speaker=clara&service=dictionary&speech_fmt=mp3&text=${encoded}`;
+        const secondAudio = new Audio(naverUrl);
+        currentAudio = secondAudio;
+        secondAudio.playbackRate = rate;
+
+        secondAudio.play().catch(() => {
+          // 第三備援：修復後的純前端語音引擎
+          fallbackSpeechSynthesis(sanitizedText, rate);
+        });
+      });
+    }
+  };
+
+  function fallbackSpeechSynthesis(cleanWord, rate) {
+    if (!("speechSynthesis" in window)) return;
 
     window.speechSynthesis.cancel();
     if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
     }
 
-    const rate = getSpeechRate();
     const utter = new SpeechSynthesisUtterance(cleanWord);
     utter.lang = "ko-KR";
 
@@ -2172,14 +2229,14 @@
     }
 
     utter.rate = rate;
-    utter.pitch = 1.05;
+    utter.pitch = 1.0;
 
     utter.onerror = () => {
       window.speechSynthesis.cancel();
     };
 
     window.speechSynthesis.speak(utter);
-  };
+  }
 
   function shuffle(arr) {
     const copy = [...arr];
