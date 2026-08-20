@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="referrer" content="no-referrer" />
   <title>韓文背單字 SRS</title>
   <style>
     :root {
@@ -914,7 +913,7 @@
   let quiz = null;
   let formSelectedMenus = [];
   let quizSelectedMenus = [];
-  let currentAudio = null;
+  let lockedFemaleVoice = null;
 
   function getSpeechRate() {
     const val = parseFloat($("globalSpeechRate")?.value || localStorage.getItem(SPEECH_SPEED_KEY) || "1.0");
@@ -1114,6 +1113,27 @@
     renderSelectOptions();
     bindEvents();
     renderAll();
+    setupVoices();
+  }
+
+  // === 強制鎖定最高品質女聲，排除低音質男聲與 compact voice ===
+  function setupVoices() {
+    if (!("speechSynthesis" in window)) return;
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return;
+      const koVoices = voices.filter(v => v.lang === "ko-KR" || v.lang.startsWith("ko"));
+      // 依序搜尋 Apple Yuna (增強/Siri)、Sora 或標準女性發音人，嚴格排除男聲 (Minho 等) 與 compact 引擎
+      lockedFemaleVoice = koVoices.find(v => /yuna|sora|siri/i.test(v.name) && !/compact/i.test(v.name))
+        || koVoices.find(v => /female|woman|girl/i.test(v.name))
+        || koVoices.find(v => /yuna|sora/i.test(v.name))
+        || koVoices[0]
+        || null;
+    };
+    loadVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
   }
 
   function renderSelectOptions() {
@@ -1354,9 +1374,6 @@
     $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
     $("globalSpeechRate").addEventListener("change", (e) => {
       localStorage.setItem(SPEECH_SPEED_KEY, e.target.value);
-      if (currentAudio) {
-        currentAudio.playbackRate = getSpeechRate();
-      }
     });
     document.querySelectorAll("input[name='scope']").forEach(r => {
       r.addEventListener("change", updateQuestionLimit);
@@ -2125,38 +2142,51 @@
     saveWords();
   }
 
-  // === 韓文純淨字串提取 ===
-  function sanitizeKoreanText(text) {
-    return String(text || "")
+  // === 韓語字串淨化與促音持阻標記 ===
+  function sanitizeKoreanPhonetics(text) {
+    if (!text) return "";
+    let str = String(text)
       .replace(/\(.*?\)/g, "")
       .replace(/\[.*?\]/g, "")
       .replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9\s]/g, " ")
       .trim()
       .replace(/\s+/g, " ");
+
+    // 針對開音節接 ㅃ/ㅉ 緊音（如 오빠），在音節間加入不可見音標分隔符，促使女聲引擎完成閉唇持阻
+    str = str.replace(/([가-힣])(빠|뻐|뽀|뿌|삐|빨|빵)/g, "$1\u200B$2");
+    return str;
   }
 
-  // === NAVER 官方高音質發音通道 ===
+  // === 高品質鎖定女聲發音核心 ===
   window.speak = function(text) {
     const rawWord = String(text || "").trim();
-    const cleanWord = sanitizeKoreanText(rawWord) || rawWord;
-    if (!cleanWord) return;
+    const cleanWord = sanitizeKoreanPhonetics(rawWord) || rawWord;
+    if (!cleanWord || !("speechSynthesis" in window)) return;
 
     const rate = getSpeechRate();
 
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.src = "";
-      currentAudio = null;
+    // 1. 強制重置隊列並解鎖暫停狀態
+    window.speechSynthesis.cancel();
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
     }
 
-    // 透過公共代理鏡像調用 NAVER 辭典發音人 Clara
-    const encoded = encodeURIComponent(cleanWord);
-    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encoded}`;
-    
-    const audio = new Audio(audioUrl);
-    currentAudio = audio;
-    audio.playbackRate = rate;
-    audio.play().catch(() => {});
+    // 2. 建立原生發音實例
+    const utter = new SpeechSynthesisUtterance(cleanWord);
+    utter.lang = "ko-KR";
+    utter.rate = rate;
+    utter.pitch = 1.0;
+
+    // 3. 強制使用鎖定的高品質女聲（Yuna），防止男聲出現發錯 ㄷ/ㅍ
+    if (!lockedFemaleVoice) {
+      setupVoices();
+    }
+    if (lockedFemaleVoice) {
+      utter.voice = lockedFemaleVoice;
+    }
+
+    // 4. 同步播放
+    window.speechSynthesis.speak(utter);
   };
 
   function shuffle(arr) {
