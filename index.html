@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="referrer" content="no-referrer" />
   <title>韓文背單字 SRS</title>
   <style>
     :root {
@@ -914,7 +913,7 @@
   let quiz = null;
   let formSelectedMenus = [];
   let quizSelectedMenus = [];
-  let currentAudio = null;
+  let activeKoreanVoice = null;
 
   function getSpeechRate() {
     const val = parseFloat($("globalSpeechRate")?.value || localStorage.getItem(SPEECH_SPEED_KEY) || "1.0");
@@ -1114,6 +1113,24 @@
     renderSelectOptions();
     bindEvents();
     renderAll();
+    setupVoices();
+  }
+
+  function setupVoices() {
+    if (!("speechSynthesis" in window)) return;
+    const loadVoices = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return;
+      const koVoices = voices.filter(v => v.lang === "ko-KR" || v.lang.startsWith("ko"));
+      activeKoreanVoice = koVoices.find(v => /yuna|sora|premium|enhanced|natural/i.test(v.name))
+        || koVoices[0]
+        || voices.find(v => v.lang.startsWith("ko"))
+        || null;
+    };
+    loadVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
   }
 
   function renderSelectOptions() {
@@ -1354,9 +1371,6 @@
     $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
     $("globalSpeechRate").addEventListener("change", (e) => {
       localStorage.setItem(SPEECH_SPEED_KEY, e.target.value);
-      if (currentAudio) {
-        currentAudio.playbackRate = getSpeechRate();
-      }
     });
     document.querySelectorAll("input[name='scope']").forEach(r => {
       r.addEventListener("change", updateQuestionLimit);
@@ -2125,8 +2139,8 @@
     saveWords();
   }
 
-  // === 純淨韓語文字提取 ===
-  function cleanKoreanForAudio(text) {
+  // === 純淨韓文提取（保留所有正規諺文與空格） ===
+  function sanitizeKoreanText(text) {
     return String(text || "")
       .replace(/\(.*?\)/g, "")
       .replace(/\[.*?\]/g, "")
@@ -2135,57 +2149,41 @@
       .replace(/\s+/g, " ");
   }
 
-  // === 高清晰標準發音播放核心（排除低音質接口與電子雜音） ===
+  // === 穩定同步語音發音核心（徹底解決 Safari 鎖死與發音失真） ===
   window.speak = function(text) {
     const rawWord = String(text || "").trim();
-    const cleanWord = cleanKoreanForAudio(rawWord) || rawWord;
-    if (!cleanWord) return;
+    const cleanWord = sanitizeKoreanText(rawWord) || rawWord;
+    if (!cleanWord || !("speechSynthesis" in window)) return;
 
     const rate = getSpeechRate();
 
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.src = "";
-      currentAudio = null;
-    }
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
-
-    // 採用標準首爾音高清母語音訊串流（消除低頻雜音與破音）
-    const audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanWord)}&type=1&le=ko`;
-    const audio = new Audio(audioUrl);
-    currentAudio = audio;
-    audio.playbackRate = rate;
-
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        fallbackWebSpeech(cleanWord, rate);
-      });
-    }
-  };
-
-  function fallbackWebSpeech(text, rate) {
-    if (!("speechSynthesis" in window)) return;
+    // 1. 同步清理隊列並強制解除 Safari 暫停狀態
     window.speechSynthesis.cancel();
     if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
     }
 
-    const utter = new SpeechSynthesisUtterance(text);
+    // 2. 建立原生發音物件
+    const utter = new SpeechSynthesisUtterance(cleanWord);
     utter.lang = "ko-KR";
     utter.rate = rate;
     utter.pitch = 1.0;
 
-    const voices = window.speechSynthesis.getVoices();
-    const koVoice = voices.find(v => (v.lang === "ko-KR" || v.lang.startsWith("ko")) && /yuna|sora|natural|enhanced/i.test(v.name))
-      || voices.find(v => v.lang === "ko-KR" || v.lang.startsWith("ko"))
-      || null;
+    // 3. 綁定系統高品質韓語發音人（Yuna / Sora 等）
+    if (!activeKoreanVoice) {
+      setupVoices();
+    }
+    if (activeKoreanVoice) {
+      utter.voice = activeKoreanVoice;
+    }
 
-    if (koVoice) utter.voice = koVoice;
+    // 4. 防止 Safari 自動休眠佇列
+    utter.onerror = () => {
+      window.speechSynthesis.cancel();
+    };
+
     window.speechSynthesis.speak(utter);
-  }
+  };
 
   function shuffle(arr) {
     const copy = [...arr];
