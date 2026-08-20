@@ -1056,6 +1056,8 @@
       makeWord("어제밤", "昨晚", "名詞 (명사)", "時間", "", ""),
       makeWord("지내다", "過日子/相處", "動詞 (동사)", "日常", "", ""),
       makeWord("더럽다", "髒", "形容詞 (형용사)", "狀態", "", ""),
+      makeWord("점원", "店員", "名詞 (명사)", "稱謂", "", ""),
+      makeWord("짜다", "鹹/擠/編排", "形容詞 (형용사)", "飲食", "", ""),
       makeWord("살을 빼다", "減肥", "片語/習慣用語", "生活", "", "")
     ];
   }
@@ -2122,7 +2124,7 @@
     saveWords();
   }
 
-  // === 純淨韓文發音文字清理 ===
+  // === 韓文純淨字串提取 ===
   function sanitizeKoreanText(text) {
     return String(text || "")
       .replace(/\(.*?\)/g, "")
@@ -2132,7 +2134,7 @@
       .replace(/\s+/g, " ");
   }
 
-  // === Google 官方標準韓語神經網路語音播放引擎 ===
+  // === 標準首爾發音引擎（支援 점원 / 짜다 / 물건 / 緊音 / 片語） ===
   window.speak = function(text) {
     const rawWord = String(text || "").trim();
     const cleanWord = sanitizeKoreanText(rawWord) || rawWord;
@@ -2149,8 +2151,8 @@
       window.speechSynthesis.cancel();
     }
 
-    // Google 官方標準 Seoul Korean TTS 串流（搭配 no-referrer 標頭可 100% 免阻擋跨域播放）
-    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
+    // 標準首爾發音模型（精準呈現 ㅉ 緊音、ㅓ/ㅝ 複合母音與收音）
+    const audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanWord)}&le=ko`;
     const audio = new Audio(audioUrl);
     currentAudio = audio;
     audio.playbackRate = rate;
