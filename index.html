@@ -1086,17 +1086,18 @@
     `).join("");
   }
   function loadWords() {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
+    // 優先讀取新版 key，若無則 fallback 到舊版，若皆無則載入預設範例
+    const rawV2 = localStorage.getItem(STORAGE_KEY);
+    if (rawV2) {
       try {
-        const parsed = JSON.parse(raw);
+        const parsed = JSON.parse(rawV2);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch (_) {}
     }
-    const oldRaw = localStorage.getItem(OLD_STORAGE_KEY);
-    if (oldRaw) {
+    const rawV1 = localStorage.getItem(OLD_STORAGE_KEY);
+    if (rawV1) {
       try {
-        const parsedOld = JSON.parse(oldRaw);
+        const parsedOld = JSON.parse(rawV1);
         if (Array.isArray(parsedOld) && parsedOld.length > 0) return parsedOld;
       } catch (_) {}
     }
