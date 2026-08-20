@@ -1474,10 +1474,11 @@
   function updateQuizVoiceToggleState() {
     if (!quiz) return;
     const item = quiz.items[quiz.index];
-    const override = item.voiceOverride || "auto";
+    const latestItem = words.find(w => w.id === item.id) || item;
+    const override = latestItem.voiceOverride || "auto";
     const buttons = $("quizVoiceToggleGroup").querySelectorAll(".voice-tag-btn");
     buttons.forEach(btn => {
-      const modeValue = btn.getAttribute("onclick").includes("dict") ? "dict" : "auto";
+      const modeValue = btn.textContent === "辭典" ? "dict" : "auto";
       btn.classList.toggle("active", modeValue === override);
     });
   }
