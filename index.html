@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="referrer" content="no-referrer" />
   <title>韓文背單字 SRS</title>
+  <!-- 載入高音質標準韓語發音引擎 -->
+  <script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE_KEY"></script>
   <style>
     :root {
       --bg: #050505;
@@ -914,7 +915,6 @@
   let quiz = null;
   let formSelectedMenus = [];
   let quizSelectedMenus = [];
-  let currentAudio = null;
 
   function getSpeechRate() {
     const val = parseFloat($("globalSpeechRate")?.value || localStorage.getItem(SPEECH_SPEED_KEY) || "1.0");
@@ -1052,7 +1052,7 @@
     }
     return [
       makeWord("사과", "蘋果", "名詞 (명사)", "食物", "", ""),
-      makeWord("독서", "讀書/閱讀", "名詞 (명사)", "生活", "", ""),
+      makeWord("독서", "閱讀/讀書", "名詞 (명사)", "生活", "", ""),
       makeWord("세일", "特價/打折", "名詞 (명사)", "購物", "", ""),
       makeWord("청바지", "牛仔褲", "名詞 (명사)", "服飾", "", ""),
       makeWord("차다", "踢/冷/戴", "動詞 (동사)", "日常", "", ""),
@@ -1353,9 +1353,6 @@
     $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
     $("globalSpeechRate").addEventListener("change", (e) => {
       localStorage.setItem(SPEECH_SPEED_KEY, e.target.value);
-      if (currentAudio) {
-        currentAudio.playbackRate = getSpeechRate();
-      }
     });
     document.querySelectorAll("input[name='scope']").forEach(r => {
       r.addEventListener("change", updateQuestionLimit);
@@ -2134,7 +2131,7 @@
       .replace(/\s+/g, " ");
   }
 
-  // === 高傳真標準韓語發音引擎 ===
+  // === 高傳真標準韓語發音核心 ===
   window.speak = function(text) {
     const rawWord = String(text || "").trim();
     const cleanWord = sanitizeKoreanText(rawWord) || rawWord;
@@ -2142,51 +2139,22 @@
 
     const rate = getSpeechRate();
 
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.src = "";
-      currentAudio = null;
+    // 優先使用 ResponsiveVoice 高取樣率韓語發音人
+    if (window.responsiveVoice && responsiveVoice.voiceSupport()) {
+      responsiveVoice.cancel();
+      responsiveVoice.speak(cleanWord, "Korean Female", { rate: rate });
+      return;
     }
+
+    // 備援：Web Speech API
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
-    }
-
-    const encoded = encodeURIComponent(cleanWord);
-    // 高音質神經網路韓語串流（清晰分辨 ㄷ/ㅍ、ㅊ 激音、收音 ㅇ/ㄴ、雙子音與片語）
-    const audioUrl = `https://translate.google.com.hk/translate_tts?ie=UTF-8&tl=ko-KR&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encoded}`;
-    
-    const audio = new Audio(audioUrl);
-    currentAudio = audio;
-    audio.playbackRate = rate;
-
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        fallbackWebSpeech(cleanWord, rate);
-      });
+      const utter = new SpeechSynthesisUtterance(cleanWord);
+      utter.lang = "ko-KR";
+      utter.rate = rate;
+      window.speechSynthesis.speak(utter);
     }
   };
-
-  function fallbackWebSpeech(text, rate) {
-    if (!("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
-    }
-
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = "ko-KR";
-    utter.rate = rate;
-    utter.pitch = 1.0;
-
-    const voices = window.speechSynthesis.getVoices();
-    const koVoice = voices.find(v => (v.lang === "ko-KR" || v.lang.startsWith("ko")) && /yuna|sora|natural|enhanced/i.test(v.name))
-      || voices.find(v => v.lang === "ko-KR" || v.lang.startsWith("ko"))
-      || null;
-
-    if (koVoice) utter.voice = koVoice;
-    window.speechSynthesis.speak(utter);
-  }
 
   function shuffle(arr) {
     const copy = [...arr];
