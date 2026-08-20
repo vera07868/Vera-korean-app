@@ -1086,19 +1086,19 @@
     `).join("");
   }
   function loadWords() {
-    // 優先讀取新版 key，若無則 fallback 到舊版，若皆無則載入預設範例
+    // 優先讀取新版，再讀舊版，最後才使用預設範例（保證絕不歸零）
     const rawV2 = localStorage.getItem(STORAGE_KEY);
     if (rawV2) {
       try {
         const parsed = JSON.parse(rawV2);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       } catch (_) {}
     }
     const rawV1 = localStorage.getItem(OLD_STORAGE_KEY);
     if (rawV1) {
       try {
         const parsedOld = JSON.parse(rawV1);
-        if (Array.isArray(parsedOld) && parsedOld.length > 0) return parsedOld;
+        if (Array.isArray(parsedOld)) return parsedOld;
       } catch (_) {}
     }
     return [
@@ -1450,7 +1450,7 @@
     $("quizImportantBtn").addEventListener("click", () => quiz && window.toggleWordFlag(quiz.items[quiz.index].id, "important"));
     $("backupBtn").addEventListener("click", backupCopy);
     $("downloadBackupBtn").addEventListener("click", downloadBackupFile);
-    $("chooseBackupFileBtn").addEventListener("click", () => $("backupFileInput").click());
+    $("chooseBackupFileBtn").addEventListener("click", $("backupFileInput").click.bind($("backupFileInput")));
     $("backupFileInput").addEventListener("change", importBackupFile);
     $("appendImportBtn").addEventListener("click", appendImportBackup);
     $("importBtn").addEventListener("click", importBackup);
