@@ -1477,10 +1477,8 @@
     const override = item.voiceOverride || "auto";
     const buttons = $("quizVoiceToggleGroup").querySelectorAll(".voice-tag-btn");
     buttons.forEach(btn => {
-      const text = btn.textContent;
-      const isMatch = (text === "自動" && override === "auto") ||
-                      (text === "辭典" && override === "dict");
-      btn.classList.toggle("active", isMatch);
+      const modeValue = btn.getAttribute("onclick").includes("dict") ? "dict" : "auto";
+      btn.classList.toggle("active", modeValue === override);
     });
   }
 
@@ -2249,7 +2247,6 @@
       window.speechSynthesis.cancel();
     }
 
-    // 若選用「辭典」模式，直接播放高音質 TTS
     if (targetMode === "dict") {
       const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
       const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
@@ -2262,7 +2259,6 @@
       return;
     }
 
-    // 若選用「自動」模式，則直接走自然語音
     fallbackWebSpeech(rawWord, rate);
   };
 
@@ -2287,7 +2283,7 @@
     const utter = new SpeechSynthesisUtterance(processedText);
     utter.lang = "ko-KR";
     utter.rate = rate;
-    utter.pitch = 1.0; // 恢復自然預設音高
+    utter.pitch = 1.0;
 
     window.speechSynthesis.speak(utter);
   }
