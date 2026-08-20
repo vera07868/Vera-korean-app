@@ -1052,6 +1052,8 @@
     }
     return [
       makeWord("사과", "蘋果", "名詞 (명사)", "食物", "", ""),
+      makeWord("새일", "新事物/新工作", "名詞 (명사)", "生活", "", ""),
+      makeWord("청바지", "牛仔褲", "名詞 (명사)", "服飾", "", ""),
       makeWord("물건", "物品", "名詞 (명사)", "生活", "", ""),
       makeWord("어제밤", "昨晚", "名詞 (명사)", "時間", "", ""),
       makeWord("지내다", "過日子/相處", "動詞 (동사)", "日常", "", ""),
@@ -2134,7 +2136,7 @@
       .replace(/\s+/g, " ");
   }
 
-  // === 標準首爾發音引擎（支援 점원 / 짜다 / 물건 / 緊音 / 片語） ===
+  // === 韓語高清晰標準發音引擎（支援空格、片語、收音與激音） ===
   window.speak = function(text) {
     const rawWord = String(text || "").trim();
     const cleanWord = sanitizeKoreanText(rawWord) || rawWord;
@@ -2151,8 +2153,8 @@
       window.speechSynthesis.cancel();
     }
 
-    // 標準首爾發音模型（精準呈現 ㅉ 緊音、ㅓ/ㅝ 複合母音與收音）
-    const audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanWord)}&le=ko`;
+    // Google 官方標準韓語音訊串流（透過 no-referrer 標頭可跨域直連，支援空格與片語）
+    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
     const audio = new Audio(audioUrl);
     currentAudio = audio;
     audio.playbackRate = rate;
@@ -2179,7 +2181,7 @@
 
     const voices = window.speechSynthesis.getVoices();
     const koVoice = voices.find(v => (v.lang === "ko-KR" || v.lang.startsWith("ko")) && /yuna|sora|natural|enhanced/i.test(v.name))
-      || voices.find(v => v.lang.startsWith("ko"))
+      || voices.find(v => v.lang === "ko-KR" || v.lang.startsWith("ko"))
       || null;
 
     if (koVoice) utter.voice = koVoice;
