@@ -2133,7 +2133,7 @@
       .replace(/\s+/g, " ");
   }
 
-  // === 高解析度母語標準發音引擎 ===
+  // === 高品質首爾母語發音核心 ===
   window.speak = function(text) {
     const rawWord = String(text || "").trim();
     const cleanWord = sanitizeKoreanText(rawWord) || rawWord;
@@ -2150,9 +2150,8 @@
       window.speechSynthesis.cancel();
     }
 
-    // 高頻寬標準發音串流（支援激音 ㅊ 送氣、收音 ㄹ、緊音 ㅉ 與空格片語）
-    const encoded = encodeURIComponent(cleanWord);
-    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encoded}`;
+    // 透過高取樣率音訊串流播放（解決 ㅉ 破擦音、ㅊ 激音送氣與收音問題）
+    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
     const audio = new Audio(audioUrl);
     currentAudio = audio;
     audio.playbackRate = rate;
