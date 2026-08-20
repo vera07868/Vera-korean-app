@@ -2249,14 +2249,21 @@
       window.speechSynthesis.cancel();
     }
 
-    const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
-    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
-    const audio = new Audio(audioUrl);
-    currentAudio = audio;
-    audio.playbackRate = rate;
-    audio.play().catch(() => {
-      fallbackWebSpeech(rawWord, rate);
-    });
+    // 若選用「辭典」模式，直接播放高音質 TTS
+    if (targetMode === "dict") {
+      const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
+      const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
+      const audio = new Audio(audioUrl);
+      currentAudio = audio;
+      audio.playbackRate = rate;
+      audio.play().catch(() => {
+        fallbackWebSpeech(rawWord, rate);
+      });
+      return;
+    }
+
+    // 若選用「自動」模式，則直接走自然語音
+    fallbackWebSpeech(rawWord, rate);
   };
 
   function fallbackWebSpeech(text, rate) {
@@ -2280,7 +2287,7 @@
     const utter = new SpeechSynthesisUtterance(processedText);
     utter.lang = "ko-KR";
     utter.rate = rate;
-    utter.pitch = 1.0;
+    utter.pitch = 1.0; // 恢復自然預設音高
 
     window.speechSynthesis.speak(utter);
   }
