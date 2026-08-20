@@ -710,8 +710,7 @@
         <span>👤 全域發音：</span>
         <select id="voiceGenderSelect" class="speed-select" aria-label="選擇全域發音人">
           <option value="dict" selected>辭典高音質 (推薦)</option>
-          <option value="female">女聲</option>
-          <option value="male">男聲</option>
+          <option value="auto">自動</option>
         </select>
       </div>
       <div class="speed-pill-control">
@@ -857,8 +856,6 @@
           <div class="voice-tag-group" id="quizVoiceToggleGroup">
             <button class="voice-tag-btn" type="button" onclick="setQuizVoiceOverride('auto')">自動</button>
             <button class="voice-tag-btn" type="button" onclick="setQuizVoiceOverride('dict')">辭典</button>
-            <button class="voice-tag-btn" type="button" onclick="setQuizVoiceOverride('female')">女聲</button>
-            <button class="voice-tag-btn" type="button" onclick="setQuizVoiceOverride('male')">男聲</button>
           </div>
         </div>
         <details class="quiz-custom-menu-fold">
@@ -1283,8 +1280,6 @@
               <div class="voice-tag-group">
                 <button class="voice-tag-btn ${override === 'auto' ? 'active' : ''}" type="button" onclick="setWordVoiceOverride('${w.id}', 'auto')">自動</button>
                 <button class="voice-tag-btn ${override === 'dict' ? 'active' : ''}" type="button" onclick="setWordVoiceOverride('${w.id}', 'dict')">辭典</button>
-                <button class="voice-tag-btn ${override === 'female' ? 'active' : ''}" type="button" onclick="setWordVoiceOverride('${w.id}', 'female')">女</button>
-                <button class="voice-tag-btn ${override === 'male' ? 'active' : ''}" type="button" onclick="setWordVoiceOverride('${w.id}', 'male')">男</button>
               </div>
               <button class="flag-btn favorite ${w.favorite ? "active" : ""}" type="button" title="我的最愛" aria-label="我的最愛" onclick="toggleWordFlag('${w.id}', 'favorite')">★</button>
               <button class="flag-btn important ${w.important ? "active" : ""}" type="button" title="驚嘆號" aria-label="驚嘆號" onclick="toggleWordFlag('${w.id}', 'important')">!</button>
@@ -1484,9 +1479,7 @@
     buttons.forEach(btn => {
       const text = btn.textContent;
       const isMatch = (text === "自動" && override === "auto") ||
-                      (text === "辭典" && override === "dict") ||
-                      (text === "女聲" && override === "female") ||
-                      (text === "男聲" && override === "male");
+                      (text === "辭典" && override === "dict");
       btn.classList.toggle("active", isMatch);
     });
   }
@@ -2256,24 +2249,17 @@
       window.speechSynthesis.cancel();
     }
 
-    // 模式 1：「辭典」模式 -> 直接調用權威字典高音質串流（最完美解決 ㄷ/ㅍ、ㅉ/ㅆ、收音與過濾問題）
-    if (targetMode === "dict") {
-      const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
-      const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
-      const audio = new Audio(audioUrl);
-      currentAudio = audio;
-      audio.playbackRate = rate;
-      audio.play().catch(() => {
-        fallbackWebSpeech(rawWord, rate, "female");
-      });
-      return;
-    }
-
-    // 模式 2 & 3：手動「女聲」或「男聲」 -> 調用 Web Speech API 配合音高與促音修正
-    fallbackWebSpeech(rawWord, rate, targetMode);
+    const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
+    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
+    const audio = new Audio(audioUrl);
+    currentAudio = audio;
+    audio.playbackRate = rate;
+    audio.play().catch(() => {
+      fallbackWebSpeech(rawWord, rate);
+    });
   };
 
-  function fallbackWebSpeech(text, rate, gender) {
+  function fallbackWebSpeech(text, rate) {
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
     if (window.speechSynthesis.paused) {
@@ -2294,7 +2280,7 @@
     const utter = new SpeechSynthesisUtterance(processedText);
     utter.lang = "ko-KR";
     utter.rate = rate;
-    utter.pitch = gender === "male" ? 0.65 : 1.0;
+    utter.pitch = 1.0;
 
     window.speechSynthesis.speak(utter);
   }
