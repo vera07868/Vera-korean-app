@@ -684,16 +684,26 @@
 <main class="container">
   <div class="header-bar">
     <h1>韓文背單字</h1>
-    <div class="speed-pill-control">
-      <span>🔊 語音速度：</span>
-      <select id="globalSpeechRate" class="speed-select" aria-label="全域語音速度">
-        <option value="0.5">0.5x 慢速</option>
-        <option value="0.75">0.75x 稍慢</option>
-        <option value="0.9">0.9x 偏慢</option>
-        <option value="1.0" selected>1.0x 正常</option>
-        <option value="1.25">1.25x 稍快</option>
-        <option value="1.5">1.5x 快速</option>
-      </select>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+      <div class="speed-pill-control">
+        <span>👤 發音人：</span>
+        <select id="voiceGenderSelect" class="speed-select" aria-label="選擇發音人">
+          <option value="auto">自動 (推薦女聲)</option>
+          <option value="female" selected>女聲 (清晰/適合多數單字)</option>
+          <option value="male">男聲 (適合독서等)</option>
+        </select>
+      </div>
+      <div class="speed-pill-control">
+        <span>🔊 語音速度：</span>
+        <select id="globalSpeechRate" class="speed-select" aria-label="全域語音速度">
+          <option value="0.5">0.5x 慢速</option>
+          <option value="0.75">0.75x 稍慢</option>
+          <option value="0.9">0.9x 偏慢</option>
+          <option value="1.0" selected>1.0x 正常</option>
+          <option value="1.25">1.25x 稍快</option>
+          <option value="1.5">1.5x 快速</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -902,6 +912,7 @@
   const OLD_STORAGE_KEY = "kwords-vocab-v1";
   const CUSTOM_MENU_KEY = "kwords-custom-menus-v1";
   const SPEECH_SPEED_KEY = "kwords-speech-rate-v1";
+  const VOICE_GENDER_KEY = "kwords-voice-gender-v1";
   const $ = (id) => document.getElementById(id);
   const dayMs = 24 * 60 * 60 * 1000;
   let words = migrateWords(loadWords());
@@ -913,11 +924,15 @@
   let quiz = null;
   let formSelectedMenus = [];
   let quizSelectedMenus = [];
-  let lockedFemaleVoice = null;
+  let koreanVoices = { female: null, male: null, default: null };
 
   function getSpeechRate() {
     const val = parseFloat($("globalSpeechRate")?.value || localStorage.getItem(SPEECH_SPEED_KEY) || "1.0");
     return isNaN(val) ? 1.0 : val;
+  }
+
+  function getVoiceGender() {
+    return $("voiceGenderSelect")?.value || localStorage.getItem(VOICE_GENDER_KEY) || "female";
   }
 
   function getEndOfToday() {
@@ -1109,6 +1124,10 @@
     if (savedSpeed && $("globalSpeechRate")) {
       $("globalSpeechRate").value = savedSpeed;
     }
+    const savedGender = localStorage.getItem(VOICE_GENDER_KEY);
+    if (savedGender && $("voiceGenderSelect")) {
+      $("voiceGenderSelect").value = savedGender;
+    }
     ensureCustomMenusFromWords();
     renderSelectOptions();
     bindEvents();
@@ -1116,19 +1135,25 @@
     setupVoices();
   }
 
-  // === 強制鎖定最高品質女聲，排除低音質男聲與 compact voice ===
+  // === 掃描並分類男聲與女聲引擎 ===
   function setupVoices() {
     if (!("speechSynthesis" in window)) return;
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
       if (!voices.length) return;
       const koVoices = voices.filter(v => v.lang === "ko-KR" || v.lang.startsWith("ko"));
-      // 依序搜尋 Apple Yuna (增強/Siri)、Sora 或標準女性發音人，嚴格排除男聲 (Minho 等) 與 compact 引擎
-      lockedFemaleVoice = koVoices.find(v => /yuna|sora|siri/i.test(v.name) && !/compact/i.test(v.name))
-        || koVoices.find(v => /female|woman|girl/i.test(v.name))
-        || koVoices.find(v => /yuna|sora/i.test(v.name))
+      
+      koreanVoices.female = koVoices.find(v => /yuna|sora|siri|enhanced|natural/i.test(v.name) && !/compact|minho/i.test(v.name))
+        || koVoices.find(v => /female|woman/i.test(v.name))
         || koVoices[0]
         || null;
+
+      koreanVoices.male = koVoices.find(v => /minho|male|man/i.test(v.name))
+        || koVoices.find(v => v !== koreanVoices.female)
+        || koVoices[0]
+        || null;
+
+      koreanVoices.default = koreanVoices.female || koVoices[0] || null;
     };
     loadVoices();
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
@@ -1317,7 +1342,7 @@
     if (libraryView === "mastered") {
       return copy.sort((a, b) => {
         return getAccuracyRate(b) - getAccuracyRate(a)
-          || (getWordStats(b).attempts || 0) - (getWordStats(a).attempts || 0);
+          || (getWordStats(b).attempts || 0) - (getWordStats(b).attempts || 0);
       });
     }
     return copy;
@@ -1374,6 +1399,9 @@
     $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
     $("globalSpeechRate").addEventListener("change", (e) => {
       localStorage.setItem(SPEECH_SPEED_KEY, e.target.value);
+    });
+    $("voiceGenderSelect").addEventListener("change", (e) => {
+      localStorage.setItem(VOICE_GENDER_KEY, e.target.value);
     });
     document.querySelectorAll("input[name='scope']").forEach(r => {
       r.addEventListener("change", updateQuestionLimit);
@@ -1515,7 +1543,7 @@
       continueBtn.textContent = editingId ? "仍要更新成重複單字" : "仍要重複儲存";
       editBtn.classList.remove("hidden");
       editBtn.textContent = "查看原單字";
-      box.classList.remove("hidden");
+      box.classList.add("hidden");
       return;
     }
     box.classList.add("hidden");
@@ -2142,7 +2170,7 @@
     saveWords();
   }
 
-  // === 韓語字串淨化與促音持阻標記 ===
+  // === 韓文純淨字串與 오빠 促音修正 ===
   function sanitizeKoreanPhonetics(text) {
     if (!text) return "";
     let str = String(text)
@@ -2152,40 +2180,39 @@
       .trim()
       .replace(/\s+/g, " ");
 
-    // 針對開音節接 ㅃ/ㅉ 緊音（如 오빠），在音節間加入不可見音標分隔符，促使女聲引擎完成閉唇持阻
+    // 針對女聲處理開音節接 ㅃ 緊音（如 오빠 -> 옵.빠）
     str = str.replace(/([가-힣])(빠|뻐|뽀|뿌|삐|빨|빵)/g, "$1\u200B$2");
     return str;
   }
 
-  // === 高品質鎖定女聲發音核心 ===
+  // === 支援手動選擇發音人（女聲/男聲）的播放核心 ===
   window.speak = function(text) {
     const rawWord = String(text || "").trim();
     const cleanWord = sanitizeKoreanPhonetics(rawWord) || rawWord;
     if (!cleanWord || !("speechSynthesis" in window)) return;
 
     const rate = getSpeechRate();
+    const genderChoice = getVoiceGender();
 
-    // 1. 強制重置隊列並解鎖暫停狀態
     window.speechSynthesis.cancel();
     if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
     }
 
-    // 2. 建立原生發音實例
     const utter = new SpeechSynthesisUtterance(cleanWord);
     utter.lang = "ko-KR";
     utter.rate = rate;
     utter.pitch = 1.0;
 
-    // 3. 強制使用鎖定的高品質女聲（Yuna），防止男聲出現發錯 ㄷ/ㅍ
-    if (!lockedFemaleVoice) {
-      setupVoices();
-    }
-    if (lockedFemaleVoice) {
-      utter.voice = lockedFemaleVoice;
+    // 根據介面下拉選單決定發音人
+    if (genderChoice === "female" && koreanVoices.female) {
+      utter.voice = koreanVoices.female;
+    } else if (genderChoice === "male" && koreanVoices.male) {
+      utter.voice = koreanVoices.male;
+    } else {
+      utter.voice = koreanVoices.default;
     }
 
-    // 4. 同步播放
     window.speechSynthesis.speak(utter);
   };
 
