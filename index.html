@@ -1052,6 +1052,7 @@
     }
     return [
       makeWord("사과", "蘋果", "名詞 (명사)", "食物", "", ""),
+      makeWord("독서", "讀書/閱讀", "名詞 (명사)", "生活", "", ""),
       makeWord("세일", "特價/打折", "名詞 (명사)", "購物", "", ""),
       makeWord("청바지", "牛仔褲", "名詞 (명사)", "服飾", "", ""),
       makeWord("차다", "踢/冷/戴", "動詞 (동사)", "日常", "", ""),
@@ -2133,7 +2134,7 @@
       .replace(/\s+/g, " ");
   }
 
-  // === 高品質首爾母語發音核心 ===
+  // === 高傳真標準韓語發音引擎 ===
   window.speak = function(text) {
     const rawWord = String(text || "").trim();
     const cleanWord = sanitizeKoreanText(rawWord) || rawWord;
@@ -2150,8 +2151,10 @@
       window.speechSynthesis.cancel();
     }
 
-    // 透過高取樣率音訊串流播放（解決 ㅉ 破擦音、ㅊ 激音送氣與收音問題）
-    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
+    const encoded = encodeURIComponent(cleanWord);
+    // 高音質神經網路韓語串流（清晰分辨 ㄷ/ㅍ、ㅊ 激音、收音 ㅇ/ㄴ、雙子音與片語）
+    const audioUrl = `https://translate.google.com.hk/translate_tts?ie=UTF-8&tl=ko-KR&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encoded}`;
+    
     const audio = new Audio(audioUrl);
     currentAudio = audio;
     audio.playbackRate = rate;
