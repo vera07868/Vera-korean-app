@@ -2253,7 +2253,11 @@
       const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
       const audio = new Audio(audioUrl);
       currentAudio = audio;
-      audio.playbackRate = rate;
+      
+      // 校正係數：讓 Google 辭典音檔的速度與系統語音的倍率更一致
+      const correctedRate = rate < 1.0 ? rate * 0.9 : rate * 1.15;
+      audio.playbackRate = Math.max(0.4, Math.min(2.0, correctedRate));
+
       audio.play().catch(() => {
         fallbackWebSpeech(rawWord, rate);
       });
