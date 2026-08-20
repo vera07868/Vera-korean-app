@@ -714,8 +714,19 @@
         </select>
       </div>
       <div class="speed-pill-control">
-        <span>🔊 語音速度：</span>
-        <select id="globalSpeechRate" class="speed-select" aria-label="全域語音速度">
+        <span>📚 辭典速度：</span>
+        <select id="dictSpeechRate" class="speed-select" aria-label="辭典語音速度">
+          <option value="0.5">0.5x 慢速</option>
+          <option value="0.75">0.75x 稍慢</option>
+          <option value="0.9">0.9x 偏慢</option>
+          <option value="1.0" selected>1.0x 正常</option>
+          <option value="1.25">1.25x 稍快</option>
+          <option value="1.5">1.5x 快速</option>
+        </select>
+      </div>
+      <div class="speed-pill-control">
+        <span>🤖 自動速度：</span>
+        <select id="autoSpeechRate" class="speed-select" aria-label="自動語音速度">
           <option value="0.5">0.5x 慢速</option>
           <option value="0.75">0.75x 稍慢</option>
           <option value="0.9">0.9x 偏慢</option>
@@ -938,7 +949,8 @@
   const STORAGE_KEY = "kwords-vocab-v2";
   const OLD_STORAGE_KEY = "kwords-vocab-v1";
   const CUSTOM_MENU_KEY = "kwords-custom-menus-v1";
-  const SPEECH_SPEED_KEY = "kwords-speech-rate-v1";
+  const DICT_SPEECH_SPEED_KEY = "kwords-dict-speech-rate-v1";
+  const AUTO_SPEECH_SPEED_KEY = "kwords-auto-speech-rate-v1";
   const VOICE_GENDER_KEY = "kwords-voice-gender-v1";
   const $ = (id) => document.getElementById(id);
   const dayMs = 24 * 60 * 60 * 1000;
@@ -953,8 +965,13 @@
   let quizSelectedMenus = [];
   let currentAudio = null;
 
-  function getSpeechRate() {
-    const val = parseFloat($("globalSpeechRate")?.value || localStorage.getItem(SPEECH_SPEED_KEY) || "1.0");
+  function getDictSpeechRate() {
+    const val = parseFloat($("dictSpeechRate")?.value || localStorage.getItem(DICT_SPEECH_SPEED_KEY) || "1.0");
+    return isNaN(val) ? 1.0 : val;
+  }
+
+  function getAutoSpeechRate() {
+    const val = parseFloat($("autoSpeechRate")?.value || localStorage.getItem(AUTO_SPEECH_SPEED_KEY) || "1.0");
     return isNaN(val) ? 1.0 : val;
   }
 
@@ -1157,9 +1174,13 @@
     renderAll();
   }
   function init() {
-    const savedSpeed = localStorage.getItem(SPEECH_SPEED_KEY);
-    if (savedSpeed && $("globalSpeechRate")) {
-      $("globalSpeechRate").value = savedSpeed;
+    const savedDictSpeed = localStorage.getItem(DICT_SPEECH_SPEED_KEY);
+    if (savedDictSpeed && $("dictSpeechRate")) {
+      $("dictSpeechRate").value = savedDictSpeed;
+    }
+    const savedAutoSpeed = localStorage.getItem(AUTO_SPEECH_SPEED_KEY);
+    if (savedAutoSpeed && $("autoSpeechRate")) {
+      $("autoSpeechRate").value = savedAutoSpeed;
     }
     const savedGender = localStorage.getItem(VOICE_GENDER_KEY);
     if (savedGender && $("voiceGenderSelect")) {
@@ -1412,11 +1433,14 @@
     $("questionCount").addEventListener("input", updateQuestionLimit);
     $("accuracyRateThreshold").addEventListener("input", updateQuestionLimit);
     $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
-    $("globalSpeechRate").addEventListener("change", (e) => {
-      localStorage.setItem(SPEECH_SPEED_KEY, e.target.value);
+    $("dictSpeechRate").addEventListener("change", (e) => {
+      localStorage.setItem(DICT_SPEECH_SPEED_KEY, e.target.value);
       if (currentAudio) {
-        currentAudio.playbackRate = getSpeechRate();
+        currentAudio.playbackRate = getDictSpeechRate();
       }
+    });
+    $("autoSpeechRate").addEventListener("change", (e) => {
+      localStorage.setItem(AUTO_SPEECH_SPEED_KEY, e.target.value);
     });
     $("voiceGenderSelect").addEventListener("change", (e) => {
       localStorage.setItem(VOICE_GENDER_KEY, e.target.value);
@@ -2236,7 +2260,6 @@
     const rawWord = String(text || "").trim();
     if (!rawWord) return;
 
-    const rate = getSpeechRate();
     const targetMode = mode || getGlobalVoiceGender();
 
     if (currentAudio) {
@@ -2253,18 +2276,15 @@
       const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
       const audio = new Audio(audioUrl);
       currentAudio = audio;
-      
-      // 校正係數：讓 Google 辭典音檔的速度與系統語音的倍率更一致
-      const correctedRate = rate < 1.0 ? rate * 0.9 : rate * 1.15;
-      audio.playbackRate = Math.max(0.4, Math.min(2.0, correctedRate));
+      audio.playbackRate = getDictSpeechRate();
 
       audio.play().catch(() => {
-        fallbackWebSpeech(rawWord, rate);
+        fallbackWebSpeech(rawWord, getAutoSpeechRate());
       });
       return;
     }
 
-    fallbackWebSpeech(rawWord, rate);
+    fallbackWebSpeech(rawWord, getAutoSpeechRate());
   };
 
   function fallbackWebSpeech(text, rate) {
