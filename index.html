@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="no-referrer" />
   <title>韓文背單字 SRS</title>
   <style>
     :root {
@@ -913,7 +914,7 @@
   let quiz = null;
   let formSelectedMenus = [];
   let quizSelectedMenus = [];
-  let activeKoreanVoice = null;
+  let currentAudio = null;
 
   function getSpeechRate() {
     const val = parseFloat($("globalSpeechRate")?.value || localStorage.getItem(SPEECH_SPEED_KEY) || "1.0");
@@ -1052,12 +1053,11 @@
     return [
       makeWord("사과", "蘋果", "名詞 (명사)", "食物", "", ""),
       makeWord("오빠", "哥哥（女生叫）", "名詞 (명사)", "稱謂", "", ""),
-      makeWord("유학하다", "留學", "動詞 (동사)", "生活", "", ""),
-      makeWord("독서", "閱讀/讀書", "名詞 (명사)", "生活", "", ""),
-      makeWord("세일", "特價/打折", "名詞 (명사)", "購物", "", ""),
-      makeWord("청바지", "牛仔褲", "名詞 (명사)", "服飾", "", ""),
-      makeWord("차다", "踢/冷/戴", "動詞 (동사)", "日常", "", ""),
       makeWord("짜다", "鹹/擠/編排", "形容詞 (형용사)", "飲食", "", ""),
+      makeWord("차다", "踢/冷/戴", "動詞 (동사)", "日常", "", ""),
+      makeWord("세일", "特價/打折", "名詞 (명사)", "購物", "", ""),
+      makeWord("독서", "閱讀/讀書", "名詞 (명사)", "生活", "", ""),
+      makeWord("유학하다", "留學", "動詞 (동사)", "生活", "", ""),
       makeWord("살을 빼다", "減肥", "片語/習慣用語", "生活", "", ""),
       makeWord("담배를 끊다", "戒菸", "片語/習慣用語", "生活", "", "")
     ];
@@ -1114,24 +1114,6 @@
     renderSelectOptions();
     bindEvents();
     renderAll();
-    setupVoices();
-  }
-
-  function setupVoices() {
-    if (!("speechSynthesis" in window)) return;
-    const loadVoices = () => {
-      const voices = window.speechSynthesis.getVoices();
-      if (!voices.length) return;
-      const koVoices = voices.filter(v => v.lang === "ko-KR" || v.lang.startsWith("ko"));
-      activeKoreanVoice = koVoices.find(v => /yuna|sora|enhanced|premium|natural/i.test(v.name))
-        || koVoices[0]
-        || voices.find(v => v.lang.startsWith("ko"))
-        || null;
-    };
-    loadVoices();
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
   }
 
   function renderSelectOptions() {
@@ -1372,6 +1354,9 @@
     $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
     $("globalSpeechRate").addEventListener("change", (e) => {
       localStorage.setItem(SPEECH_SPEED_KEY, e.target.value);
+      if (currentAudio) {
+        currentAudio.playbackRate = getSpeechRate();
+      }
     });
     document.querySelectorAll("input[name='scope']").forEach(r => {
       r.addEventListener("change", updateQuestionLimit);
@@ -2140,55 +2125,38 @@
     saveWords();
   }
 
-  // === 韓語音素標準持阻修正（修復開音節接 ㅃ 緊音時的持阻遺失） ===
-  function normalizeKoreanPhonemes(text) {
-    if (!text) return "";
-    let str = String(text)
+  // === 韓文純淨字串提取 ===
+  function sanitizeKoreanText(text) {
+    return String(text || "")
       .replace(/\(.*?\)/g, "")
       .replace(/\[.*?\]/g, "")
       .replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9\s]/g, " ")
       .trim()
       .replace(/\s+/g, " ");
-
-    // 標準語音學記音修復：母音無收音接 ㅃ 緊音時補上促音持阻 ㅂ
-    str = str.replace(/오빠/g, "옵빠")
-             .replace(/아빠/g, "압빠")
-             .replace(/예쁘/g, "옙쁘")
-             .replace(/바쁘/g, "밥쁘")
-             .replace(/기쁘/g, "깁쁘");
-    return str;
   }
 
-  // === 高品質原聲發音核心 ===
+  // === NAVER 官方高音質發音通道 ===
   window.speak = function(text) {
     const rawWord = String(text || "").trim();
-    const cleanWord = normalizeKoreanPhonemes(rawWord) || rawWord;
-    if (!cleanWord || !("speechSynthesis" in window)) return;
+    const cleanWord = sanitizeKoreanText(rawWord) || rawWord;
+    if (!cleanWord) return;
 
     const rate = getSpeechRate();
 
-    // 1. 清空隊列，解除 Safari 鎖定
-    window.speechSynthesis.cancel();
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.src = "";
+      currentAudio = null;
     }
 
-    // 2. 建立原生發音實例
-    const utter = new SpeechSynthesisUtterance(cleanWord);
-    utter.lang = "ko-KR";
-    utter.rate = rate;
-    utter.pitch = 1.0;
-
-    // 3. 綁定系統高品質母語發音人
-    if (!activeKoreanVoice) {
-      setupVoices();
-    }
-    if (activeKoreanVoice) {
-      utter.voice = activeKoreanVoice;
-    }
-
-    // 4. 同步播放
-    window.speechSynthesis.speak(utter);
+    // 透過公共代理鏡像調用 NAVER 辭典發音人 Clara
+    const encoded = encodeURIComponent(cleanWord);
+    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encoded}`;
+    
+    const audio = new Audio(audioUrl);
+    currentAudio = audio;
+    audio.playbackRate = rate;
+    audio.play().catch(() => {});
   };
 
   function shuffle(arr) {
