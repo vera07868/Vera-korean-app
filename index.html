@@ -364,6 +364,26 @@
       color: #c7d2fe;
       font-size: 15px;
     }
+    .voice-tag-group {
+      display: inline-flex;
+      background: #020617;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 2px;
+      margin-left: 8px;
+    }
+    .voice-tag-btn {
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 999px;
+      background: transparent;
+      color: #94a3b8;
+    }
+    .voice-tag-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
     .flag-btn {
       flex: 0 0 auto;
       width: 30px;
@@ -686,11 +706,10 @@
     <h1>韓文背單字</h1>
     <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
       <div class="speed-pill-control">
-        <span>👤 發音人：</span>
-        <select id="voiceGenderSelect" class="speed-select" aria-label="選擇發音人">
-          <option value="auto">自動 (推薦女聲)</option>
-          <option value="female" selected>女聲 (清晰/適合多數單字)</option>
-          <option value="male">男聲 (適合독서等)</option>
+        <span>👤 預設發音：</span>
+        <select id="voiceGenderSelect" class="speed-select" aria-label="選擇全域發音人">
+          <option value="female" selected>女聲</option>
+          <option value="male">男聲</option>
         </select>
       </div>
       <div class="speed-pill-control">
@@ -831,6 +850,14 @@
           <button class="flag-btn favorite" id="quizFavoriteBtn" type="button" title="我的最愛" aria-label="我的最愛">★</button>
           <button class="flag-btn important" id="quizImportantBtn" type="button" title="驚嘆號" aria-label="驚嘆號">!</button>
         </div>
+        <div style="margin-top: 12px;">
+          <span class="muted" style="font-size: 13px;">發音人：</span>
+          <div class="voice-tag-group" id="quizVoiceToggleGroup">
+            <button class="voice-tag-btn" type="button" onclick="setQuizVoiceOverride('auto')">自動</button>
+            <button class="voice-tag-btn" type="button" onclick="setQuizVoiceOverride('female')">女聲</button>
+            <button class="voice-tag-btn" type="button" onclick="setQuizVoiceOverride('male')">男聲</button>
+          </div>
+        </div>
         <details class="quiz-custom-menu-fold">
           <summary>自訂選單</summary>
           <div class="quiz-custom-menu-panel">
@@ -924,14 +951,14 @@
   let quiz = null;
   let formSelectedMenus = [];
   let quizSelectedMenus = [];
-  let koreanVoices = { female: null, male: null, default: null };
+  let koreanVoices = { female: null, male: null };
 
   function getSpeechRate() {
     const val = parseFloat($("globalSpeechRate")?.value || localStorage.getItem(SPEECH_SPEED_KEY) || "1.0");
     return isNaN(val) ? 1.0 : val;
   }
 
-  function getVoiceGender() {
+  function getGlobalVoiceGender() {
     return $("voiceGenderSelect")?.value || localStorage.getItem(VOICE_GENDER_KEY) || "female";
   }
 
@@ -1091,6 +1118,7 @@
         exampleZh: "",
         note: String(w.note || ""),
         customMenus: Array.isArray(w.customMenus) ? [...new Set(w.customMenus.map(v => String(v || "").trim()).filter(Boolean))] : [],
+        voiceOverride: String(w.voiceOverride || "auto"),
         favorite: Boolean(w.favorite || w.isFavorite || w.flags?.favorite),
         important: Boolean(w.important || w.isImportant || w.flags?.important),
         stats: { ...makeStats(), ...(w.stats || {}) }
@@ -1108,6 +1136,7 @@
       exampleZh: "",
       note: note || "",
       customMenus: [],
+      voiceOverride: "auto",
       favorite: false,
       important: false,
       stats: makeStats()
@@ -1135,7 +1164,6 @@
     setupVoices();
   }
 
-  // === 掃描並分類男聲與女聲引擎 ===
   function setupVoices() {
     if (!("speechSynthesis" in window)) return;
     const loadVoices = () => {
@@ -1152,8 +1180,6 @@
         || koVoices.find(v => v !== koreanVoices.female)
         || koVoices[0]
         || null;
-
-      koreanVoices.default = koreanVoices.female || koVoices[0] || null;
     };
     loadVoices();
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
@@ -1260,12 +1286,18 @@
       const isDue = (w.stats?.dueAt || 0) <= endOfToday;
       const isNew = isNewWord(w);
       const dueDate = w.stats?.dueAt ? new Date(w.stats.dueAt).toLocaleDateString("zh-TW") : "今天";
+      const override = w.voiceOverride || "auto";
       return `
         <article class="word">
           <div>
             <div class="word-line">
-              <button class="icon-btn" type="button" title="播放單字" aria-label="播放單字" onclick="speak('${escapeJs(w.korean)}')">🔊</button>
+              <button class="icon-btn" type="button" title="播放單字" aria-label="播放單字" onclick="speakWordId('${w.id}')">🔊</button>
               <div class="ko">${escapeHtml(w.korean)}</div>
+              <div class="voice-tag-group">
+                <button class="voice-tag-btn ${override === 'auto' ? 'active' : ''}" type="button" onclick="setWordVoiceOverride('${w.id}', 'auto')">自動</button>
+                <button class="voice-tag-btn ${override === 'female' ? 'active' : ''}" type="button" onclick="setWordVoiceOverride('${w.id}', 'female')">女</button>
+                <button class="voice-tag-btn ${override === 'male' ? 'active' : ''}" type="button" onclick="setWordVoiceOverride('${w.id}', 'male')">男</button>
+              </div>
               <button class="flag-btn favorite ${w.favorite ? "active" : ""}" type="button" title="我的最愛" aria-label="我的最愛" onclick="toggleWordFlag('${w.id}', 'favorite')">★</button>
               <button class="flag-btn important ${w.important ? "active" : ""}" type="button" title="驚嘆號" aria-label="驚嘆號" onclick="toggleWordFlag('${w.id}', 'important')">!</button>
             </div>
@@ -1305,7 +1337,7 @@
           </div>
         </article>
       `;
-    }).join("") || `<p class="muted">目前沒有符合條件的單字。</p>`;
+    }).join("") || `<p class="muted"><div>目前沒有符合條件的單字。</div></p>`;
   }
   function sortLibraryWords(list, libraryView) {
     const copy = [...list];
@@ -1342,7 +1374,7 @@
     if (libraryView === "mastered") {
       return copy.sort((a, b) => {
         return getAccuracyRate(b) - getAccuracyRate(a)
-          || (getWordStats(b).attempts || 0) - (getWordStats(b).attempts || 0);
+          || (getWordStats(b).attempts || 0) - (getWordStats(a).attempts || 0);
       });
     }
     return copy;
@@ -1421,7 +1453,10 @@
       moveQuiz(1);
     });
     $("endQuizBtn").addEventListener("click", endQuiz);
-    $("speakBtn").addEventListener("click", () => quiz && speak(quiz.items[quiz.index].korean));
+    $("speakBtn").addEventListener("click", () => {
+      if (!quiz) return;
+      speakWordId(quiz.items[quiz.index].id);
+    });
     $("quizFavoriteBtn").addEventListener("click", () => quiz && window.toggleWordFlag(quiz.items[quiz.index].id, "favorite"));
     $("quizImportantBtn").addEventListener("click", () => quiz && window.toggleWordFlag(quiz.items[quiz.index].id, "important"));
     $("backupBtn").addEventListener("click", backupCopy);
@@ -1433,6 +1468,37 @@
     $("clearDbBtn").addEventListener("click", clearDatabase);
     $("resetSrsBtn").addEventListener("click", resetAllSrs);
   }
+
+  window.setWordVoiceOverride = function(id, mode) {
+    words = words.map(w => w.id === id ? { ...w, voiceOverride: mode } : w);
+    saveWords();
+    const updatedWord = words.find(w => w.id === id);
+    if (updatedWord) {
+      speak(updatedWord.korean, mode);
+    }
+  };
+
+  window.setQuizVoiceOverride = function(mode) {
+    if (!quiz) return;
+    const item = quiz.items[quiz.index];
+    setWordVoiceOverride(item.id, mode);
+    updateQuizVoiceToggleState();
+  };
+
+  function updateQuizVoiceToggleState() {
+    if (!quiz) return;
+    const item = quiz.items[quiz.index];
+    const override = item.voiceOverride || "auto";
+    const buttons = $("quizVoiceToggleGroup").querySelectorAll(".voice-tag-btn");
+    buttons.forEach(btn => {
+      const text = btn.textContent;
+      const isMatch = (text === "自動" && override === "auto") ||
+                      (text === "女聲" && override === "female") ||
+                      (text === "男聲" && override === "male");
+      btn.classList.toggle("active", isMatch);
+    });
+  }
+
   function addCustomMenuFromInput(inputId, autoSelectForForm = false) {
     const input = $(inputId);
     const created = createCustomMenu(input?.value || "");
@@ -1543,7 +1609,7 @@
       continueBtn.textContent = editingId ? "仍要更新成重複單字" : "仍要重複儲存";
       editBtn.classList.remove("hidden");
       editBtn.textContent = "查看原單字";
-      box.classList.add("hidden");
+      box.classList.remove("hidden");
       return;
     }
     box.classList.add("hidden");
@@ -1809,12 +1875,13 @@
     $("nextBtn").textContent = isLastQuestion ? "結束測驗" : "下一題";
     $("nextBtn").classList.toggle("primary", isLastQuestion);
     updateQuizFlagButtons();
+    updateQuizVoiceToggleState();
 
     if (mode !== "multipleChoice") {
       $("answerInput").focus();
     }
     if (mode === "listen") {
-      setTimeout(() => speak(item.korean), 200);
+      setTimeout(() => speakWordId(item.id), 200);
     }
   }
 
@@ -1839,7 +1906,7 @@
     const box = $("resultBox");
     box.className = `result ${isCorrect ? "ok" : "bad"}`;
     box.textContent = isCorrect ? "答對了！(不計入SRS)" : `答錯了，正確答案：${correct} (不計入SRS)`;
-    speak(item.korean);
+    speakWordId(item.id);
   }
 
   function submitAnswer(userOpt) {
@@ -1852,7 +1919,7 @@
     const isCorrect = normalize(userAnswer) === normalize(correct);
     
     if (quiz.checked[quiz.index] !== null) {
-      speak(item.korean);
+      speakWordId(item.id);
       return;
     }
     quiz.checked[quiz.index] = isCorrect;
@@ -1860,7 +1927,7 @@
     const box = $("resultBox");
     box.className = `result ${isCorrect ? "ok" : "bad"}`;
     box.textContent = getAnswerFeedback(item, correct, isCorrect);
-    speak(item.korean);
+    speakWordId(item.id);
     saveWords();
   }
 
@@ -2170,7 +2237,16 @@
     saveWords();
   }
 
-  // === 韓文純淨字串與 오빠 促音修正 ===
+  // === 單字語音播放（結合記憶設定） ===
+  window.speakWordId = function(id) {
+    const w = words.find(item => item.id === id);
+    if (!w) return;
+    const override = w.voiceOverride || "auto";
+    const globalGender = getGlobalVoiceGender();
+    const targetGender = override === "auto" ? globalGender : override;
+    speak(w.korean, targetGender);
+  };
+
   function sanitizeKoreanPhonetics(text) {
     if (!text) return "";
     let str = String(text)
@@ -2180,19 +2256,17 @@
       .trim()
       .replace(/\s+/g, " ");
 
-    // 針對女聲處理開音節接 ㅃ 緊音（如 오빠 -> 옵.빠）
     str = str.replace(/([가-힣])(빠|뻐|뽀|뿌|삐|빨|빵)/g, "$1\u200B$2");
     return str;
   }
 
-  // === 支援手動選擇發音人（女聲/男聲）的播放核心 ===
-  window.speak = function(text) {
+  window.speak = function(text, gender = null) {
     const rawWord = String(text || "").trim();
     const cleanWord = sanitizeKoreanPhonetics(rawWord) || rawWord;
     if (!cleanWord || !("speechSynthesis" in window)) return;
 
     const rate = getSpeechRate();
-    const genderChoice = getVoiceGender();
+    const targetGender = gender || getGlobalVoiceGender();
 
     window.speechSynthesis.cancel();
     if (window.speechSynthesis.paused) {
@@ -2204,13 +2278,12 @@
     utter.rate = rate;
     utter.pitch = 1.0;
 
-    // 根據介面下拉選單決定發音人
-    if (genderChoice === "female" && koreanVoices.female) {
+    if (targetGender === "female" && koreanVoices.female) {
       utter.voice = koreanVoices.female;
-    } else if (genderChoice === "male" && koreanVoices.male) {
+    } else if (targetGender === "male" && koreanVoices.male) {
       utter.voice = koreanVoices.male;
     } else {
-      utter.voice = koreanVoices.default;
+      utter.voice = koreanVoices.female || koreanVoices.male;
     }
 
     window.speechSynthesis.speak(utter);
