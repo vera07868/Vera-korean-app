@@ -1051,6 +1051,7 @@
     }
     return [
       makeWord("사과", "蘋果", "名詞 (명사)", "食物", "", ""),
+      makeWord("오빠", "哥哥（女生叫）", "名詞 (명사)", "稱謂", "", ""),
       makeWord("유학하다", "留學", "動詞 (동사)", "生活", "", ""),
       makeWord("독서", "閱讀/讀書", "名詞 (명사)", "生活", "", ""),
       makeWord("세일", "特價/打折", "名詞 (명사)", "購物", "", ""),
@@ -1122,7 +1123,6 @@
       const voices = window.speechSynthesis.getVoices();
       if (!voices.length) return;
       const koVoices = voices.filter(v => v.lang === "ko-KR" || v.lang.startsWith("ko"));
-      // 精準鎖定系統最高音質母語人聲（如 Apple Yuna 增強版）
       activeKoreanVoice = koVoices.find(v => /yuna|sora|enhanced|premium|natural/i.test(v.name))
         || koVoices[0]
         || voices.find(v => v.lang.startsWith("ko"))
@@ -2140,25 +2140,34 @@
     saveWords();
   }
 
-  // === 韓文純淨字串提取 ===
-  function sanitizeKoreanText(text) {
-    return String(text || "")
+  // === 韓語音素標準持阻修正（修復開音節接 ㅃ 緊音時的持阻遺失） ===
+  function normalizeKoreanPhonemes(text) {
+    if (!text) return "";
+    let str = String(text)
       .replace(/\(.*?\)/g, "")
       .replace(/\[.*?\]/g, "")
       .replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9\s]/g, " ")
       .trim()
       .replace(/\s+/g, " ");
+
+    // 標準語音學記音修復：母音無收音接 ㅃ 緊音時補上促音持阻 ㅂ
+    str = str.replace(/오빠/g, "옵빠")
+             .replace(/아빠/g, "압빠")
+             .replace(/예쁘/g, "옙쁘")
+             .replace(/바쁘/g, "밥쁘")
+             .replace(/기쁘/g, "깁쁘");
+    return str;
   }
 
-  // === 韓語原聲同步發音核心（徹底解決 Safari 靜音、雙子音誤讀與破擦音失真） ===
+  // === 高品質原聲發音核心 ===
   window.speak = function(text) {
     const rawWord = String(text || "").trim();
-    const cleanWord = sanitizeKoreanText(rawWord) || rawWord;
+    const cleanWord = normalizeKoreanPhonemes(rawWord) || rawWord;
     if (!cleanWord || !("speechSynthesis" in window)) return;
 
     const rate = getSpeechRate();
 
-    // 1. 強制重置 Safari 的音訊隊列
+    // 1. 清空隊列，解除 Safari 鎖定
     window.speechSynthesis.cancel();
     if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
@@ -2170,7 +2179,7 @@
     utter.rate = rate;
     utter.pitch = 1.0;
 
-    // 3. 確保調用 Apple 增強版/神經網路發音人（Yuna）
+    // 3. 綁定系統高品質母語發音人
     if (!activeKoreanVoice) {
       setupVoices();
     }
