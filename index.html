@@ -1052,15 +1052,12 @@
     }
     return [
       makeWord("사과", "蘋果", "名詞 (명사)", "食物", "", ""),
-      makeWord("새일", "新事物/新工作", "名詞 (명사)", "生活", "", ""),
+      makeWord("세일", "特價/打折", "名詞 (명사)", "購物", "", ""),
       makeWord("청바지", "牛仔褲", "名詞 (명사)", "服飾", "", ""),
-      makeWord("물건", "物品", "名詞 (명사)", "生活", "", ""),
-      makeWord("어제밤", "昨晚", "名詞 (명사)", "時間", "", ""),
-      makeWord("지내다", "過日子/相處", "動詞 (동사)", "日常", "", ""),
-      makeWord("더럽다", "髒", "形容詞 (형용사)", "狀態", "", ""),
-      makeWord("점원", "店員", "名詞 (명사)", "稱謂", "", ""),
+      makeWord("차다", "踢/冷/戴", "動詞 (동사)", "日常", "", ""),
       makeWord("짜다", "鹹/擠/編排", "形容詞 (형용사)", "飲食", "", ""),
-      makeWord("살을 빼다", "減肥", "片語/習慣用語", "生活", "", "")
+      makeWord("살을 빼다", "減肥", "片語/習慣用語", "生活", "", ""),
+      makeWord("담배를 끊다", "戒菸", "片語/習慣用語", "生活", "", "")
     ];
   }
   function migrateWords(list) {
@@ -2136,7 +2133,7 @@
       .replace(/\s+/g, " ");
   }
 
-  // === 韓語高清晰標準發音引擎（支援空格、片語、收音與激音） ===
+  // === 高解析度母語標準發音引擎 ===
   window.speak = function(text) {
     const rawWord = String(text || "").trim();
     const cleanWord = sanitizeKoreanText(rawWord) || rawWord;
@@ -2153,8 +2150,9 @@
       window.speechSynthesis.cancel();
     }
 
-    // Google 官方標準韓語音訊串流（透過 no-referrer 標頭可跨域直連，支援空格與片語）
-    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
+    // 高頻寬標準發音串流（支援激音 ㅊ 送氣、收音 ㄹ、緊音 ㅉ 與空格片語）
+    const encoded = encodeURIComponent(cleanWord);
+    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&client=tw-ob&q=${encoded}`;
     const audio = new Audio(audioUrl);
     currentAudio = audio;
     audio.playbackRate = rate;
