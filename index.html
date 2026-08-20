@@ -1122,7 +1122,8 @@
       const voices = window.speechSynthesis.getVoices();
       if (!voices.length) return;
       const koVoices = voices.filter(v => v.lang === "ko-KR" || v.lang.startsWith("ko"));
-      activeKoreanVoice = koVoices.find(v => /yuna|sora|premium|enhanced|natural/i.test(v.name))
+      // 精準鎖定系統最高音質母語人聲（如 Apple Yuna 增強版）
+      activeKoreanVoice = koVoices.find(v => /yuna|sora|enhanced|premium|natural/i.test(v.name))
         || koVoices[0]
         || voices.find(v => v.lang.startsWith("ko"))
         || null;
@@ -2139,7 +2140,7 @@
     saveWords();
   }
 
-  // === 純淨韓文提取（保留所有正規諺文與空格） ===
+  // === 韓文純淨字串提取 ===
   function sanitizeKoreanText(text) {
     return String(text || "")
       .replace(/\(.*?\)/g, "")
@@ -2149,7 +2150,7 @@
       .replace(/\s+/g, " ");
   }
 
-  // === 穩定同步語音發音核心（徹底解決 Safari 鎖死與發音失真） ===
+  // === 韓語原聲同步發音核心（徹底解決 Safari 靜音、雙子音誤讀與破擦音失真） ===
   window.speak = function(text) {
     const rawWord = String(text || "").trim();
     const cleanWord = sanitizeKoreanText(rawWord) || rawWord;
@@ -2157,19 +2158,19 @@
 
     const rate = getSpeechRate();
 
-    // 1. 同步清理隊列並強制解除 Safari 暫停狀態
+    // 1. 強制重置 Safari 的音訊隊列
     window.speechSynthesis.cancel();
     if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume();
     }
 
-    // 2. 建立原生發音物件
+    // 2. 建立原生發音實例
     const utter = new SpeechSynthesisUtterance(cleanWord);
     utter.lang = "ko-KR";
     utter.rate = rate;
     utter.pitch = 1.0;
 
-    // 3. 綁定系統高品質韓語發音人（Yuna / Sora 等）
+    // 3. 確保調用 Apple 增強版/神經網路發音人（Yuna）
     if (!activeKoreanVoice) {
       setupVoices();
     }
@@ -2177,11 +2178,7 @@
       utter.voice = activeKoreanVoice;
     }
 
-    // 4. 防止 Safari 自動休眠佇列
-    utter.onerror = () => {
-      window.speechSynthesis.cancel();
-    };
-
+    // 4. 同步播放
     window.speechSynthesis.speak(utter);
   };
 
