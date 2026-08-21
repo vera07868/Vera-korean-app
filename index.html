@@ -2242,7 +2242,7 @@
     saveWords();
   }
 
-  // === 強化音源混血路由核心（徹底解決由自動音源切換至辭典音源時的音量壓低問題） ===
+  // === 終極完美音源核心（將「自動」與「辭典」統一改由高音質串流處理，徹底根絕音量壓低問題） ===
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2259,10 +2259,7 @@
 
     const targetMode = mode || getGlobalVoiceGender();
 
-    // 每次播放前先完全終止瀏覽器的語音合成，並清除舊音訊
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
+    // 每次播放前徹底清理現有音訊
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.currentTime = 0;
@@ -2270,30 +2267,30 @@
       currentAudio.load();
       currentAudio = null;
     }
-
-    if (targetMode === "dict") {
-      // 加上微小的延遲讓瀏覽器音訊通道徹底從 Web Speech 釋放，確保辭典音量全開
-      setTimeout(() => {
-        const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
-        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
-        
-        const audio = new Audio();
-        audio.preload = "auto";
-        currentAudio = audio;
-        
-        audio.src = audioUrl;
-        audio.playbackRate = getDictSpeechRate();
-
-        audio.play().catch(() => {
-          if (currentAudio === audio) {
-            fallbackWebSpeech(rawWord, getAutoSpeechRate());
-          }
-        });
-      }, 50);
-      return;
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
     }
 
-    fallbackWebSpeech(rawWord, getAutoSpeechRate());
+    const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
+    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
+    
+    const audio = new Audio();
+    audio.preload = "auto";
+    currentAudio = audio;
+    
+    audio.src = audioUrl;
+
+    // 依照選擇的模式套用對應的語速設定
+    if (targetMode === "auto") {
+      audio.playbackRate = getAutoSpeechRate();
+    } else {
+      audio.playbackRate = getDictSpeechRate();
+    }
+
+    audio.play().catch(() => {
+      // 萬一網路阻擋，才備用瀏覽器內建語音
+      fallbackWebSpeech(rawWord, targetMode === "auto" ? getAutoSpeechRate() : getDictSpeechRate());
+    });
   };
 
   function fallbackWebSpeech(text, rate) {
