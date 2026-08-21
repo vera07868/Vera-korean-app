@@ -2242,7 +2242,9 @@
     saveWords();
   }
 
-  // === 終極硬切核心：播放新音源前強制先完全斬斷並歸零上一段音訊，徹底解決音量變小問題 ===
+  // === 終極防壓音量核心：透過 AudioContext 絕對隔離與放大，解決自動切換辭典的音量壓低問題 ===
+  let audioCtx = null;
+
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2277,10 +2279,32 @@
       const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
       const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
       
-      const audio = new Audio(audioUrl);
+      const audio = new Audio();
+      audio.crossOrigin = "anonymous";
       currentAudio = audio;
+      audio.src = audioUrl;
       audio.playbackRate = getDictSpeechRate();
-      audio.volume = 1.0;
+
+      // 使用 Web Audio API 的 GainNode 建立獨立通道，強制將音量提升 1.8 倍，直接破解瀏覽器的音量壓制
+      try {
+        if (!audioCtx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) audioCtx = new AudioContext();
+        }
+        if (audioCtx) {
+          if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+          }
+          if (!audio._gainConnected) {
+            const source = audioCtx.createMediaElementSource(audio);
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.value = 1.8; // 1.8倍增益，保證音量飽滿
+            source.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            audio._gainConnected = true;
+          }
+        }
+      } catch (err) {}
 
       audio.play().catch(() => {
         fallbackWebSpeech(rawWord, getAutoSpeechRate());
