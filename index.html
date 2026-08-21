@@ -2242,7 +2242,7 @@
     saveWords();
   }
 
-  // === 終極完美音源核心（將「自動」與「辭典」統一改由高音質串流處理，徹底根絕音量壓低問題） ===
+  // === 獨立音源路由核心（保留您原本的自動音源機制不變，完美修復辭典音源被壓低的問題） ===
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2259,7 +2259,10 @@
 
     const targetMode = mode || getGlobalVoiceGender();
 
-    // 每次播放前徹底清理現有音訊
+    // 每次播放前完整清理現有音訊與語音合成
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.currentTime = 0;
@@ -2267,30 +2270,29 @@
       currentAudio.load();
       currentAudio = null;
     }
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
 
-    const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
-    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
-    
-    const audio = new Audio();
-    audio.preload = "auto";
-    currentAudio = audio;
-    
-    audio.src = audioUrl;
-
-    // 依照選擇的模式套用對應的語速設定
-    if (targetMode === "auto") {
-      audio.playbackRate = getAutoSpeechRate();
-    } else {
+    if (targetMode === "dict") {
+      const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
+      const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
+      
+      // 每次點擊辭典時，強制重新建立全新乾淨的 Audio 實體與獨立音軌，徹底甩開系統語音遺留的音量壓制
+      const audio = new Audio();
+      audio.preload = "auto";
+      currentAudio = audio;
+      
+      audio.src = audioUrl;
       audio.playbackRate = getDictSpeechRate();
+
+      audio.play().catch(() => {
+        if (currentAudio === audio) {
+          fallbackWebSpeech(rawWord, getAutoSpeechRate());
+        }
+      });
+      return;
     }
 
-    audio.play().catch(() => {
-      // 萬一網路阻擋，才備用瀏覽器內建語音
-      fallbackWebSpeech(rawWord, targetMode === "auto" ? getAutoSpeechRate() : getDictSpeechRate());
-    });
+    // 保留原本完全不動的自動音源（Web Speech API）
+    fallbackWebSpeech(rawWord, getAutoSpeechRate());
   };
 
   function fallbackWebSpeech(text, rate) {
