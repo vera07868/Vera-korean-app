@@ -1430,7 +1430,6 @@
     $("searchInput").addEventListener("input", renderWordList);
     $("addCustomMenuBtn").addEventListener("click", () => addCustomMenuFromInput("newCustomMenuInput", true));
     $("quizAddCustomMenuBtn").addEventListener("click", addQuizCustomMenu);
-    $("questionCount").addEventListener("input", updateQuestionLimit);
     $("accuracyRateThreshold").addEventListener("input", updateQuestionLimit);
     $("accuracyRateOperator").addEventListener("change", updateQuestionLimit);
     $("dictSpeechRate").addEventListener("change", (e) => {
@@ -1785,9 +1784,7 @@
     $("questionLimit").textContent = `/ ${pool.length}`;
     const input = $("questionCount");
     input.max = Math.max(pool.length, 1);
-    if (+input.value > pool.length) {
-      input.value = pool.length || 1;
-    }
+    input.value = pool.length || 1;
   }
   function getMode() {
     return document.querySelector("input[name='mode']:checked").value;
@@ -2245,7 +2242,7 @@
     saveWords();
   }
 
-  // === 雙音源混血路由核心（辭典高音質串流 vs 系統發音人） ===
+  // === 強化音源混血路由核心（徹底解決重複點擊導致的疊音與變小聲問題） ===
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2262,11 +2259,12 @@
 
     const targetMode = mode || getGlobalVoiceGender();
 
-    // 每次播放新語音前，強制中斷並清除正在播放的舊音訊，徹底解決疊音與變小聲問題
+    // 強制停止並完整釋放現有的 Audio 物件，防止舊音訊殘留造成疊音或音量被壓低
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.currentTime = 0;
       currentAudio.src = "";
+      currentAudio.load();
       currentAudio = null;
     }
     if ("speechSynthesis" in window) {
@@ -2276,12 +2274,18 @@
     if (targetMode === "dict") {
       const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
       const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
-      const audio = new Audio(audioUrl);
+      
+      const audio = new Audio();
+      audio.preload = "auto";
       currentAudio = audio;
+      
+      audio.src = audioUrl;
       audio.playbackRate = getDictSpeechRate();
 
       audio.play().catch(() => {
-        fallbackWebSpeech(rawWord, getAutoSpeechRate());
+        if (currentAudio === audio) {
+          fallbackWebSpeech(rawWord, getAutoSpeechRate());
+        }
       });
       return;
     }
