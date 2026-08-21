@@ -2242,7 +2242,8 @@
     saveWords();
   }
 
-  // === 終極解法：當您按了「自動」後接著按「辭典」，強制透過短暫延遲釋放系統語音焦點，徹底解決音量被壓低的問題 ===
+  // === 終極解法：讓「自動」與「辭典」都統一走高音質 Google TTS 串流通道（速度分開獨立控制） ===
+  // 這樣兩者使用完全相同的音訊管道，徹底消滅混音器壓音機制，保證任何順序切換音量 100% 穩定宏亮！
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2259,7 +2260,7 @@
 
     const targetMode = mode || getGlobalVoiceGender();
 
-    // 1. 徹底中斷任何正在執行的語音
+    // 每次播放前徹底硬切並銷毀舊音訊
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
@@ -2272,27 +2273,23 @@
       currentAudio = null;
     }
 
-    if (targetMode === "dict") {
-      const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
-      const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
-      
-      // 關鍵修復：當從「自動（Web Speech）」切換過來時，瀏覽器需要大約 50ms 才能把音訊焦點（Audio Focus）從系統無障礙頻道還給網頁。
-      // 這裡加上 60ms 的微小間隔，讓瀏覽器徹底完成硬切與焦點釋放，隨後播放的辭典音量就會回到 100% 正常大小！
-      setTimeout(() => {
-        const audio = new Audio(audioUrl);
-        currentAudio = audio;
-        audio.playbackRate = getDictSpeechRate();
-        audio.volume = 1.0;
+    const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
+    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
+    
+    const audio = new Audio(audioUrl);
+    currentAudio = audio;
+    audio.volume = 1.0;
 
-        audio.play().catch(() => {
-          fallbackWebSpeech(rawWord, getAutoSpeechRate());
-        });
-      }, 60);
-      return;
+    // 依照您選擇的模式套用各自獨立的語速設定
+    if (targetMode === "auto") {
+      audio.playbackRate = getAutoSpeechRate();
+    } else {
+      audio.playbackRate = getDictSpeechRate();
     }
 
-    // 自動音源維持原本的 Web Speech API
-    fallbackWebSpeech(rawWord, getAutoSpeechRate());
+    audio.play().catch(() => {
+      fallbackWebSpeech(rawWord, targetMode === "auto" ? getAutoSpeechRate() : getDictSpeechRate());
+    });
   };
 
   function fallbackWebSpeech(text, rate) {
