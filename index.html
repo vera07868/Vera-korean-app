@@ -2242,9 +2242,7 @@
     saveWords();
   }
 
-  // === 終極防壓音量核心：透過 AudioContext 絕對隔離與放大，解決自動切換辭典的音量壓低問題 ===
-  let audioCtx = null;
-
+  // === 獨立且嚴格硬切的發音核心：自動維持 Web Speech API，辭典維持 Google TTS，互不混淆且點擊時強制硬切前音 ===
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2261,11 +2259,11 @@
 
     const targetMode = mode || getGlobalVoiceGender();
 
-    // 1. 強制硬切並完全關閉舊的語音合成
+    // 1. 無論點擊什麼模式，一律「硬切」：先立刻強制停止任何正在播放的語音合成 (Web Speech)
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
-    // 2. 強制硬切並完全暫停、卸載舊的音訊串流
+    // 2. 一律「硬切」：立刻強制暫停並銷毀任何正在播放的舊音訊串流
     if (currentAudio) {
       try {
         currentAudio.pause();
@@ -2276,35 +2274,14 @@
     }
 
     if (targetMode === "dict") {
+      // 辭典音源：高音質 Google TTS 串流
       const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
       const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
       
-      const audio = new Audio();
-      audio.crossOrigin = "anonymous";
+      const audio = new Audio(audioUrl);
       currentAudio = audio;
-      audio.src = audioUrl;
       audio.playbackRate = getDictSpeechRate();
-
-      // 使用 Web Audio API 的 GainNode 建立獨立通道，強制將音量提升 1.8 倍，直接破解瀏覽器的音量壓制
-      try {
-        if (!audioCtx) {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          if (AudioContext) audioCtx = new AudioContext();
-        }
-        if (audioCtx) {
-          if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-          }
-          if (!audio._gainConnected) {
-            const source = audioCtx.createMediaElementSource(audio);
-            const gainNode = audioCtx.createGain();
-            gainNode.gain.value = 1.8; // 1.8倍增益，保證音量飽滿
-            source.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            audio._gainConnected = true;
-          }
-        }
-      } catch (err) {}
+      audio.volume = 1.0;
 
       audio.play().catch(() => {
         fallbackWebSpeech(rawWord, getAutoSpeechRate());
@@ -2312,7 +2289,7 @@
       return;
     }
 
-    // 自動音源維持原本的 Web Speech API
+    // 自動音源：100% 保持您原本獨立的瀏覽器內建語音 (Web Speech API)
     fallbackWebSpeech(rawWord, getAutoSpeechRate());
   };
 
