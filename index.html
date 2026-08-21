@@ -757,10 +757,10 @@
       </div>
     </div>
     <div class="form-grid">
-      <input id="koreanInput" placeholder="韓文, 例如：사과" />
-      <input id="chineseInput" placeholder="中文, 例如：蘋果" />
+      <input id="koreanInput" placeholder="韓文，例如：사과" />
+      <input id="chineseInput" placeholder="中文，例如：蘋果" />
       <select id="posInput" aria-label="詞性分類"></select>
-      <input id="categoryInput" placeholder="分類, 例如：食物 / 旅遊" />
+      <input id="categoryInput" placeholder="分類，例如：食物 / 旅遊" />
     </div>
     <div class="actions" style="margin-bottom: 12px;">
       <button class="primary" id="saveBtn" type="button">儲存單字</button>
@@ -2242,7 +2242,7 @@
     saveWords();
   }
 
-  // === 完美的雙音源架構：將辭典音源比照「自動」模式，改用 Web Speech API 搭配高音質朗讀引擎或獨立通道隔離 ===
+  // === 完美的音源核心：當上一段聲音未播畢就切換或點擊辭典時，強制重置音訊通道避免音量變小 ===
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2259,7 +2259,8 @@
 
     const targetMode = mode || getGlobalVoiceGender();
 
-    // 每次播放前徹底終止舊的語音與音訊
+    // 核心修復：在播放前強制終止現有的 Web Speech 與舊的 Audio，
+    // 並且在播放辭典時加入微小緩衝，避免上一段聲音還沒完全結束時搶佔音訊焦點導致音量被壓低。
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
@@ -2271,23 +2272,23 @@
     }
 
     if (targetMode === "dict") {
-      // 核心修復：為了讓辭典音源擁有跟「自動」完全一樣的穩定度與不受系統壓制的音量，
-      // 我們讓辭典也透過獨立的隱藏 HTMLAudioElement 串流播放，並且每次點擊都強制重建、不共用舊實體。
       const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
       const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
       
-      const audio = new Audio(audioUrl);
-      currentAudio = audio;
-      audio.playbackRate = getDictSpeechRate();
-      audio.volume = 1.0;
+      setTimeout(() => {
+        const audio = new Audio(audioUrl);
+        currentAudio = audio;
+        audio.playbackRate = getDictSpeechRate();
+        audio.volume = 1.0;
 
-      audio.play().catch(() => {
-        fallbackWebSpeech(rawWord, getAutoSpeechRate());
-      });
+        audio.play().catch(() => {
+          fallbackWebSpeech(rawWord, getAutoSpeechRate());
+        });
+      }, 50);
       return;
     }
 
-    // 「自動」音源：100% 維持原汁原味的 Web Speech API
+    // 自動音源維持原本的 Web Speech API
     fallbackWebSpeech(rawWord, getAutoSpeechRate());
   };
 
