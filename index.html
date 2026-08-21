@@ -1143,7 +1143,7 @@
         exampleZh: "",
         note: String(w.note || ""),
         customMenus: Array.isArray(w.customMenus) ? [...new Set(w.customMenus.map(v => String(v || "").trim()).filter(Boolean))] : [],
-        voiceOverride: String(w.voiceOverride || "auto"),
+        voiceOverride: String(w.voiceOverride || "dict"),
         favorite: Boolean(w.favorite || w.isFavorite || w.flags?.favorite),
         important: Boolean(w.important || w.isImportant || w.flags?.important),
         stats: { ...makeStats(), ...(w.stats || {}) }
@@ -1161,7 +1161,7 @@
       exampleZh: "",
       note: note || "",
       customMenus: [],
-      voiceOverride: "auto",
+      voiceOverride: "dict",
       favorite: false,
       important: false,
       stats: makeStats()
@@ -2262,8 +2262,10 @@
 
     const targetMode = mode || getGlobalVoiceGender();
 
+    // 每次播放新語音前，強制中斷並清除正在播放的舊音訊，徹底解決疊音與變小聲問題
     if (currentAudio) {
       currentAudio.pause();
+      currentAudio.currentTime = 0;
       currentAudio.src = "";
       currentAudio = null;
     }
@@ -2310,22 +2312,7 @@
     utter.rate = rate;
     utter.pitch = 1.0;
 
-    // 自動智慧尋找最自然的系統原生真人語音（避開生硬的機器人音）
-    const voices = window.speechSynthesis.getVoices();
-    const koVoice = voices.find(v => v.lang === "ko-KR" && (v.name.includes("Natural") || v.name.includes("Google") || v.name.includes("Siri") || v.name.includes("Yuna"))) ||
-                    voices.find(v => v.lang.startsWith("ko"));
-    if (koVoice) {
-      utter.voice = koVoice;
-    }
-
     window.speechSynthesis.speak(utter);
-  }
-
-  // 確保部分瀏覽器非同步載入 voices 列表時能即時抓取
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.onvoiceschanged = () => {
-      window.speechSynthesis.getVoices();
-    };
   }
 
   function shuffle(arr) {
