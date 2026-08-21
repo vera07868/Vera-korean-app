@@ -2242,9 +2242,7 @@
     saveWords();
   }
 
-  // === 完美的獨立發音核心：自動維持 Web Speech API 不變，辭典透過 Web Audio API 繞過全域壓音機制 ===
-  let dictAudioCtx = null;
-
+  // === 乾淨分離：自動音源保持 100% 原始的 Web Speech API 不變；辭典音源獨立運作並透過硬切清除前段音訊避免變小聲 ===
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2261,7 +2259,7 @@
 
     const targetMode = mode || getGlobalVoiceGender();
 
-    // 1. 完全不更動：自動音源走原本的瀏覽器內建語音
+    // 1. 如果選的是「自動」，100% 維持您原本的瀏覽器內建語音，絕對不混合任何辭典邏輯
     if (targetMode === "auto") {
       if (currentAudio) {
         try { currentAudio.pause(); currentAudio = null; } catch(e) {}
@@ -2270,10 +2268,12 @@
       return;
     }
 
-    // 2. 辭典音源：高音質 Google TTS，並透過專屬的 AudioContext 隔離與放大音量，徹底破解瀏覽器鴨音（Duck）
+    // 2. 如果選的是「辭典」：
+    // 強制硬切並關閉任何殘留的自動語音
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
+    // 強制硬切並關閉舊的辭典音訊
     if (currentAudio) {
       try {
         currentAudio.pause();
@@ -2286,33 +2286,10 @@
     const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
     const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
     
-    const audio = new Audio();
-    audio.crossOrigin = "anonymous";
+    const audio = new Audio(audioUrl);
     currentAudio = audio;
-    audio.src = audioUrl;
     audio.playbackRate = getDictSpeechRate();
-
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (AudioContext) {
-        if (!dictAudioCtx) {
-          dictAudioCtx = new AudioContext();
-        }
-        if (dictAudioCtx.state === 'suspended') {
-          dictAudioCtx.resume();
-        }
-        if (!audio._gainConnected) {
-          const source = dictAudioCtx.createMediaElementSource(audio);
-          const gainNode = dictAudioCtx.createGain();
-          gainNode.gain.value = 1.8; // 強制將辭典音量放大 1.8 倍，補償被自動音源壓低的音量
-          source.connect(gainNode);
-          gainNode.connect(dictAudioCtx.destination);
-          audio._gainConnected = true;
-        }
-      }
-    } catch (e) {
-      audio.volume = 1.0;
-    }
+    audio.volume = 1.0;
 
     audio.play().catch(() => {
       fallbackWebSpeech(rawWord, getAutoSpeechRate());
