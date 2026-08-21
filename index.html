@@ -2242,7 +2242,7 @@
     saveWords();
   }
 
-  // === 強化音源混血路由核心（徹底解決重複點擊導致的疊音與變小聲問題） ===
+  // === 強化音源混血路由核心（徹底解決由自動音源切換至辭典音源時的音量壓低問題） ===
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2259,7 +2259,10 @@
 
     const targetMode = mode || getGlobalVoiceGender();
 
-    // 強制停止並完整釋放現有的 Audio 物件，防止舊音訊殘留造成疊音或音量被壓低
+    // 每次播放前先完全終止瀏覽器的語音合成，並清除舊音訊
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
     if (currentAudio) {
       currentAudio.pause();
       currentAudio.currentTime = 0;
@@ -2267,26 +2270,26 @@
       currentAudio.load();
       currentAudio = null;
     }
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
 
     if (targetMode === "dict") {
-      const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
-      const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
-      
-      const audio = new Audio();
-      audio.preload = "auto";
-      currentAudio = audio;
-      
-      audio.src = audioUrl;
-      audio.playbackRate = getDictSpeechRate();
+      // 加上微小的延遲讓瀏覽器音訊通道徹底從 Web Speech 釋放，確保辭典音量全開
+      setTimeout(() => {
+        const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
+        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
+        
+        const audio = new Audio();
+        audio.preload = "auto";
+        currentAudio = audio;
+        
+        audio.src = audioUrl;
+        audio.playbackRate = getDictSpeechRate();
 
-      audio.play().catch(() => {
-        if (currentAudio === audio) {
-          fallbackWebSpeech(rawWord, getAutoSpeechRate());
-        }
-      });
+        audio.play().catch(() => {
+          if (currentAudio === audio) {
+            fallbackWebSpeech(rawWord, getAutoSpeechRate());
+          }
+        });
+      }, 50);
       return;
     }
 
