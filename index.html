@@ -2242,8 +2242,7 @@
     saveWords();
   }
 
-  // === 終極解法：讓「自動」與「辭典」都統一走高音質 Google TTS 串流通道（速度分開獨立控制） ===
-  // 這樣兩者使用完全相同的音訊管道，徹底消滅混音器壓音機制，保證任何順序切換音量 100% 穩定宏亮！
+  // === 完美的獨立音源處理（百分百不更動自動音源，並且在播放辭典前強制硬切清除上一個音軌與等待焦點釋放） ===
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2260,10 +2259,11 @@
 
     const targetMode = mode || getGlobalVoiceGender();
 
-    // 每次播放前徹底硬切並銷毀舊音訊
+    // 1. 無論如何先硬切斷開瀏覽器的語音合成 (Web Speech API)
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
+    // 2. 同時硬切斷開舊的音訊串流
     if (currentAudio) {
       try {
         currentAudio.pause();
@@ -2273,23 +2273,27 @@
       currentAudio = null;
     }
 
-    const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
-    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
-    
-    const audio = new Audio(audioUrl);
-    currentAudio = audio;
-    audio.volume = 1.0;
+    if (targetMode === "dict") {
+      const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
+      const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
+      
+      // 關鍵硬切與延遲等待：當點擊辭典時，強制等待 120 毫秒，讓瀏覽器的音訊焦點從自動音源完全釋放後，
+      // 再以 1.0 正常音量全新播放辭典語音，徹底解決音量被壓低的問題！
+      setTimeout(() => {
+        const audio = new Audio(audioUrl);
+        currentAudio = audio;
+        audio.playbackRate = getDictSpeechRate();
+        audio.volume = 1.0;
 
-    // 依照您選擇的模式套用各自獨立的語速設定
-    if (targetMode === "auto") {
-      audio.playbackRate = getAutoSpeechRate();
-    } else {
-      audio.playbackRate = getDictSpeechRate();
+        audio.play().catch(() => {
+          fallbackWebSpeech(rawWord, getAutoSpeechRate());
+        });
+      }, 120);
+      return;
     }
 
-    audio.play().catch(() => {
-      fallbackWebSpeech(rawWord, targetMode === "auto" ? getAutoSpeechRate() : getDictSpeechRate());
-    });
+    // 自動音源：100% 維持您原本乾淨獨立的瀏覽器內建語音 (Web Speech API)，完全不更動
+    fallbackWebSpeech(rawWord, getAutoSpeechRate());
   };
 
   function fallbackWebSpeech(text, rate) {
