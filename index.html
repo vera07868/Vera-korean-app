@@ -1291,7 +1291,7 @@
       const isDue = (w.stats?.dueAt || 0) <= endOfToday;
       const isNew = isNewWord(w);
       const dueDate = w.stats?.dueAt ? new Date(w.stats.dueAt).toLocaleDateString("zh-TW") : "今天";
-      const override = w.voiceOverride || "auto";
+      const override = w.voiceOverride || "dict";
       return `
         <article class="word">
           <div>
@@ -1299,8 +1299,8 @@
               <button class="icon-btn" type="button" title="播放單字" aria-label="播放單字" onclick="speakWordId('${w.id}')">🔊</button>
               <div class="ko">${escapeHtml(w.korean)}</div>
               <div class="voice-tag-group">
-                <button class="voice-tag-btn ${override === 'auto' ? 'active' : ''}" type="button" onclick="setWordVoiceOverride('${w.id}', 'auto')">自動</button>
                 <button class="voice-tag-btn ${override === 'dict' ? 'active' : ''}" type="button" onclick="setWordVoiceOverride('${w.id}', 'dict')">辭典</button>
+                <button class="voice-tag-btn ${override === 'auto' ? 'active' : ''}" type="button" onclick="setWordVoiceOverride('${w.id}', 'auto')">自動</button>
               </div>
               <button class="flag-btn favorite ${w.favorite ? "active" : ""}" type="button" title="我的最愛" aria-label="我的最愛" onclick="toggleWordFlag('${w.id}', 'favorite')">★</button>
               <button class="flag-btn important ${w.important ? "active" : ""}" type="button" title="驚嘆號" aria-label="驚嘆號" onclick="toggleWordFlag('${w.id}', 'important')">!</button>
@@ -1499,7 +1499,7 @@
     if (!quiz) return;
     const item = quiz.items[quiz.index];
     const latestItem = words.find(w => w.id === item.id) || item;
-    const override = latestItem.voiceOverride || "auto";
+    const override = latestItem.voiceOverride || "dict";
     const buttons = $("quizVoiceToggleGroup").querySelectorAll(".voice-tag-btn");
     buttons.forEach(btn => {
       const modeValue = btn.textContent === "辭典" ? "dict" : "auto";
@@ -2249,7 +2249,7 @@
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
-    const override = w.voiceOverride || "auto";
+    const override = w.voiceOverride || "dict";
     const globalMode = getGlobalVoiceGender();
     const effectiveMode = override === "auto" ? globalMode : override;
 
@@ -2310,7 +2310,22 @@
     utter.rate = rate;
     utter.pitch = 1.0;
 
+    // 自動智慧尋找最自然的系統原生真人語音（避開生硬的機器人音）
+    const voices = window.speechSynthesis.getVoices();
+    const koVoice = voices.find(v => v.lang === "ko-KR" && (v.name.includes("Natural") || v.name.includes("Google") || v.name.includes("Siri") || v.name.includes("Yuna"))) ||
+                    voices.find(v => v.lang.startsWith("ko"));
+    if (koVoice) {
+      utter.voice = koVoice;
+    }
+
     window.speechSynthesis.speak(utter);
+  }
+
+  // 確保部分瀏覽器非同步載入 voices 列表時能即時抓取
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices();
+    };
   }
 
   function shuffle(arr) {
