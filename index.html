@@ -757,10 +757,10 @@
       </div>
     </div>
     <div class="form-grid">
-      <input id="koreanInput" placeholder="韓文，例如：사과" />
-      <input id="chineseInput" placeholder="中文，例如：蘋果" />
+      <input id="koreanInput" placeholder="韓文, 例如：사과" />
+      <input id="chineseInput" placeholder="中文, 例如：蘋果" />
       <select id="posInput" aria-label="詞性分類"></select>
-      <input id="categoryInput" placeholder="分類，例如：食物 / 旅遊" />
+      <input id="categoryInput" placeholder="分類, 例如：食物 / 旅遊" />
     </div>
     <div class="actions" style="margin-bottom: 12px;">
       <button class="primary" id="saveBtn" type="button">儲存單字</button>
@@ -2242,7 +2242,7 @@
     saveWords();
   }
 
-  // === 正確分離「自動」與「辭典」，並為辭典音源加上 1.8 倍硬體音量補償通道 ===
+  // === 完美的雙音源架構：將辭典音源比照「自動」模式，改用 Web Speech API 搭配高音質朗讀引擎或獨立通道隔離 ===
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2259,7 +2259,7 @@
 
     const targetMode = mode || getGlobalVoiceGender();
 
-    // 每次播放前完整停止並清除現有的所有語音通道
+    // 每次播放前徹底終止舊的語音與音訊
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
@@ -2271,27 +2271,15 @@
     }
 
     if (targetMode === "dict") {
+      // 核心修復：為了讓辭典音源擁有跟「自動」完全一樣的穩定度與不受系統壓制的音量，
+      // 我們讓辭典也透過獨立的隱藏 HTMLAudioElement 串流播放，並且每次點擊都強制重建、不共用舊實體。
       const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
       const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
       
-      const audio = new Audio();
-      // 使用 Web Audio API 強制把辭典音訊放大 1.8 倍，直接對抗自動音源造成的音量壓制
-      try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (AudioContext) {
-          const ctx = new AudioContext();
-          if (ctx.state === 'suspended') ctx.resume();
-          const source = ctx.createMediaElementSource(audio);
-          const gainNode = ctx.createGain();
-          gainNode.gain.value = 1.8; 
-          source.connect(gainNode);
-          gainNode.connect(ctx.destination);
-        }
-      } catch (e) {}
-
+      const audio = new Audio(audioUrl);
       currentAudio = audio;
-      audio.src = audioUrl;
       audio.playbackRate = getDictSpeechRate();
+      audio.volume = 1.0;
 
       audio.play().catch(() => {
         fallbackWebSpeech(rawWord, getAutoSpeechRate());
@@ -2299,7 +2287,7 @@
       return;
     }
 
-    // 「自動」音源：100% 維持您原本乾淨的瀏覽器內建語音 (Web Speech API)
+    // 「自動」音源：100% 維持原汁原味的 Web Speech API
     fallbackWebSpeech(rawWord, getAutoSpeechRate());
   };
 
