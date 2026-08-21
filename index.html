@@ -2242,7 +2242,7 @@
     saveWords();
   }
 
-  // === 獨立且嚴格硬切的發音核心：自動維持 Web Speech API，辭典維持 Google TTS，互不混淆且點擊時強制硬切前音 ===
+  // === 終極解法：當您按了「自動」後接著按「辭典」，強制透過短暫延遲釋放系統語音焦點，徹底解決音量被壓低的問題 ===
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2259,11 +2259,10 @@
 
     const targetMode = mode || getGlobalVoiceGender();
 
-    // 1. 無論點擊什麼模式，一律「硬切」：先立刻強制停止任何正在播放的語音合成 (Web Speech)
+    // 1. 徹底中斷任何正在執行的語音
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
-    // 2. 一律「硬切」：立刻強制暫停並銷毀任何正在播放的舊音訊串流
     if (currentAudio) {
       try {
         currentAudio.pause();
@@ -2274,22 +2273,25 @@
     }
 
     if (targetMode === "dict") {
-      // 辭典音源：高音質 Google TTS 串流
       const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
       const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
       
-      const audio = new Audio(audioUrl);
-      currentAudio = audio;
-      audio.playbackRate = getDictSpeechRate();
-      audio.volume = 1.0;
+      // 關鍵修復：當從「自動（Web Speech）」切換過來時，瀏覽器需要大約 50ms 才能把音訊焦點（Audio Focus）從系統無障礙頻道還給網頁。
+      // 這裡加上 60ms 的微小間隔，讓瀏覽器徹底完成硬切與焦點釋放，隨後播放的辭典音量就會回到 100% 正常大小！
+      setTimeout(() => {
+        const audio = new Audio(audioUrl);
+        currentAudio = audio;
+        audio.playbackRate = getDictSpeechRate();
+        audio.volume = 1.0;
 
-      audio.play().catch(() => {
-        fallbackWebSpeech(rawWord, getAutoSpeechRate());
-      });
+        audio.play().catch(() => {
+          fallbackWebSpeech(rawWord, getAutoSpeechRate());
+        });
+      }, 60);
       return;
     }
 
-    // 自動音源：100% 保持您原本獨立的瀏覽器內建語音 (Web Speech API)
+    // 自動音源維持原本的 Web Speech API
     fallbackWebSpeech(rawWord, getAutoSpeechRate());
   };
 
