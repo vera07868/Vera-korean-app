@@ -2242,7 +2242,7 @@
     saveWords();
   }
 
-  // === 完美的音源核心：當上一段聲音未播畢就切換或點擊辭典時，強制重置音訊通道避免音量變小 ===
+  // === 終極硬切核心：播放新音源前強制先完全斬斷並歸零上一段音訊，徹底解決音量變小問題 ===
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2259,15 +2259,17 @@
 
     const targetMode = mode || getGlobalVoiceGender();
 
-    // 核心修復：在播放前強制終止現有的 Web Speech 與舊的 Audio，
-    // 並且在播放辭典時加入微小緩衝，避免上一段聲音還沒完全結束時搶佔音訊焦點導致音量被壓低。
+    // 1. 強制硬切並完全關閉舊的語音合成
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
+    // 2. 強制硬切並完全暫停、卸載舊的音訊串流
     if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-      currentAudio.src = "";
+      try {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio.src = "";
+      } catch (e) {}
       currentAudio = null;
     }
 
@@ -2275,16 +2277,14 @@
       const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
       const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
       
-      setTimeout(() => {
-        const audio = new Audio(audioUrl);
-        currentAudio = audio;
-        audio.playbackRate = getDictSpeechRate();
-        audio.volume = 1.0;
+      const audio = new Audio(audioUrl);
+      currentAudio = audio;
+      audio.playbackRate = getDictSpeechRate();
+      audio.volume = 1.0;
 
-        audio.play().catch(() => {
-          fallbackWebSpeech(rawWord, getAutoSpeechRate());
-        });
-      }, 50);
+      audio.play().catch(() => {
+        fallbackWebSpeech(rawWord, getAutoSpeechRate());
+      });
       return;
     }
 
