@@ -2243,6 +2243,40 @@
   }
 
   // === 乾淨分離：自動音源保持 100% 原始的 Web Speech API 不變；辭典音源獨立運作並透過硬切清除前段音訊避免變小聲 ===
+  // 追蹤所有曾建立的 Audio，確保前一次播放被徹底釋放，避免瀏覽器音量混音導致下一聲變小聲
+  let activeDictAudios = [];
+
+  function hardStopAllDictAudio() {
+    // 先停掉 currentAudio 指標
+    if (currentAudio) {
+      try {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio.onended = null;
+        currentAudio.onerror = null;
+        currentAudio.oncanplay = null;
+        currentAudio.onplay = null;
+        currentAudio.src = "";
+        currentAudio.load();
+      } catch (e) {}
+      currentAudio = null;
+    }
+    // 再清掉所有曾建立過的 Audio 實例（防止漏網）
+    activeDictAudios.forEach(a => {
+      try {
+        a.pause();
+        a.currentTime = 0;
+        a.onended = null;
+        a.onerror = null;
+        a.oncanplay = null;
+        a.onplay = null;
+        a.src = "";
+        a.load();
+      } catch (e) {}
+    });
+    activeDictAudios = [];
+  }
+
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2261,9 +2295,7 @@
 
     // 1. 如果選的是「自動」，100% 維持您原本的瀏覽器內建語音，絕對不混合任何辭典邏輯
     if (targetMode === "auto") {
-      if (currentAudio) {
-        try { currentAudio.pause(); currentAudio = null; } catch(e) {}
-      }
+      hardStopAllDictAudio();
       fallbackWebSpeech(rawWord, getAutoSpeechRate());
       return;
     }
@@ -2273,25 +2305,33 @@
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
-    // 強制硬切並關閉舊的辭典音訊
-    if (currentAudio) {
-      try {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-        currentAudio.src = "";
-      } catch (e) {}
-      currentAudio = null;
-    }
+    // 強制硬切並徹底釋放所有舊的辭典音訊（避免前一段殘留導致音量被壓低）
+    hardStopAllDictAudio();
 
     const cleanWord = rawWord.replace(/\(.*?\)/g, "").replace(/\[.*?\]/g, "").trim();
     const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
     
     const audio = new Audio(audioUrl);
     currentAudio = audio;
-    audio.playbackRate = getDictSpeechRate();
+    activeDictAudios.push(audio);
+
+    // 每次都強制設為最大音量，並在真正開始播放時再確認一次
     audio.volume = 1.0;
+    audio.playbackRate = getDictSpeechRate();
+    audio.onplay = () => {
+      try { audio.volume = 1.0; } catch (e) {}
+    };
+    audio.onended = () => {
+      if (currentAudio === audio) currentAudio = null;
+      activeDictAudios = activeDictAudios.filter(a => a !== audio);
+    };
+    audio.onerror = () => {
+      if (currentAudio === audio) currentAudio = null;
+      activeDictAudios = activeDictAudios.filter(a => a !== audio);
+    };
 
     audio.play().catch(() => {
+      hardStopAllDictAudio();
       fallbackWebSpeech(rawWord, getAutoSpeechRate());
     });
   };
@@ -2318,6 +2358,8 @@
     utter.lang = "ko-KR";
     utter.rate = rate;
     utter.pitch = 1.0;
+    // 確保語音本身也是正常音量
+    utter.volume = 1.0;
 
     window.speechSynthesis.speak(utter);
   }
