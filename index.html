@@ -1470,7 +1470,7 @@
     $("quizImportantBtn").addEventListener("click", () => quiz && window.toggleWordFlag(quiz.items[quiz.index].id, "important"));
     $("backupBtn").addEventListener("click", backupCopy);
     $("downloadBackupBtn").addEventListener("click", downloadBackupFile);
-    $("chooseBackupFileBtn", () => $("backupFileInput").click());
+    $("chooseBackupFileBtn").addEventListener("click", () => $("backupFileInput").click());
     $("backupFileInput").addEventListener("change", importBackupFile);
     $("appendImportBtn").addEventListener("click", appendImportBackup);
     $("importBtn").addEventListener("click", importBackup);
@@ -2242,9 +2242,7 @@
     saveWords();
   }
 
-  // === 終極防音量壓制核心（完全分開自動與辭典，並強制為辭典建立獨立的 Web Audio 音量放大通道） ===
-  let webAudioCtx = null;
-
+  // === 正確分離「自動」與「辭典」，並為辭典音源加上 1.8 倍硬體音量補償通道 ===
   window.speakWordId = function(id) {
     const w = words.find(item => item.id === id);
     if (!w) return;
@@ -2261,7 +2259,7 @@
 
     const targetMode = mode || getGlobalVoiceGender();
 
-    // 播放前先完整清除現有語音與音訊
+    // 每次播放前完整停止並清除現有的所有語音通道
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
@@ -2277,32 +2275,23 @@
       const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ko&total=1&idx=0&textlen=${cleanWord.length}&client=tw-ob&q=${encodeURIComponent(cleanWord)}`;
       
       const audio = new Audio();
-      audio.crossOrigin = "anonymous";
+      // 使用 Web Audio API 強制把辭典音訊放大 1.8 倍，直接對抗自動音源造成的音量壓制
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          const ctx = new AudioContext();
+          if (ctx.state === 'suspended') ctx.resume();
+          const source = ctx.createMediaElementSource(audio);
+          const gainNode = ctx.createGain();
+          gainNode.gain.value = 1.8; 
+          source.connect(gainNode);
+          gainNode.connect(ctx.destination);
+        }
+      } catch (e) {}
+
       currentAudio = audio;
       audio.src = audioUrl;
       audio.playbackRate = getDictSpeechRate();
-
-      // 使用 Web Audio API 繞過瀏覽器的 HTML Audio 音量鎖死限制
-      try {
-        if (!webAudioCtx) {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          if (AudioContext) webAudioCtx = new AudioContext();
-        }
-        if (webAudioCtx) {
-          if (webAudioCtx.state === 'suspended') {
-            webAudioCtx.resume();
-          }
-          if (!audio._sourceNode) {
-            const source = webAudioCtx.createMediaElementSource(audio);
-            const gainNode = webAudioCtx.createGain();
-            // 賦予 1.5 倍的強制增益補償，徹底確保點擊自動音源後，辭典音量絕對不會被壓小
-            gainNode.gain.value = 1.5; 
-            source.connect(gainNode);
-            gainNode.connect(webAudioCtx.destination);
-            audio._sourceNode = source;
-          }
-        }
-      } catch (e) {}
 
       audio.play().catch(() => {
         fallbackWebSpeech(rawWord, getAutoSpeechRate());
@@ -2310,7 +2299,7 @@
       return;
     }
 
-    // 保留您原本的自動音源不變
+    // 「自動」音源：100% 維持您原本乾淨的瀏覽器內建語音 (Web Speech API)
     fallbackWebSpeech(rawWord, getAutoSpeechRate());
   };
 
